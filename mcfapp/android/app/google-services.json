@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "586516605601",
+    "firebase_url": "https://mcfapp-14d40.firebaseio.com",
+    "project_id": "mcfapp-14d40",
+    "storage_bucket": "mcfapp-14d40.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:586516605601:android:1f0ab60b85f925a9",
+        "android_client_info": {
+          "package_name": "com.myapp.mcfapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "586516605601-7qe0uv3p9lhfotdf37596esr8bc43p5n.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBzHKEaAnJOZz4HSkJPM_9EMFVtr4_PFKU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "586516605601-7qe0uv3p9lhfotdf37596esr8bc43p5n.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
