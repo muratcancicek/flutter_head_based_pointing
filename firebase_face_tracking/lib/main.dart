@@ -97,6 +97,24 @@ class _MyCamViewState extends State<MyCamView> {
       ),
     );
   }
+
+  void _toggleCameraDirection() async {
+    if (_direction == CameraLensDirection.back) {
+      _direction = CameraLensDirection.front;
+    } else {
+      _direction = CameraLensDirection.back;
+    }
+
+    await _camera.stopImageStream();
+    await _camera.dispose();
+
+    setState(() {
+      _camera = null;
+    });
+
+    _initializeCamera();
+  }
+
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -115,6 +133,12 @@ class _MyCamViewState extends State<MyCamView> {
         // Center is a layout widget. It takes a single child and positions it
         // in the middle of the parent.
         child:  _buildCamView(),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _toggleCameraDirection,
+        child: _direction == CameraLensDirection.back
+            ? const Icon(Icons.camera_front)
+            : const Icon(Icons.camera_rear),
       ),// This trailing comma makes auto-formatting nicer for build methods.
     );
   }
