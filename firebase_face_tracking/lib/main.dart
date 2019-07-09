@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/foundation.dart';
+import 'smile_painter.dart';
 import 'utils.dart';
 
 void main() => runApp(MyApp());
@@ -48,7 +49,11 @@ class MyCamView extends StatefulWidget {
 }
 
 class _MyCamViewState extends State<MyCamView> {
+  final FaceDetector faceDetector = FirebaseVision.instance.faceDetector();
+  List<Face> faces;
   CameraController _camera;
+
+  bool _isDetecting = false;
   CameraLensDirection _direction = CameraLensDirection.front;
 
   @override
@@ -70,11 +75,51 @@ class _MyCamViewState extends State<MyCamView> {
           : ResolutionPreset.medium,
     );
     await _camera.initialize();
-    _camera.startImageStream((CameraImage image) {
-      setState(() {
 
-      });
+    _camera.startImageStream((CameraImage image) {
+      if (_isDetecting) return;
+
+      _isDetecting = true;
+
+      detect(image, FirebaseVision.instance.faceDetector().processImage,
+          rotation)
+          .then(
+            (dynamic result) {
+          setState(() {
+            faces = result;
+          });
+
+          _isDetecting = false;
+        },
+      ).catchError(
+            (_) {
+          _isDetecting = false;
+        },
+      );
     });
+  }
+  Widget _buildResults() {
+    const Text noResultsText = const Text('No results!');
+
+    if (faces == null ||
+        _camera == null ||
+        !_camera.value.isInitialized) {
+      return noResultsText;
+    }
+
+    CustomPainter painter;
+
+    final Size imageSize = Size(
+      _camera.value.previewSize.height,
+      _camera.value.previewSize.width,
+    );
+
+    if (faces is! List<Face>) return noResultsText;
+    painter = SmilePainterLiveCamera(imageSize, faces);
+
+    return CustomPaint(
+      painter: painter,
+    );
   }
 
   Widget _buildCamView() {
@@ -94,6 +139,22 @@ class _MyCamViewState extends State<MyCamView> {
         fit: StackFit.expand,
         children: <Widget>[
           CameraPreview(_camera),
+          _buildResults(),
+          Positioned(
+            bottom: 0.0,
+            left: 0.0,
+            right: 0.0,
+            child: Container(
+              color: Colors.white,
+              height: 50.0,
+              child: ListView(
+                children: faces
+                    .map((face) =>
+                    Text(face.boundingBox.center.toString()))
+                    .toList(),
+              ),
+            ),
+          ),
         ],
       ),
     );
