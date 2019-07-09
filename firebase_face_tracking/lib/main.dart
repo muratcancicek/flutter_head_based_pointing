@@ -115,7 +115,7 @@ class _MyCamViewState extends State<MyCamView> {
     );
 
     if (faces is! List<Face>) return noResultsText;
-    painter = SmilePainterLiveCamera(imageSize, faces);
+    painter = SmilePainterLiveCamera(imageSize, faces, _direction);
 
     return CustomPaint(
       painter: painter,
