@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:camera/camera.dart';
+import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 
 Future<CameraDescription> getCamera(CameraLensDirection dir) async {
   return await availableCameras().then(
@@ -7,8 +9,6 @@ Future<CameraDescription> getCamera(CameraLensDirection dir) async {
     ),
   );
 }
-
-enum ImageRotation { rotation0, rotation90, rotation180, rotation270 }
 
 ImageRotation rotationIntToImageRotation(int rotation) {
   switch (rotation) {

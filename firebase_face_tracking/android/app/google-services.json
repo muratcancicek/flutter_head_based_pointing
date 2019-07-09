@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "901758486827",
+    "firebase_url": "https://fir-face-tracking.firebaseio.com",
+    "project_id": "fir-face-tracking",
+    "storage_bucket": "fir-face-tracking.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:901758486827:android:c0019f5c9e8f5958",
+        "android_client_info": {
+          "package_name": "com.mcicek.firebase_face_tracking"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "901758486827-7qce5ph4fqrt45vj9odoebv1b9h7qt25.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAhGyaJ60hCZIUbWP1FF4JbgelKhBM4OiM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "901758486827-7qce5ph4fqrt45vj9odoebv1b9h7qt25.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
