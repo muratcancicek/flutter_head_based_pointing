@@ -34,6 +34,7 @@ class SmilePainterLiveCamera extends CustomPainter {
         right = faces[i].boundingBox.right;
       }
 
+
       final reversedRect =  Rect.fromLTRB(
           left,
           faces[i].boundingBox.top,
@@ -48,14 +49,14 @@ class SmilePainterLiveCamera extends CustomPainter {
       );
 
       //Radius for smile circle
-      final radius = Math.min(rect.width, rect.height) / 2;
-
+      final radius = size.width / 16;
+////
+      final FaceLandmark nose =
+      faces[i].getLandmark(FaceLandmarkType.noseBase);
+     // print(nose.position);
       //Center of face rect
-      final Offset center = rect.center;
-
-      final smilePaint = Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = radius / 8;
+      // final Offset center = nose.position;
+       final Offset center = rect.center;
 
       //Draw rect border
       //canvas.drawRect(rect, paintRectStyle);
@@ -63,20 +64,6 @@ class SmilePainterLiveCamera extends CustomPainter {
       //Draw body
       canvas.drawCircle(center, radius, paint);
 
-      //Draw mouth
-      canvas.drawArc(
-          Rect.fromCircle(
-              center: center.translate(0, radius / 8), radius: radius / 2),
-          0,
-          Math.pi,
-          false,
-          smilePaint);
-
-      //Draw the eyes
-      canvas.drawCircle(Offset(center.dx - radius / 2, center.dy - radius / 2),
-          radius / 8, Paint());
-      canvas.drawCircle(Offset(center.dx + radius / 2, center.dy - radius / 2),
-          radius / 8, Paint());
     }
   }
 

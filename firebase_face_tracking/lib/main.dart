@@ -49,7 +49,11 @@ class MyCamView extends StatefulWidget {
 }
 
 class _MyCamViewState extends State<MyCamView> {
-  final FaceDetector faceDetector = FirebaseVision.instance.faceDetector();
+  final FaceDetector faceDetector = FirebaseVision.instance.faceDetector(
+      FaceDetectorOptions(
+          enableClassification: false,
+          enableLandmarks: true,
+          enableTracking: true));
   List<Face> faces;
   CameraController _camera;
 
@@ -81,7 +85,7 @@ class _MyCamViewState extends State<MyCamView> {
 
       _isDetecting = true;
 
-      detect(image, FirebaseVision.instance.faceDetector().processImage,
+      detect(image, faceDetector.processImage,
           rotation)
           .then(
             (dynamic result) {
