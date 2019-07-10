@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/foundation.dart';
-import 'smile_painter.dart';
+import 'face_painter.dart';
 import 'utils.dart';
 
 void main() => runApp(MyApp());
@@ -119,7 +119,7 @@ class _MyCamViewState extends State<MyCamView> {
     );
 
     if (faces is! List<Face>) return noResultsText;
-    painter = SmilePainterLiveCamera(imageSize, faces, _direction);
+    painter = FacePainter(imageSize, faces, _direction);
 
     return CustomPaint(
       painter: painter,
@@ -154,7 +154,8 @@ class _MyCamViewState extends State<MyCamView> {
               child: ListView(
                 children: faces
                     .map((face) =>
-                    Text(face.boundingBox.center.toString()))
+                    Text(face.getLandmark(FaceLandmarkType.noseBase)
+                        .position.toString()))
                     .toList(),
               ),
             ),
