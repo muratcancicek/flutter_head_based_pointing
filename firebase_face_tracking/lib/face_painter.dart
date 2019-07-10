@@ -3,7 +3,7 @@ import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'utils.dart';
-
+import 'pointer.dart';
 
 class FacePaint extends CustomPaint {
   final CustomPainter painter;
@@ -15,12 +15,13 @@ class FacePainter extends CustomPainter {
   final Size imageSize;
   final List<Face> faces;
   final CameraLensDirection _direction;
+  final Pointer _pointer;
 
-  FacePainter(this.imageSize, this.faces, this._direction);
+  FacePainter(this.imageSize, this.faces, this._direction, this._pointer);
 
   void addRect(Canvas canvas, Rect boundingBox, Size size) {
     final paintRectStyle = Paint()
-      ..color = Colors.red
+      ..color = Colors.blueAccent
       ..strokeWidth = 10.0
       ..style = PaintingStyle.stroke;
 
@@ -34,10 +35,11 @@ class FacePainter extends CustomPainter {
     canvas.drawRect(rect, paintRectStyle);
   }
 
-  void addCircle(Canvas canvas, Offset offset, Size size) {
-    final paint = Paint()..color = Colors.yellow;
+  void addCircle(Canvas canvas, Offset offset, Size size,
+      {double radius: 0, Paint paint}) {
+    if (paint == null) paint = Paint()..color = Colors.yellow;
     offset = flipOffsetBasedOnCam(offset, _direction, size.width);
-    final radius = size.width / 100;
+    if (radius == 0) radius = size.width / 100;
     canvas.drawCircle(offset, radius, paint);
   }
 
@@ -55,6 +57,20 @@ class FacePainter extends CustomPainter {
       addLandmark(canvas, face.getLandmark(landmark), size);
     }
   }
+  void addPointer(Canvas canvas, Offset position, Size size) {
+    final paintStyle = Paint()
+    ..color = Colors.red
+    ..strokeWidth = 10.0
+    ..style = PaintingStyle.stroke;
+
+    position = _scaleOffset(
+        offset: position,
+        imageSize: imageSize,
+        widgetSize: size
+    );
+    double radius = size.width / 20;
+    addCircle(canvas, position, size, radius: radius, paint: paintStyle);
+  }
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -62,6 +78,9 @@ class FacePainter extends CustomPainter {
       addRect(canvas, faces[i].boundingBox, size);
       addAllLandmarks(canvas, faces[i], size);
     }
+    _pointer.updateFace(faces, size: size, direction: _direction);
+    addPointer(canvas, _pointer.getPosition(), size);
+//    addPointer(canvas, faces[0].getLandmark(FaceLandmarkType.noseBase).position, size);
   }
 
   @override
@@ -85,6 +104,7 @@ Rect _scaleRect({
     rect.bottom.toDouble() * scaleY,
   );
 }
+
 Offset _scaleOffset({
   @required Offset offset,
   @required Size imageSize,

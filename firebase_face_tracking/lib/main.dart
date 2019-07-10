@@ -4,6 +4,7 @@ import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/foundation.dart';
 import 'face_painter.dart';
 import 'utils.dart';
+import 'pointer.dart';
 
 void main() => runApp(MyApp());
 
@@ -25,7 +26,7 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.deepOrange,
       ),
-      home: MyCamView(title: 'Firebase Face Detection'),
+      home: MyCamView(title: 'Head-based Pointing with Flutter'),
     );
   }
 }
@@ -54,8 +55,9 @@ class _MyCamViewState extends State<MyCamView> {
           enableClassification: false,
           enableLandmarks: true,
           enableTracking: true));
-  List<Face> faces;
   CameraController _camera;
+  List<Face> faces;
+  Pointer _pointer;
 
   bool _isDetecting = false;
   CameraLensDirection _direction = CameraLensDirection.front;
@@ -91,6 +93,8 @@ class _MyCamViewState extends State<MyCamView> {
             (dynamic result) {
           setState(() {
             faces = result;
+            Size size = Size(image.width.toDouble(), image.height.toDouble());
+            _pointer = Pointer(size, faces[0], _direction);
           });
 
           _isDetecting = false;
@@ -119,7 +123,7 @@ class _MyCamViewState extends State<MyCamView> {
     );
 
     if (faces is! List<Face>) return noResultsText;
-    painter = FacePainter(imageSize, faces, _direction);
+    painter = FacePainter(imageSize, faces, _direction, _pointer);
 
     return CustomPaint(
       painter: painter,
