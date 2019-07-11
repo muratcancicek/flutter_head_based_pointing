@@ -1,5 +1,5 @@
-name: firebase_face_tracking
-description: A new Flutter application.
+name: hbp_with_firebase_mlkit
+description: An experimental Flutter App that provides head-based pointing on mobile devices.
 
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
