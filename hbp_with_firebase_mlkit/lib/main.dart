@@ -58,6 +58,7 @@ class _MyCamViewState extends State<MyCamView> {
   CameraController _camera;
   List<Face> faces;
   Pointer _pointer;
+  FlatButton _flatButton;
 
   bool _isDetecting = false;
   CameraLensDirection _direction = CameraLensDirection.front;
@@ -66,6 +67,15 @@ class _MyCamViewState extends State<MyCamView> {
   void initState() {
     super.initState();
     _initializeCamera();
+    _flatButton =  FlatButton.icon(
+      color: Colors.blue,
+      icon: Icon(Icons.face), //`Icon` to display
+      label: Text('Button'), //`Text` to display
+      onPressed: () {
+        //Code to execute when Floating Action Button is clicked
+        //...
+      },
+    );
   }
 
   void _initializeCamera() async {
@@ -106,6 +116,7 @@ class _MyCamViewState extends State<MyCamView> {
       );
     });
   }
+
   Widget _buildResults() {
     const Text noResultsText = const Text('No results!');
 
@@ -121,12 +132,44 @@ class _MyCamViewState extends State<MyCamView> {
       _camera.value.previewSize.height,
       _camera.value.previewSize.width,
     );
-
+//    final Size imageSize = Size(340, 700);
     if (faces is! List<Face>) return noResultsText;
     painter = FacePainter(imageSize, faces, _direction, _pointer);
 
     return CustomPaint(
       painter: painter,
+    );
+  }
+
+  Positioned _addPointerCoordinates() {
+    return Positioned(
+      bottom: 0.0,
+      left: 0.0,
+      right: 0.0,
+      child: Container(
+        color: Colors.white,
+        height: 50.0,
+        child: ListView(
+          children: faces
+              .map((face) =>
+              Text(face.getLandmark(FaceLandmarkType.noseBase)
+                  .position.toString()))
+              .toList(),
+        ),
+      ),
+    );
+  }
+
+  Container _buildUI() {
+    return Container(
+      constraints: const BoxConstraints.expand(),
+      child: Column(
+        children: <Widget>[
+//          _myListView(context),
+           _flatButton,
+           Text("text"),
+        ],
+      ),
     );
   }
 
@@ -147,23 +190,9 @@ class _MyCamViewState extends State<MyCamView> {
         fit: StackFit.expand,
         children: <Widget>[
           CameraPreview(_camera),
+          _addPointerCoordinates(),
           _buildResults(),
-          Positioned(
-            bottom: 0.0,
-            left: 0.0,
-            right: 0.0,
-            child: Container(
-              color: Colors.white,
-              height: 50.0,
-              child: ListView(
-                children: faces
-                    .map((face) =>
-                    Text(face.getLandmark(FaceLandmarkType.noseBase)
-                        .position.toString()))
-                    .toList(),
-              ),
-            ),
-          ),
+          _buildUI(),
         ],
       ),
     );
