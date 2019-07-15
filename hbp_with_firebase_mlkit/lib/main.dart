@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'face_painter.dart';
 import 'utils.dart';
 import 'pointer.dart';
+import 'package:flutter/rendering.dart';
 
 void main() => runApp(MyApp());
 
@@ -15,15 +16,6 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
         primarySwatch: Colors.deepOrange,
       ),
       home: MyCamView(title: 'Head-based Pointing with Flutter'),
@@ -33,16 +25,6 @@ class MyApp extends StatelessWidget {
 
 class MyCamView extends StatefulWidget {
   MyCamView({Key key, this.title}) : super(key: key);
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
   final String title;
 
   @override
@@ -58,31 +40,12 @@ class _MyCamViewState extends State<MyCamView> {
   CameraController _camera;
   List<Face> faces;
   Pointer _pointer;
-  FlatButton _flatButton;
 
   bool _isDetecting = false;
   CameraLensDirection _direction = CameraLensDirection.front;
-
-  GlobalKey _buttonKey = GlobalKey();
-  Container _ui;
-
-  FlatButton _addFlatButton() {
-    return FlatButton.icon(
-      color: Colors.blue,
-      icon: Icon(Icons.face), //`Icon` to display
-      label: Text('Button'), //`Text` to display
-      onPressed: () {
-        //Code to execute when Floating Action Button is clicked
-        //...
-      },
-    );
-  }
-
   @override
   void initState() {
     super.initState();
-    _flatButton =  _addFlatButton();
-    _ui = _buildUI();
     _initializeCamera();
   }
 
@@ -112,7 +75,7 @@ class _MyCamViewState extends State<MyCamView> {
           setState(() {
             faces = result;
             Size size = Size(image.width.toDouble(), image.height.toDouble());
-            _pointer = Pointer(size, faces[0], _direction);
+            _pointer = Pointer(size, faces[0]);
           });
 
           _isDetecting = false;
@@ -125,68 +88,40 @@ class _MyCamViewState extends State<MyCamView> {
     });
   }
 
-  Widget _buildResults() {
-    const Text noResultsText = const Text('No results!');
-
-    if (faces == null ||
-        _camera == null ||
-        !_camera.value.isInitialized) {
-      return noResultsText;
-    }
-
-    CustomPainter painter;
-
-    final Size imageSize = Size(
-      _camera.value.previewSize.height,
-      _camera.value.previewSize.width,
-    );
-//    final Size imageSize = Size(340, 700);
-    if (faces is! List<Face>) return noResultsText;
-    painter = FacePainter(imageSize, faces, _direction, _pointer);
-
-    return CustomPaint(
-      painter: painter,
-    );
-  }
-
-  Positioned _addPointerCoordinates(BuildContext context) {
-    final RenderBox renderBoxRed = _buttonKey.currentContext.findRenderObject();
-    final positionRed = renderBoxRed.localToGlobal(Offset.zero);
-   // context.findRenderObject().hittest()
+  Positioned _addPointerCoordinates() {
     return Positioned(
       bottom: 0.0,
       left: 0.0,
       right: 0.0,
       child: Container(
         color: Colors.white,
-        height: 50.0,
-        child: ListView(
-          children: faces
-                .map((face) => Text(positionRed.toString()))
-//              .map((face) => Text(face.getLandmark(FaceLandmarkType.noseBase).position.toString()))
-              .toList(),
-        ),
+        height: 30.0,
+        child:
+        Text(_pointer.getPosition().toString()),
       ),
     );
   }
 
-  Container _buildUI() {
-    return Container(
-      constraints: const BoxConstraints.expand(),
-      child: Column(
-        children: <Widget>[
-//          _myListView(context),
-           _flatButton,
-           Text("text"),
-        ],
-      ),
+  Widget _buildResults() {
+    const Text noResultsText = const Text('No results!');
+    if (faces == null ||
+        _camera == null ||
+        !_camera.value.isInitialized) {
+      return noResultsText;
+    }
+    CustomPainter painter;
+    final Size imageSize = Size(
+      _camera.value.previewSize.height,
+      _camera.value.previewSize.width,
     );
+    if (faces is! List<Face>) return noResultsText;
+    painter = FacePainter(imageSize, faces, _direction, _pointer);
+    return CustomPaint(painter: painter);
   }
 
-  Widget _buildCamView(BuildContext context) {
+  Widget _buildCamView() {
     return Container(
       constraints: const BoxConstraints.expand(),
-      key: _buttonKey,
       child: _camera == null
           ? const Center(
         child: Text(
@@ -201,10 +136,8 @@ class _MyCamViewState extends State<MyCamView> {
         fit: StackFit.expand,
         children: <Widget>[
           CameraPreview(_camera),
-          _addPointerCoordinates(context),
           _buildResults(),
-          _ui,
-//          _buildUI(),
+          _addPointerCoordinates(),
         ],
       ),
     );
@@ -216,42 +149,33 @@ class _MyCamViewState extends State<MyCamView> {
     } else {
       _direction = CameraLensDirection.back;
     }
-
     await _camera.stopImageStream();
     await _camera.dispose();
-
     setState(() {
       _camera = null;
     });
-
     _initializeCamera();
+  }
+
+  FloatingActionButton _addFloatingActionButton() {
+    return FloatingActionButton(
+      onPressed: _toggleCameraDirection,
+      child: _direction == CameraLensDirection.back
+          ? const Icon(Icons.camera_front)
+          : const Icon(Icons.camera_rear),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
       body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child:  _buildCamView(context),
+        child:  _buildCamView(),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _toggleCameraDirection,
-        child: _direction == CameraLensDirection.back
-            ? const Icon(Icons.camera_front)
-            : const Icon(Icons.camera_rear),
-      ),// This trailing comma makes auto-formatting nicer for build methods.
+      floatingActionButton: _addFloatingActionButton(),
     );
   }
 }
