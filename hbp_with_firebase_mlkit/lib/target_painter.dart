@@ -9,6 +9,45 @@ class TargetPaint extends CustomPaint {
   TargetPaint({this.painter}) : super(painter: painter);
 }
 
+enum TargetShape {
+  RectTarget,
+  CircleTarget,
+}
+
+class Target {
+  Paint _style;
+  TargetShape _targetShape;
+  var _shape;
+
+  Target.fromRect(Rect rect, Size size, {Paint givenStyle}) {
+    _targetShape = TargetShape.RectTarget;
+    _shape = rect;
+    if (givenStyle == null) {
+        _style = Paint()
+        ..color = Colors.purple;
+    } else {
+      _style = givenStyle;
+    }
+  }
+
+  bool contains(pointer) {
+    if (_targetShape == TargetShape.RectTarget)
+      return _shape.contains(pointer.getPosition());
+    else if (_targetShape == TargetShape.CircleTarget) {
+      // TODO: implement the logic for circles
+      return false;
+    }
+    else
+      return false;
+  }
+  void draw(Canvas canvas, pointer) {
+    if(contains(pointer))
+      _style.color = Colors.white;
+    if (_targetShape == TargetShape.RectTarget)
+      canvas.drawRect(_shape, _style);
+  }
+}
+
 class TargetPainter extends CustomPainter {
   final Size imageSize;
   final CameraLensDirection _direction;
@@ -16,21 +55,15 @@ class TargetPainter extends CustomPainter {
 
  TargetPainter(this.imageSize, this._direction, this._pointer);
 
-  void addRect(Canvas canvas, Rect boundingBox, Size size) {
-    final paintRectStyle = Paint()
-      ..color = Colors.purple;
-//      ..strokeWidth = 10.0
-//      ..style = PaintingStyle.stroke;
-
+  Rect addRect(Canvas canvas, Rect boundingBox, Size size) {
     //Scale rect to image size
-    final rect = scaleRect(
-      rect: flipRectBasedOnCam(boundingBox, _direction, imageSize.width),
+    return scaleRect(
+      rect: flipRectBasedOnCam(
+          boundingBox, _direction, imageSize.width),
       imageSize: imageSize,
       widgetSize: size,
     );
-    canvas.drawRect(rect, paintRectStyle);
   }
-
   void addCircle(Canvas canvas, Offset offset, Size size,
       {double radius: 0, Paint paint}) {
     if (paint == null) paint = Paint()..color = Colors.yellow;
@@ -43,9 +76,8 @@ class TargetPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     Rect rect = Rect.fromLTRB(150, 100, 250, 200);
     rect = flipRectBasedOnCam(rect, _direction, size.width);
-    if(rect.contains(_pointer.getPosition()))
-      print("Pointer on the target");
-    addRect(canvas, rect, size);
+    Target target = Target.fromRect(rect, size);
+    target.draw(canvas, _pointer);
   }
 
   @override
