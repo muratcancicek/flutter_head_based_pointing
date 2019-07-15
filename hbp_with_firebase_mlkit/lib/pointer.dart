@@ -1,16 +1,14 @@
-import 'dart:math' as Math;
+
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
-import 'utils.dart';
 
 class Pointer {
   Size _imageSize;
-  CameraLensDirection _direction;
   Face _face;
   Offset _position;
 
-  Pointer(this._imageSize, this._face, this._direction);
+  Pointer(this._imageSize, this._face);
 
   void updateFace(List<Face> faces, {Size size, CameraLensDirection direction}) {
     bool differentFace = true;
@@ -23,7 +21,6 @@ class Pointer {
     }
     if (differentFace) _face = faces[0];
     if (size != null) _imageSize = size;
-    if (direction != null) _direction = direction;
 
   }
 
