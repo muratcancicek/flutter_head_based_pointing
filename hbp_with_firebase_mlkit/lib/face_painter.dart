@@ -1,9 +1,8 @@
-import 'dart:math' as Math;
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
-import 'utils.dart';
 import 'pointer.dart';
+import 'utils.dart';
 
 class FacePaint extends CustomPaint {
   final CustomPainter painter;
@@ -26,7 +25,7 @@ class FacePainter extends CustomPainter {
       ..style = PaintingStyle.stroke;
 
     //Scale rect to image size
-    final rect = _scaleRect(
+    final rect = scaleRect(
       rect: flipRectBasedOnCam(
           boundingBox, _direction, imageSize.width),
       imageSize: imageSize,
@@ -44,7 +43,7 @@ class FacePainter extends CustomPainter {
   }
 
   void addLandmark(Canvas canvas, FaceLandmark landmark, Size size) {
-    Offset position = _scaleOffset(
+    Offset position = scaleOffset(
         offset: landmark.position,
         imageSize: imageSize,
         widgetSize: size
@@ -57,13 +56,14 @@ class FacePainter extends CustomPainter {
       addLandmark(canvas, face.getLandmark(landmark), size);
     }
   }
+
   void addPointer(Canvas canvas, Offset position, Size size) {
     final paintStyle = Paint()
     ..color = Colors.red
     ..strokeWidth = 10.0
     ..style = PaintingStyle.stroke;
 
-    position = _scaleOffset(
+    position = scaleOffset(
         offset: position,
         imageSize: imageSize,
         widgetSize: size
@@ -80,7 +80,6 @@ class FacePainter extends CustomPainter {
     }
     _pointer.updateFace(faces, size: size, direction: _direction);
     addPointer(canvas, _pointer.getPosition(), size);
-//    addPointer(canvas, faces[0].getLandmark(FaceLandmarkType.noseBase).position, size);
   }
 
   @override
@@ -89,29 +88,3 @@ class FacePainter extends CustomPainter {
   }
 }
 
-Rect _scaleRect({
-  @required Rect rect,
-  @required Size imageSize,
-  @required Size widgetSize,
-}) {
-  final double scaleX = widgetSize.width / imageSize.width;
-  final double scaleY = widgetSize.height / imageSize.height;
-
-  return Rect.fromLTRB(
-    rect.left.toDouble() * scaleX,
-    rect.top.toDouble() * scaleY,
-    rect.right.toDouble() * scaleX,
-    rect.bottom.toDouble() * scaleY,
-  );
-}
-
-Offset _scaleOffset({
-  @required Offset offset,
-  @required Size imageSize,
-  @required Size widgetSize,
-}) {
-  final double scaleX = widgetSize.width / imageSize.width;
-  final double scaleY = widgetSize.height / imageSize.height;
-
-  return Offset(offset.dx * scaleX, offset.dy * scaleY);
-}

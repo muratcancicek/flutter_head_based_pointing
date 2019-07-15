@@ -1,11 +1,12 @@
-import 'package:flutter/material.dart';
-import 'package:camera/camera.dart';
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/foundation.dart';
-import 'face_painter.dart';
-import 'utils.dart';
-import 'pointer.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/material.dart';
+import 'package:camera/camera.dart';
+import 'target_painter.dart';
+import 'face_painter.dart';
+import 'pointer.dart';
+import 'utils.dart';
 
 void main() => runApp(MyApp());
 
@@ -119,6 +120,14 @@ class _MyCamViewState extends State<MyCamView> {
     return CustomPaint(painter: painter);
   }
 
+  CustomPaint _addTargets() {
+    final Size imageSize = Size(
+      _camera.value.previewSize.height,
+      _camera.value.previewSize.width,
+    );
+    return CustomPaint(painter: TargetPainter(imageSize, _direction, _pointer));
+  }
+
   Widget _buildCamView() {
     return Container(
       constraints: const BoxConstraints.expand(),
@@ -137,6 +146,7 @@ class _MyCamViewState extends State<MyCamView> {
         children: <Widget>[
           CameraPreview(_camera),
           _buildResults(),
+          _addTargets(),
           _addPointerCoordinates(),
         ],
       ),
