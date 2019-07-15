@@ -63,11 +63,11 @@ class _MyCamViewState extends State<MyCamView> {
   bool _isDetecting = false;
   CameraLensDirection _direction = CameraLensDirection.front;
 
-  @override
-  void initState() {
-    super.initState();
-    _initializeCamera();
-    _flatButton =  FlatButton.icon(
+  GlobalKey _buttonKey = GlobalKey();
+  Container _ui;
+
+  FlatButton _addFlatButton() {
+    return FlatButton.icon(
       color: Colors.blue,
       icon: Icon(Icons.face), //`Icon` to display
       label: Text('Button'), //`Text` to display
@@ -76,6 +76,14 @@ class _MyCamViewState extends State<MyCamView> {
         //...
       },
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _flatButton =  _addFlatButton();
+    _ui = _buildUI();
+    _initializeCamera();
   }
 
   void _initializeCamera() async {
@@ -141,7 +149,10 @@ class _MyCamViewState extends State<MyCamView> {
     );
   }
 
-  Positioned _addPointerCoordinates() {
+  Positioned _addPointerCoordinates(BuildContext context) {
+    final RenderBox renderBoxRed = _buttonKey.currentContext.findRenderObject();
+    final positionRed = renderBoxRed.localToGlobal(Offset.zero);
+   // context.findRenderObject().hittest()
     return Positioned(
       bottom: 0.0,
       left: 0.0,
@@ -151,9 +162,8 @@ class _MyCamViewState extends State<MyCamView> {
         height: 50.0,
         child: ListView(
           children: faces
-              .map((face) =>
-              Text(face.getLandmark(FaceLandmarkType.noseBase)
-                  .position.toString()))
+                .map((face) => Text(positionRed.toString()))
+//              .map((face) => Text(face.getLandmark(FaceLandmarkType.noseBase).position.toString()))
               .toList(),
         ),
       ),
@@ -173,9 +183,10 @@ class _MyCamViewState extends State<MyCamView> {
     );
   }
 
-  Widget _buildCamView() {
+  Widget _buildCamView(BuildContext context) {
     return Container(
       constraints: const BoxConstraints.expand(),
+      key: _buttonKey,
       child: _camera == null
           ? const Center(
         child: Text(
@@ -190,9 +201,10 @@ class _MyCamViewState extends State<MyCamView> {
         fit: StackFit.expand,
         children: <Widget>[
           CameraPreview(_camera),
-          _addPointerCoordinates(),
+          _addPointerCoordinates(context),
           _buildResults(),
-          _buildUI(),
+          _ui,
+//          _buildUI(),
         ],
       ),
     );
@@ -232,7 +244,7 @@ class _MyCamViewState extends State<MyCamView> {
       body: Center(
         // Center is a layout widget. It takes a single child and positions it
         // in the middle of the parent.
-        child:  _buildCamView(),
+        child:  _buildCamView(context),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _toggleCameraDirection,
