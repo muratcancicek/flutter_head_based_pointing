@@ -1,4 +1,3 @@
-
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
@@ -53,9 +52,11 @@ class Pointer {
   }
 
   Offset getPosition() {
-    double dx = calculateXFromCheeks();
+    double dx = _imageSize.width - calculateXFromCheeks();
     double dy = calculateY();
 
+//    double dx = calculateXFromCheeks();
+//    double dy = calculateY();
     _position = Offset(dx, dy);
     return _position;
   }

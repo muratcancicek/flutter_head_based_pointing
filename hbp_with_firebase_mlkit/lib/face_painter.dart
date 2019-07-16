@@ -57,21 +57,6 @@ class FacePainter extends CustomPainter {
     }
   }
 
-  void addPointer(Canvas canvas, Offset position, Size size) {
-    final paintStyle = Paint()
-    ..color = Colors.red
-    ..strokeWidth = 10.0
-    ..style = PaintingStyle.stroke;
-
-    position = scaleOffset(
-        offset: position,
-        imageSize: imageSize,
-        widgetSize: size
-    );
-    double radius = size.width / 20;
-    addCircle(canvas, position, size, radius: radius, paint: paintStyle);
-  }
-
   @override
   void paint(Canvas canvas, Size size) {
     for (var i = 0; i < faces.length; i++) {
@@ -79,7 +64,6 @@ class FacePainter extends CustomPainter {
       addAllLandmarks(canvas, faces[i], size);
     }
     _pointer.updateFace(faces, size: size, direction: _direction);
-    addPointer(canvas, _pointer.getPosition(), size);
   }
 
   @override
