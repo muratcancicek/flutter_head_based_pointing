@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'pointer.dart';
-import 'utils.dart';
 
 class TargetPaint extends CustomPaint {
   final CustomPainter painter;
@@ -43,7 +42,6 @@ class Target {
     if (_targetShape == TargetShape.RectTarget)
       return _shape.contains(pointer);
     else if (_targetShape == TargetShape.CircleTarget) {
-      // TODO: implement the logic for circles
       return (pointer - _shape[0]).distance < _shape[1];
     }
     else
@@ -65,36 +63,49 @@ class TargetPainter extends CustomPainter {
 
  TargetPainter(this.imageSize, this._pointer);
 
-  void addCircle(Canvas canvas, Offset offset, Size size,
+  void _addCircle(Canvas canvas, Offset offset, Size size,
       {double radius: 0, Paint paint}) {
     if (paint == null) paint = Paint()..color = Colors.yellow;
     if (radius == 0) radius = size.width / 100;
     canvas.drawCircle(offset, radius, paint);
   }
 
-  void addPointer(Canvas canvas, Offset position, Size size) {
+  void _addPointer(Canvas canvas, Offset position, Size size) {
     final paintStyle = Paint()
       ..color = Colors.red
       ..strokeWidth = 10.0
       ..style = PaintingStyle.stroke;
 
     double radius = size.width / 20;
-    addCircle(canvas, position, size, radius: radius, paint: paintStyle);
+    _addCircle(canvas, position, size, radius: radius, paint: paintStyle);
+  }
+
+  void _addTargetGrid(Canvas canvas, Size size) {
+
+    double width = size.width / 4;
+    double height = size.height / 6;
+
+//    double width = 640 / 4;
+//    double height = 380 / 6;
+ //   print(size);
+    for(var i = width; i < size.width; i += width){
+      for(var j = height; j < size.height; j += height) {
+        Offset pos = Offset(i, j);
+//        pos = scaleOffset(offset: pos, imageSize: imageSize, widgetSize: size);
+        Target circle = Target.fromCircle(pos, 40);
+        circle.draw(canvas, _pointer.getPosition());
+      }
+    }
   }
 
   @override
   void paint(Canvas canvas, Size size) {
-    Rect rect = Rect.fromLTRB(50, 100, 100, 150);
-//    rect = flipRectBasedOnCam(rect, _direction, size.width);
-    Target target = Target.fromRect(rect);
-    target.draw(canvas, _pointer.getPosition());
+//    Rect rect = Rect.fromLTRB(50, 100, 100, 150);
+//    Target target = Target.fromRect(rect);
+//    target.draw(canvas, _pointer.getPosition());
+    _addTargetGrid(canvas, size);
 
-    Offset pos = Offset(380, 540);
-    pos = scaleOffset(offset: pos, imageSize: imageSize, widgetSize: size);
-    Target circle = Target.fromCircle(pos, 50);
-    circle.draw(canvas, _pointer.getPosition());
-
-    addPointer(canvas, _pointer.getPosition(), size);
+    _addPointer(canvas, _pointer.getPosition(), size);
   }
 
   @override

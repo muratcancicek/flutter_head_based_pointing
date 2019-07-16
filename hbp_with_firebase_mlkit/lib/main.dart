@@ -125,7 +125,7 @@ class _MyCamViewState extends State<MyCamView> {
       _camera.value.previewSize.height,
       _camera.value.previewSize.width,
     );
-    return CustomPaint(painter: TargetPainter(imageSize, _direction, _pointer));
+    return CustomPaint(painter: TargetPainter(imageSize, _pointer));
   }
 
   Widget _buildCamView() {
