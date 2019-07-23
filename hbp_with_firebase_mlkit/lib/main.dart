@@ -1,3 +1,6 @@
+import 'dart:ui';
+
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
@@ -32,11 +35,8 @@ class MyCamView extends StatefulWidget {
 }
 
 class _MyCamViewState extends State<MyCamView> {
-  final FaceDetector faceDetector = FirebaseVision.instance.faceDetector(
-      FaceDetectorOptions(
-          enableClassification: false,
-          enableLandmarks: true,
-          enableTracking: true));
+  final FaceDetector faceDetector = FirebaseVision.instance
+      .faceDetector(FaceDetectorOptions(enableClassification: false, enableLandmarks: true, enableTracking: true));
   CameraController _camera;
   List<Face> faces;
   Pointer _pointer;
@@ -56,6 +56,7 @@ class _MyCamViewState extends State<MyCamView> {
       onPressed: () {
         //Code to execute when Floating Action Button is clicked
         //...
+        print('You pressed the Button!');
       },
     );
   }
@@ -63,7 +64,7 @@ class _MyCamViewState extends State<MyCamView> {
   @override
   void initState() {
     super.initState();
-    _flatButton =  _addFlatButton();
+    _flatButton = _addFlatButton();
     _ui = _buildUI();
     _initializeCamera();
   }
@@ -76,9 +77,7 @@ class _MyCamViewState extends State<MyCamView> {
 
     _camera = CameraController(
       description,
-      defaultTargetPlatform == TargetPlatform.iOS
-          ? ResolutionPreset.low
-          : ResolutionPreset.medium,
+      defaultTargetPlatform == TargetPlatform.iOS ? ResolutionPreset.low : ResolutionPreset.medium,
     );
     await _camera.initialize();
 
@@ -87,20 +86,28 @@ class _MyCamViewState extends State<MyCamView> {
 
       _isDetecting = true;
 
-      detect(image, faceDetector.processImage,
-          rotation)
-          .then(
-            (dynamic result) {
+      detect(image, faceDetector.processImage, rotation).then(
+        (dynamic result) {
           setState(() {
             faces = result;
             Size size = Size(image.width.toDouble(), image.height.toDouble());
             _pointer = Pointer(size, faces[0], _direction);
+            BoxHitTestResult hitTest = BoxHitTestResult();
+            final position = _pointer.getPosition();
+            GestureBinding.instance.hitTest(hitTest, position);
+            // if (position.dy < 150 && position.dx > 400 && position.dx < 500) {
+              // print('trying');
+              // print(hitTest.path.skip(8) .take(5));
+              GestureBinding.instance.dispatchEvent( PointerDownEvent(), hitTest);
+              GestureBinding.instance.dispatchEvent( PointerUpEvent(), hitTest);
+            // }
+            // print(hitTest.path.first);
           });
 
           _isDetecting = false;
         },
       ).catchError(
-            (_) {
+        (_) {
           _isDetecting = false;
         },
       );
@@ -108,16 +115,15 @@ class _MyCamViewState extends State<MyCamView> {
   }
 
   Positioned _addPointerCoordinates(BuildContext context) {
-    final RenderBox renderBox =context.findRenderObject();
-//    final RenderBox renderBox = _buttonKey.currentContext.findRenderObject();
+    // final RenderBox renderBox = context.findRenderObject();
+    final RenderBox renderBox = _buttonKey.currentContext.findRenderObject();
     final Offset offset = _pointer.getPosition();
     final position = renderBox.localToGlobal(offset);
     Iterable<HitTestEntry> entries;
-    final hitTestResult = HitTestResult();
+    final hitTestResult = BoxHitTestResult();
     if (renderBox.hitTest(hitTestResult, position: position)) {
       // a descendant of `renderObj` got tapped
       entries = hitTestResult.path;
-//      print(hitTestResult.path);
     }
     return Positioned(
       bottom: 0.0,
@@ -126,14 +132,16 @@ class _MyCamViewState extends State<MyCamView> {
       child: Container(
         color: Colors.white,
         height: 200.0,
-        child:
+        child: entries == null
+            ? Text('No entries')
+            :
 //        Text(entries.length.toString()),
-        ListView(
-        children: entries.map((e) => Text(e.toString())).toList(),
+            ListView(
+                children: entries.map((e) => Text(e.toString())).toList(),
 //            faces.map((face) => Text(positionRed.toString()))
 //              .map((face) => Text(face.getLandmark(FaceLandmarkType.noseBase).position.toString()))
 //              .toList(),
-      ),
+              ),
       ),
     );
   }
@@ -141,9 +149,7 @@ class _MyCamViewState extends State<MyCamView> {
   Widget _buildResults() {
     const Text noResultsText = const Text('No results!');
 
-    if (faces == null ||
-        _camera == null ||
-        !_camera.value.isInitialized) {
+    if (faces == null || _camera == null || !_camera.value.isInitialized) {
       return noResultsText;
     }
 
@@ -167,8 +173,8 @@ class _MyCamViewState extends State<MyCamView> {
 //      constraints: const BoxConstraints.expand(),
       child: Column(
         children: <Widget>[
-           _flatButton,
-           Text("text"),
+          _flatButton,
+          Text("text"),
         ],
       ),
     );
@@ -179,24 +185,24 @@ class _MyCamViewState extends State<MyCamView> {
       constraints: const BoxConstraints.expand(),
       child: _camera == null
           ? const Center(
-        child: Text(
-          'Initializing Camera...',
-          style: TextStyle(
-            color: Colors.green,
-            fontSize: 30.0,
-          ),
-        ),
-      )
+              child: Text(
+                'Initializing Camera...',
+                style: TextStyle(
+                  color: Colors.green,
+                  fontSize: 30.0,
+                ),
+              ),
+            )
           : Stack(
-        fit: StackFit.expand,
-        children: <Widget>[
-          CameraPreview(_camera),
-          _addPointerCoordinates(context),
-          _buildResults(),
-          //         _ui,
-          _buildUI(),
-        ],
-      ),
+              fit: StackFit.expand,
+              children: <Widget>[
+                CameraPreview(_camera),
+                // _addPointerCoordinates(context),
+                //         _ui,
+                _buildUI(),
+                _buildResults(),
+              ],
+            ),
     );
   }
 
@@ -217,9 +223,7 @@ class _MyCamViewState extends State<MyCamView> {
   FloatingActionButton _addFloatingActionButton() {
     return FloatingActionButton(
       onPressed: _toggleCameraDirection,
-      child: _direction == CameraLensDirection.back
-          ? const Icon(Icons.camera_front)
-          : const Icon(Icons.camera_rear),
+      child: _direction == CameraLensDirection.back ? const Icon(Icons.camera_front) : const Icon(Icons.camera_rear),
     );
   }
 
@@ -231,7 +235,7 @@ class _MyCamViewState extends State<MyCamView> {
         title: Text(widget.title),
       ),
       body: Center(
-        child:  _buildCamView(context),
+        child: _buildCamView(context),
       ),
       floatingActionButton: _addFloatingActionButton(),
     );
