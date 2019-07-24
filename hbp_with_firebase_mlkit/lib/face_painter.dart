@@ -1,4 +1,3 @@
-import 'dart:math' as Math;
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
@@ -72,6 +71,11 @@ class FacePainter extends CustomPainter {
     addCircle(canvas, position, size, radius: radius, paint: paintStyle);
   }
 
+@override
+  bool hitTest(Offset position) {
+    // TODO: implement hitTest
+    return false;
+  }
   @override
   void paint(Canvas canvas, Size size) {
     for (var i = 0; i < faces.length; i++) {
