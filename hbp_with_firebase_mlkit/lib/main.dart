@@ -57,6 +57,7 @@ class _MyCamViewState extends State<MyCamView> {
         //Code to execute when Floating Action Button is clicked
         //...
         print('You pressed the Button!');
+        print(_pointer.getPosition());
       },
     );
   }
@@ -94,6 +95,7 @@ class _MyCamViewState extends State<MyCamView> {
             _pointer = Pointer(size, faces[0], _direction);
             BoxHitTestResult hitTest = BoxHitTestResult();
             final position = _pointer.getPosition();
+            RendererBinding.instance.f
             GestureBinding.instance.hitTest(hitTest, position);
             // if (position.dy < 150 && position.dx > 400 && position.dx < 500) {
               // print('trying');
@@ -115,16 +117,7 @@ class _MyCamViewState extends State<MyCamView> {
   }
 
   Positioned _addPointerCoordinates(BuildContext context) {
-    // final RenderBox renderBox = context.findRenderObject();
-    final RenderBox renderBox = _buttonKey.currentContext.findRenderObject();
-    final Offset offset = _pointer.getPosition();
-    final position = renderBox.localToGlobal(offset);
     Iterable<HitTestEntry> entries;
-    final hitTestResult = BoxHitTestResult();
-    if (renderBox.hitTest(hitTestResult, position: position)) {
-      // a descendant of `renderObj` got tapped
-      entries = hitTestResult.path;
-    }
     return Positioned(
       bottom: 0.0,
       left: 0.0,
@@ -197,7 +190,7 @@ class _MyCamViewState extends State<MyCamView> {
               fit: StackFit.expand,
               children: <Widget>[
                 CameraPreview(_camera),
-                // _addPointerCoordinates(context),
+                _addPointerCoordinates(context),
                 //         _ui,
                 _buildUI(),
                 _buildResults(),
