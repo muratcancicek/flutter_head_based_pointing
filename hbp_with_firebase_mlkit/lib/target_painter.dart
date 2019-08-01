@@ -82,20 +82,17 @@ class TargetPainter extends CustomPainter {
 
   void _addTargetGrid(Canvas canvas, Size size) {
 
-    double width = size.width / 4;
-    double height = size.height / 6;
+    Offset pos1 = Offset(100, 100);
+    Offset pos2 = Offset(100, 600);
+    Offset pos3 = Offset(200, 580);
+    Offset pos4 = Offset(300, 530);
 
-//    double width = 640 / 4;
-//    double height = 380 / 6;
- //   print(size);
-    for(var i = width; i < size.width; i += width){
-      for(var j = height; j < size.height; j += height) {
-        Offset pos = Offset(i, j);
-//        pos = scaleOffset(offset: pos, imageSize: imageSize, widgetSize: size);
-        Target circle = Target.fromCircle(pos, 40);
-        circle.draw(canvas, _pointer.getPosition());
-      }
-    }
+
+    Target.fromCircle(pos1,  60).draw(canvas, _pointer.getPosition());
+    Target.fromCircle(pos2,  60).draw(canvas, _pointer.getPosition());
+    Target.fromCircle(pos3,  60).draw(canvas, _pointer.getPosition());
+    Target.fromCircle(pos4,  60).draw(canvas, _pointer.getPosition());
+
   }
 
   @override
