@@ -16,7 +16,7 @@ class Target {
   Paint _style;
   TargetShape _targetShape;
   var _shape;
-
+  var _pressed = false;
   Target.fromRect(Rect rect, {Paint givenStyle}) {
     _targetShape = TargetShape.RectTarget;
     _shape = rect;
@@ -40,16 +40,23 @@ class Target {
 
   bool contains(pointer) {
     if (_targetShape == TargetShape.RectTarget)
-      return _shape.contains(pointer);
+      return _shape.contains(pointer.getPosition());
     else if (_targetShape == TargetShape.CircleTarget) {
-      return (pointer - _shape[0]).distance < _shape[1];
+      return (pointer.getPosition() - _shape[0]).distance < _shape[1];
     }
     else
       return false;
   }
   void draw(Canvas canvas, pointer) {
-    if(contains(pointer))
-      _style.color = Colors.white;
+    if (this._pressed)
+      _style.color = Colors.red;
+    else if(contains(pointer))
+      if(pointer.pressedDown()) {
+        _style.color = Colors.red;
+        this._pressed = true;
+      }
+      else
+        _style.color = Colors.white;
     if (_targetShape == TargetShape.RectTarget)
       canvas.drawRect(_shape, _style);
     else if (_targetShape == TargetShape.CircleTarget)
@@ -60,8 +67,26 @@ class Target {
 class TargetPainter extends CustomPainter {
   final Size imageSize;
   final Pointer _pointer;
+  List<Target> _targets = List<Target>();
 
- TargetPainter(this.imageSize, this._pointer);
+  void createTargets() {
+    Offset pos1 = Offset(100, 100);
+    Offset pos2 = Offset(100, 400);
+    Offset pos3 = Offset(200, 380);
+    Offset pos4 = Offset(300, 330);
+
+    Target t = Target.fromCircle(pos1,  60);
+    _targets.add(t);
+//    _targets.add(Target.fromCircle(pos2,  60));
+//    _targets.add(Target.fromCircle(pos3,  60));
+//    _targets.add(Target.fromCircle(pos4,  60));
+
+  }
+
+
+  TargetPainter(this.imageSize, this._pointer) {
+    createTargets();
+  }
 
   void _addCircle(Canvas canvas, Offset offset, Size size,
       {double radius: 0, Paint paint}) {
@@ -82,16 +107,10 @@ class TargetPainter extends CustomPainter {
 
   void _addTargetGrid(Canvas canvas, Size size) {
 
-    Offset pos1 = Offset(100, 100);
-    Offset pos2 = Offset(100, 600);
-    Offset pos3 = Offset(200, 580);
-    Offset pos4 = Offset(300, 530);
+   _targets.forEach((t) => t.draw(canvas, _pointer));
 
 
-    Target.fromCircle(pos1,  60).draw(canvas, _pointer.getPosition());
-    Target.fromCircle(pos2,  60).draw(canvas, _pointer.getPosition());
-    Target.fromCircle(pos3,  60).draw(canvas, _pointer.getPosition());
-    Target.fromCircle(pos4,  60).draw(canvas, _pointer.getPosition());
+
 
   }
 

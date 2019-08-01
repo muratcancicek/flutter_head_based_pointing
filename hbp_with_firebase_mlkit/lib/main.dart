@@ -35,7 +35,7 @@ class MyCamView extends StatefulWidget {
 class _MyCamViewState extends State<MyCamView> {
   final FaceDetector faceDetector = FirebaseVision.instance.faceDetector(
       FaceDetectorOptions(
-          enableClassification: false,
+          enableClassification: true,
           enableLandmarks: true,
           enableTracking: true));
   CameraController _camera;
@@ -98,7 +98,7 @@ class _MyCamViewState extends State<MyCamView> {
         color: Colors.white,
         height: 30.0,
         child:
-        Text(_pointer.getPosition().toString()),
+        Text(_pointer.pressedDown().toString()),
       ),
     );
   }

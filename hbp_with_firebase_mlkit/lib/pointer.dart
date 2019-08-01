@@ -60,4 +60,8 @@ class Pointer {
     _position = Offset(dx, dy);
     return _position;
   }
+
+  bool pressedDown() {
+    return _face.smilingProbability > 0.9;
+  }
 }
