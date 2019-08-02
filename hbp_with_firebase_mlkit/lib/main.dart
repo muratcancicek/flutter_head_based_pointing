@@ -41,9 +41,11 @@ class _MyCamViewState extends State<MyCamView> {
   CameraController _camera;
   List<Face> faces;
   Pointer _pointer;
+  var _targetBuilder;
 
   bool _isDetecting = false;
   CameraLensDirection _direction = CameraLensDirection.front;
+
   @override
   void initState() {
     super.initState();
@@ -69,14 +71,16 @@ class _MyCamViewState extends State<MyCamView> {
 
       _isDetecting = true;
 
-      detect(image, faceDetector.processImage,
-          rotation)
-          .then(
+      detect(image, faceDetector.processImage, rotation).then(
             (dynamic result) {
           setState(() {
             faces = result;
             Size size = Size(image.width.toDouble(), image.height.toDouble());
-            _pointer = Pointer(size, faces[0]);
+            if (_pointer == null)
+              _pointer = Pointer(size, faces[0]);
+            else
+              _pointer.updateFace(faces, size: size);
+//            _targetBuilder.pointer = _pointer;
           });
 
           _isDetecting = false;
@@ -115,17 +119,21 @@ class _MyCamViewState extends State<MyCamView> {
       _camera.value.previewSize.height,
       _camera.value.previewSize.width,
     );
+
     if (faces is! List<Face>) return noResultsText;
     painter = FacePainter(imageSize, faces, _direction, _pointer);
     return CustomPaint(painter: painter);
   }
 
   CustomPaint _addTargets() {
-    final Size imageSize = Size(
-      _camera.value.previewSize.height,
-      _camera.value.previewSize.width,
-    );
-    return CustomPaint(painter: TargetPainter(imageSize, _pointer));
+    if (_targetBuilder == null) {
+      final Size imageSize = Size(
+        _camera.value.previewSize.height,
+        _camera.value.previewSize.width,
+      );
+      _targetBuilder = TargetBuilder(imageSize, _pointer);
+    }
+    return CustomPaint(painter: _targetBuilder.getPainter());
   }
 
   Widget _buildCamView() {

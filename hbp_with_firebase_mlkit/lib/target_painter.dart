@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'pointer.dart';
+import 'dart:math';
 
 class TargetPaint extends CustomPaint {
   final CustomPainter painter;
@@ -16,7 +17,10 @@ class Target {
   Paint _style;
   TargetShape _targetShape;
   var _shape;
+  var _switched = false;
   var _pressed = false;
+  var _highlighted = false;
+
   Target.fromRect(Rect rect, {Paint givenStyle}) {
     _targetShape = TargetShape.RectTarget;
     _shape = rect;
@@ -47,16 +51,28 @@ class Target {
     else
       return false;
   }
+
   void draw(Canvas canvas, pointer) {
-    if (this._pressed)
-      _style.color = Colors.red;
-    else if(contains(pointer))
-      if(pointer.pressedDown()) {
-        _style.color = Colors.red;
-        this._pressed = true;
+    if (contains(pointer)) {
+      if (pointer.pressedDown()) {
+        if (!_switched)
+          _pressed = !_pressed;
+        _switched = true;
+        _highlighted = false;
       }
       else
-        _style.color = Colors.white;
+        _highlighted = true;
+    }
+    else {
+      _highlighted = false;
+      _switched = false;
+    }
+    if (this._pressed)
+      _style.color = Colors.blue;
+    else
+      _style.color = Colors.lightGreen;
+    if (!_switched && _highlighted)
+      _style.color = Colors.white;
     if (_targetShape == TargetShape.RectTarget)
       canvas.drawRect(_shape, _style);
     else if (_targetShape == TargetShape.CircleTarget)
@@ -64,33 +80,32 @@ class Target {
   }
 }
 
-class TargetPainter extends CustomPainter {
+class TargetBuilder {
   final Size imageSize;
-  final Pointer _pointer;
+  final Pointer pointer;
   List<Target> _targets = List<Target>();
 
   void createTargets() {
+    var r = 300;
     Offset pos1 = Offset(100, 100);
-    Offset pos2 = Offset(100, 400);
-    Offset pos3 = Offset(200, 380);
-    Offset pos4 = Offset(300, 330);
+    Offset pos2 = Offset(pos1.dx + (r * cos(0.5 * pi)), pos1.dx + (r * sin(0.5 * pi)));
+    Offset pos3 = Offset(pos1.dx + (r * cos(0.35 * pi)), pos1.dx + (r * sin(0.35 * pi)));
+    Offset pos4 = Offset(pos1.dx + (r * cos(0.20 * pi)), pos1.dx + (r * sin(0.20 * pi)));
 
-    Target t = Target.fromCircle(pos1,  60);
-    _targets.add(t);
-//    _targets.add(Target.fromCircle(pos2,  60));
-//    _targets.add(Target.fromCircle(pos3,  60));
-//    _targets.add(Target.fromCircle(pos4,  60));
-
+    _targets.add(Target.fromCircle(pos1, 60));
+    _targets.add(Target.fromCircle(pos2,  60));
+    _targets.add(Target.fromCircle(pos3,  60));
+    _targets.add(Target.fromCircle(pos4,  60));
   }
 
-
-  TargetPainter(this.imageSize, this._pointer) {
+  TargetBuilder(this.imageSize, this.pointer) {
     createTargets();
   }
 
   void _addCircle(Canvas canvas, Offset offset, Size size,
       {double radius: 0, Paint paint}) {
-    if (paint == null) paint = Paint()..color = Colors.yellow;
+    if (paint == null) paint = Paint()
+      ..color = Colors.yellow;
     if (radius == 0) radius = size.width / 100;
     canvas.drawCircle(offset, radius, paint);
   }
@@ -106,26 +121,39 @@ class TargetPainter extends CustomPainter {
   }
 
   void _addTargetGrid(Canvas canvas, Size size) {
-
-   _targets.forEach((t) => t.draw(canvas, _pointer));
-
-
-
-
+    _targets.forEach((t) => t.draw(canvas, pointer));
   }
+
+  void paint(Canvas canvas, Size size) {
+    _addTargetGrid(canvas, size);
+    _addPointer(canvas, pointer.getPosition(), size);
+  }
+
+  bool shouldRepaint(TargetBuilder oldDelegate) {
+    return imageSize != oldDelegate.imageSize || pointer != oldDelegate.pointer;
+  }
+
+  TargetPainter getPainter() {
+    return TargetPainter(this);
+  }
+}
+
+class TargetPainter extends CustomPainter {
+  TargetBuilder _targetBuilder;
+
+  TargetPainter(this._targetBuilder);
 
   @override
   void paint(Canvas canvas, Size size) {
-//    Rect rect = Rect.fromLTRB(50, 100, 100, 150);
-//    Target target = Target.fromRect(rect);
-//    target.draw(canvas, _pointer.getPosition());
-    _addTargetGrid(canvas, size);
-
-    _addPointer(canvas, _pointer.getPosition(), size);
+    _targetBuilder.paint(canvas, size);
   }
 
   @override
   bool shouldRepaint(TargetPainter oldDelegate) {
-    return imageSize != oldDelegate.imageSize || _pointer != oldDelegate._pointer;
+    return _targetBuilder.shouldRepaint(oldDelegate.getTargetBuilder());
+  }
+
+  TargetBuilder getTargetBuilder() {
+    return _targetBuilder;
   }
 }
