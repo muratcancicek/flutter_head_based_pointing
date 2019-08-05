@@ -102,7 +102,7 @@ class _MyCamViewState extends State<MyCamView> {
         color: Colors.white,
         height: 30.0,
         child:
-        Text(_pointer.pressedDown().toString()),
+        Text(faces[0].headEulerAngleY.toString()),
       ),
     );
   }

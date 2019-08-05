@@ -37,6 +37,13 @@ class Pointer {
     return scaleX * _imageSize.width;
   }
 
+  double calculateXFromHeadEulerAngleY() {
+    double minX = -15;
+    double maxX = 15;
+    double scaleX = (_face.headEulerAngleY - minX) / (maxX - minX);
+    return scaleX * _imageSize.width;
+  }
+
   double calculateY() {
     Offset nose = _face.getLandmark(FaceLandmarkType.noseBase).position;
     Offset leftEye = _face.getLandmark(FaceLandmarkType.leftEye).position;
