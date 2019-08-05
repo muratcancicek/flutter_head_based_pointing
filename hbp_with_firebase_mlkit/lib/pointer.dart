@@ -59,7 +59,7 @@ class Pointer {
   }
 
   Offset getPosition() {
-    double dx = _imageSize.width - calculateXFromCheeks();
+    double dx = _imageSize.width - calculateXFromHeadEulerAngleY();
     double dy = calculateY();
 
 //    double dx = calculateXFromCheeks();
