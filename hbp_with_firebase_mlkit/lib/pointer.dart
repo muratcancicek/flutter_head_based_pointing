@@ -64,4 +64,7 @@ class Pointer {
   bool pressedDown() {
     return _face.smilingProbability > 0.9;
   }
+  bool clicked() {
+    return _face.leftEyeOpenProbability < 0.1;
+  }
 }

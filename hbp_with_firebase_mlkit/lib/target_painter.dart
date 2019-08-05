@@ -54,7 +54,7 @@ class Target {
 
     void draw(Canvas canvas, pointer) {
      if (contains(pointer)) {
-      if (pointer.pressedDown()) {
+      if (pointer.pressedDown() || pointer.clicked()) {
       if (!_switched)
        _pressed = !_pressed;
       _switched = true;
