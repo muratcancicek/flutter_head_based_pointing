@@ -63,7 +63,7 @@ class FacePainter extends CustomPainter {
       _addRect(canvas, faces[i].boundingBox, size);
       _addAllLandmarks(canvas, faces[i], size);
     }
-    _pointer.updateFace(faces, size: size, direction: _direction);
+    _pointer.update(faces, size: size, direction: _direction);
   }
 
   @override

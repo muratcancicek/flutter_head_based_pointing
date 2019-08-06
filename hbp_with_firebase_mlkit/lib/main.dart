@@ -79,7 +79,7 @@ class _MyCamViewState extends State<MyCamView> {
             if (_pointer == null)
               _pointer = Pointer(size, faces[0]);
             else
-              _pointer.updateFace(faces, size: size);
+              _pointer.update(faces, size: size);
 //            _targetBuilder.pointer = _pointer;
           });
 
@@ -102,7 +102,7 @@ class _MyCamViewState extends State<MyCamView> {
         color: Colors.white,
         height: 30.0,
         child:
-        Text(faces[0].headEulerAngleY.toString()),
+        Text(_pointer.dwelled().toString()),
       ),
     );
   }
