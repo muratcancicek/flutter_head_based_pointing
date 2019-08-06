@@ -1,13 +1,19 @@
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
+import 'dart:collection';
 
 class Pointer {
   Size _imageSize;
   Face _face;
   Offset _position;
+  Queue<Offset> _queue;
 
-  Pointer(this._imageSize, this._face);
+  Pointer(this._imageSize, this._face) {
+    _queue = Queue();
+    for (var i = 0; i < 50; i++)
+      _queue.addFirst(Offset(_imageSize.width/2, _imageSize.width/2));
+  }
 
   void updateFace(List<Face> faces, {Size size, CameraLensDirection direction}) {
     bool differentFace = true;
@@ -54,18 +60,25 @@ class Pointer {
     double minY = topY + range / 2;
     double maxY = mouth.dy - range / 2;
     double scaleY = (nose.dy - minY) / (maxY - minY);
-    //   return nose.dy;
     return scaleY * _imageSize.height;
   }
 
+  Offset _smoothPosition(Offset position) {
+    _queue.addLast(position);
+    _queue.removeFirst();
+    double x = 0, y = 0;
+    for (var p in _queue) {
+      x += p.dx;
+      y += p.dy;
+    }
+    return Offset(x/_queue.length, y/_queue.length);
+
+  }
   Offset getPosition() {
     double dx = _imageSize.width - calculateXFromHeadEulerAngleY();
     double dy = calculateY();
-
-//    double dx = calculateXFromCheeks();
-//    double dy = calculateY();
     _position = Offset(dx, dy);
-    return _position;
+    return _smoothPosition(_position); // _position;
   }
 
   bool pressedDown() {

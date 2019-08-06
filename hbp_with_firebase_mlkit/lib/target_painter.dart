@@ -122,7 +122,7 @@ class TargetBuilder {
      var arcBegin = arc[0]; var arcEnd = arc[1];
      var a = (arcBegin + i * angle);
      while (a <= arcEnd) {
-       print(a);
+//       print(a);
       var as = a * pi/180;
       double dx = targetPoints[0].dx + (d * cos(as));
       double dy = targetPoints[0].dy + (d * sin(as));
