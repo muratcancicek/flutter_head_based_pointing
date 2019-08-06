@@ -7,18 +7,23 @@ class Pointer {
   Size _imageSize;
   Face _face;
   Offset _position;
-  Queue<Offset> _queue;
-  int dwellingFrameCount = 60;
-  double dwellingArea = 120;
+  Queue<Offset> _smoothingQueue;
+  int smoothingFrameCount = 30;
+  Queue<Offset> _dwellingQueue;
+  int dwellingFrameCount = 40;
+  double dwellingArea = 20;
   bool _dwelling = false;
 
   Pointer(this._imageSize, this._face) {
 //    , {dwellingFrameCount=60, dwellingArea=15}
 //    this.dwellingFrameCount = dwellingFrameCount;
 //    this.dwellingArea = dwellingArea;
-    _queue = Queue();
+    _smoothingQueue = Queue();
     for (var i = 0; i < dwellingFrameCount; i++)
-      _queue.addFirst(Offset(_imageSize.width/2, _imageSize.width/2));
+      _smoothingQueue.addFirst(Offset(_imageSize.width/2, _imageSize.width/2));
+    _dwellingQueue = Queue();
+    for (var i = 0; i < dwellingFrameCount; i++)
+      _dwellingQueue.addFirst(Offset(_imageSize.width/2, _imageSize.width/2));
   }
 
 //  double _calculateXFromCheeks() {
@@ -38,7 +43,7 @@ class Pointer {
   double _calculateXFromHeadEulerAngleY() {
     double minX = -15;
     double maxX = 15;
-    double scaleX = (_face.headEulerAngleY - minX) / (maxX - minX);
+    double scaleX = (_face.headEulerAngleY  - minX) / (maxX - minX);
     return scaleX * _imageSize.width;
   }
 
@@ -63,20 +68,27 @@ class Pointer {
 
   void _updateCursor() {
     final headPointing = _calculateHeadPointing();
-    _queue.addLast(headPointing);
-    _queue.removeFirst();
+    _smoothingQueue.addLast(headPointing);
+    _smoothingQueue.removeFirst();
     double x = 0, y = 0;
-    bool dwelling = true;
-    for (var p in _queue) {
+    for (var p in _smoothingQueue) {
       x += p.dx;
       y += p.dy;
+    }
+    _position = Offset(x/_smoothingQueue.length, y/_smoothingQueue.length);
+  }
+
+  void _dwell() {
+    _dwellingQueue.removeFirst();
+    bool dwelling = true;
+    for (var p in _dwellingQueue) {
       if (_position == null)
         dwelling = false;
       else if ((p - _position).distance > dwellingArea)
         dwelling = false;
     }
     _dwelling = dwelling;
-    _position = Offset(x/_queue.length, y/_queue.length);
+    _dwellingQueue.addLast(_position);
   }
 
   void _updateFace(List<Face> faces, {Size size, CameraLensDirection direction}) {
@@ -94,6 +106,7 @@ class Pointer {
   void update(List<Face> faces, {Size size, CameraLensDirection direction}) {
     _updateFace(faces, size: size, direction: direction);
     _updateCursor();
+    _dwell();
   }
 
   Offset getPosition() {
