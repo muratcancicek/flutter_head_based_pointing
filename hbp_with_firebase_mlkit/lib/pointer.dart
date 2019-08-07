@@ -1,6 +1,7 @@
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
+import 'package:sensors/sensors.dart';
 import 'dart:collection';
 
 class Pointer {
@@ -57,6 +58,10 @@ class Pointer {
     double minY = topY + range / 2;
     double maxY = mouth.dy - range / 2;
     double scaleY = (nose.dy - minY) / (maxY - minY);
+    gyroscopeEvents.listen((GyroscopeEvent event) {
+      // Do something with the event.
+//      print(event.x.toString()+','+event.y.toString()+','+event.z.toString());
+    });
     return scaleY * _imageSize.height;
   }
 
