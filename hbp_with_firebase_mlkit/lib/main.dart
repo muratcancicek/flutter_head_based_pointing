@@ -102,7 +102,7 @@ class _MyCamViewState extends State<MyCamView> {
         color: Colors.white,
         height: 30.0,
         child:
-        Text(_pointer.dwelled().toString()),
+        Text(_pointer.getPosition().toString()),
       ),
     );
   }

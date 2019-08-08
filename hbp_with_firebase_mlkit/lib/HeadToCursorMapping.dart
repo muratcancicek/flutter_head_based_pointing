@@ -10,6 +10,8 @@ class HeadToCursorMapping {
   int smoothingFrameCount = 30;
 
   HeadToCursorMapping(this._imageSize, this._face) {
+
+    _imageSize = Size(420, 690); // manually detected size
     _smoothingQueue = Queue();
     for (var i = 0; i < smoothingFrameCount; i++)
       _smoothingQueue.addFirst(Offset(_imageSize.width/2, _imageSize.width/2));

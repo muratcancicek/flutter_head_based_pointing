@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'pointer.dart';
 import 'dart:math';
+import 'utils.dart';
 
 class TargetPaint extends CustomPaint {
     final CustomPainter painter;
@@ -18,9 +19,8 @@ class Target {
     TargetShape _targetShape;
     var _shape;
     var _switched = false;
-    var _pressed = false;
+    var pressed = false;
     var _highlighted = false;
-
     Target.fromRect(Rect rect, {Paint givenStyle}) {
      _targetShape = TargetShape.RectTarget;
      _shape = rect;
@@ -31,6 +31,7 @@ class Target {
       _style = givenStyle;
      }
     }
+
     Target.fromCircle(Offset position, double radius, {Paint givenStyle}) {
      _targetShape = TargetShape.CircleTarget;
      _shape = [position, radius];
@@ -52,30 +53,34 @@ class Target {
       return false;
     }
 
-    void draw(Canvas canvas, pointer) {
-     if (contains(pointer)) {
-      if (pointer.dwelled()) {// {|| pointer.pressedDown())
-      if (!_switched)
-       _pressed = !_pressed;
-      _switched = true;
-      _highlighted = false;
+    void _updateState(pointer) {
+      if (contains(pointer)) {
+        if (pointer.dwelled()) {// {|| pointer.pressedDown())
+          if (!_switched)
+            pressed = !pressed;
+          _switched = true;
+          _highlighted = false;
+        }
+        else
+          _highlighted = true;
       }
-      else
-      _highlighted = true;
-     }
-     else {
-      _highlighted = false;
-      _switched = false;
-     }
-     if (this._pressed)
+      else {
+        _highlighted = false;
+        _switched = false;
+      }
+    }
+
+    void draw(Canvas canvas, pointer) {
+      _updateState(pointer);
+      if (this.pressed)
       _style.color = Colors.blue;
-     else
+      else
       _style.color = Colors.lightGreen;
-     if (!_switched && _highlighted)
+      if (!_switched && _highlighted)
       _style.color = Colors.white;
-     if (_targetShape == TargetShape.RectTarget)
+      if (_targetShape == TargetShape.RectTarget)
       canvas.drawRect(_shape, _style);
-     else if (_targetShape == TargetShape.CircleTarget)
+      else if (_targetShape == TargetShape.CircleTarget)
       canvas.drawCircle(_shape[0], _shape[1], _style);
     }
 }
@@ -85,6 +90,9 @@ class TargetBuilder {
     final Pointer pointer;
     Size _canvasSize = Size(640, 360);
     List<Target> _targets = List<Target>();
+    var _jeffTaskWidth = 80.0;
+    var _jeffTaskEdge = 100.0;
+
 
     List<double> detectSubspace(Offset center) {
      var subspace = 4.0;
@@ -131,7 +139,8 @@ class TargetBuilder {
      }
     return targetPoints;
    }
-    void createTargets(double d, double width, {Offset center, double angle}) {
+
+    void _createTargets(double d, double width, {Offset center, double angle}) {
      double range = 90.0 / (d / (width*0.5));
      angle = angle == null ? range : angle;
      final targetPoints = createArcPoints(d, w: width, center: center, angle: angle);
@@ -139,8 +148,17 @@ class TargetBuilder {
       _targets.add(Target.fromCircle(point, width));
     }
 
+    void _createJeffTask(double width,{double e = 100}) { // e: edge
+      Size size = Size(420, 690); // manually detected size
+      _targets.add(Target.fromCircle(Offset(e, e), width));
+      _targets.add(Target.fromCircle(Offset(size.width-e, e), width));
+      _targets.add(Target.fromCircle(Offset(size.width/2, size.height/2), width));
+      _targets.add(Target.fromCircle(Offset(e, size.height-e), width));
+      _targets.add(Target.fromCircle(Offset(size.width-e, size.height-e), width));
+    }
     TargetBuilder(this.imageSize, this.pointer) {
-     createTargets(330, 40, center: Offset(40, 100));
+//     _createTargets(330, 40, center: Offset(40, 100));
+       _createJeffTask(_jeffTaskWidth, e: _jeffTaskEdge);
     }
 
     void _addCircle(Canvas canvas, Offset offset,
@@ -148,6 +166,7 @@ class TargetBuilder {
      if (paint == null) paint = Paint()
       ..color = Colors.yellow;
      if (radius == 0) radius = _canvasSize.width / 100;
+//     offset = scaleOffset(offset: offset, imageSize: imageSize, widgetSize: _canvasSize);
      canvas.drawCircle(offset, radius, paint);
     }
 
@@ -161,10 +180,22 @@ class TargetBuilder {
      _addCircle(canvas, position, radius: radius, paint: paintStyle);
     }
 
-    void _addTargetGrid(Canvas canvas) {
-     _targets.forEach((t) => t.draw(canvas, pointer));
+    void _addJeffTask(Canvas canvas) {
+      for(var i = 0; i < _targets.length; i++) {
+        _targets[i].draw(canvas, pointer);
+        if (_targets[i].pressed)
+          _targets.removeAt(i);
+      }
     }
 
+    void _addTargetGrid(Canvas canvas) {
+      if (_targets.length <= 0) {
+        _jeffTaskEdge *= 0.75;
+        _jeffTaskWidth *= 0.75;
+        _createJeffTask(_jeffTaskWidth, e: _jeffTaskEdge);
+      }
+      _addJeffTask(canvas);
+    }
     void paint(Canvas canvas, Size size) {
      _canvasSize = size;
      _addTargetGrid(canvas);
