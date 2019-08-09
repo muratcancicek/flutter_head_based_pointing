@@ -9,12 +9,17 @@ class Target {
   Paint _style;
   TargetShape _targetShape;
   var _shape;
+  var center;
+  var width;
   var _switched = false;
   var pressed = false;
   var _highlighted = false;
+
   Target.fromRect(Rect rect, {Paint givenStyle}) {
     _targetShape = TargetShape.RectTarget;
     _shape = rect;
+    center = rect.center;
+    width = rect.width < rect.height ? rect.width : rect.height;
     if (givenStyle == null) {
       _style = Paint()
         ..color = Colors.purple;
@@ -26,6 +31,8 @@ class Target {
   Target.fromCircle(Offset position, double radius, {Paint givenStyle}) {
     _targetShape = TargetShape.CircleTarget;
     _shape = [position, radius];
+    center = position;
+    width = radius;
     if (givenStyle == null) {
       _style = Paint()
         ..color = Colors.lightGreen;
@@ -34,11 +41,15 @@ class Target {
     }
   }
 
+  double getDistanceFromPointer(pointer) {
+    return (pointer.getPosition() - center).distance;
+  }
+
   bool contains(pointer) {
     if (_targetShape == TargetShape.RectTarget)
       return _shape.contains(pointer.getPosition());
     else if (_targetShape == TargetShape.CircleTarget) {
-      return (pointer.getPosition() - _shape[0]).distance < _shape[1];
+      return getDistanceFromPointer(pointer) - pointer.getRadius() < _shape[1];
     }
     else
       return false;
@@ -61,7 +72,7 @@ class Target {
     }
   }
 
-  void draw(Canvas canvas, pointer) {
+  void draw(Canvas canvas, pointer, {pointerRadius}) {
     _updateState(pointer);
     if (this.pressed)
       _style.color = Colors.blue;

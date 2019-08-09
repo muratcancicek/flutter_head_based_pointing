@@ -16,6 +16,7 @@ class TargetBuilder {
     List<Target> _targets = List<Target>();
     var _jeffTaskWidth = 80.0;
     var _jeffTaskEdge = 100.0;
+    var _pointerRadius = 100.0;
 
 
     List<double> detectSubspace(Offset center) {
@@ -80,6 +81,7 @@ class TargetBuilder {
       _targets.add(Target.fromCircle(Offset(e, size.height-e), width));
       _targets.add(Target.fromCircle(Offset(size.width-e, size.height-e), width));
     }
+
     TargetBuilder(this.imageSize, this.pointer) {
 //     _createTargets(330, 40, center: Offset(40, 100));
        _createJeffTask(_jeffTaskWidth, e: _jeffTaskEdge);
@@ -94,22 +96,25 @@ class TargetBuilder {
      canvas.drawCircle(offset, radius, paint);
     }
 
-    void _addPointer(Canvas canvas, Offset position) {
+    void _addPointer(Canvas canvas) {
      final paintStyle = Paint()
       ..color = Colors.red
-      ..strokeWidth = 10.0
+      ..strokeWidth = 30.0
       ..style = PaintingStyle.stroke;
-
-     double radius = _canvasSize.width / 20;
-     _addCircle(canvas, position, radius: radius, paint: paintStyle);
+     _addCircle(canvas, pointer.getPosition(), radius: pointer.getRadius(), paint: paintStyle);
     }
 
     void _addJeffTask(Canvas canvas) {
+      List<double> distances = List();
       for(var i = 0; i < _targets.length; i++) {
         _targets[i].draw(canvas, pointer);
         if (_targets[i].pressed)
           _targets.removeAt(i);
+        distances.add(_targets[i].getDistanceFromPointer(pointer));
       }
+      distances.sort();
+      var r = distances.length > 1 ? distances[1] : 3*_canvasSize.width/4;
+      pointer.updateRadius(r/2);
     }
 
     void _addTargetGrid(Canvas canvas) {
@@ -120,10 +125,11 @@ class TargetBuilder {
       }
       _addJeffTask(canvas);
     }
+
     void paint(Canvas canvas, Size size) {
      _canvasSize = size;
      _addTargetGrid(canvas);
-     _addPointer(canvas, pointer.getPosition());
+     _addPointer(canvas);
     }
 
     bool shouldRepaint(TargetBuilder oldDelegate) {

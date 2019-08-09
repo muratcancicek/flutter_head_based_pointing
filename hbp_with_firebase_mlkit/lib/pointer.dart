@@ -9,6 +9,7 @@ class Pointer {
   Face _face;
   HeadToCursorMapping _mapping;
   Offset _position;
+  double _radius;
   Queue<Offset> _dwellingQueue;
   int dwellingFrameCount = 40;
   double dwellingArea = 20;
@@ -17,6 +18,7 @@ class Pointer {
   Pointer(this._imageSize, this._face) {
     _dwellingQueue = Queue();
     _mapping = HeadToCursorMapping(_imageSize, _face);
+    _radius = _imageSize.width / 20;
     for (var i = 0; i < dwellingFrameCount; i++)
       _dwellingQueue.addFirst(Offset(_imageSize.width/2, _imageSize.width/2));
   }
@@ -54,6 +56,14 @@ class Pointer {
   Offset getPosition() {
     _position = _mapping.calculateHeadPointing();
     return _position;
+  }
+
+  void updateRadius(double radius) {
+    _radius = radius;
+  }
+
+  double getRadius() {
+    return _radius;
   }
 
   bool pressedDown() {
