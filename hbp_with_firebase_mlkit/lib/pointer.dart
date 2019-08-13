@@ -3,37 +3,45 @@ import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'dart:collection';
 import 'HeadToCursorMapping.dart';
+import 'PointerDrawer.dart';
 
 class Pointer {
-  Size _imageSize;
-  Face _face;
   HeadToCursorMapping _mapping;
-  Offset _position;
-  double _radius;
+  double _dwellingPercentage = 0;
   Queue<Offset> _dwellingQueue;
   int dwellingFrameCount = 40;
   double dwellingArea = 20;
   bool _dwelling = false;
+  PointerDrawer _pointerDrawer;
+  Offset _position;
+  Size _imageSize;
+  Face _face;
 
   Pointer(this._imageSize, this._face) {
+    _pointerDrawer = PointerDrawer(this, _imageSize);
     _dwellingQueue = Queue();
     _mapping = HeadToCursorMapping(_imageSize, _face);
-    _radius = _imageSize.width / 20;
     for (var i = 0; i < dwellingFrameCount; i++)
       _dwellingQueue.addFirst(Offset(_imageSize.width/2, _imageSize.width/2));
   }
 
   void _dwell() {
-    _dwellingQueue.removeFirst();
-    bool dwelling = true;
-    for (var p in _dwellingQueue) {
-      if (_position == null)
-        dwelling = false;
-      else if ((p - _position).distance > dwellingArea)
-        dwelling = false;
+    if (_dwellingQueue.length >= dwellingFrameCount) {
+      _dwellingQueue.removeLast();
+      bool dwelling = true;
+      var dwellingFrames = 0;
+      for (var p in _dwellingQueue) {
+        if (_position == null)
+          dwelling = false;
+        else if ((p - _position).distance > dwellingArea)
+          dwelling = false;
+        else
+          dwellingFrames++;
+      }
+      _dwelling = dwelling;
+      _dwellingPercentage = dwellingFrames / dwellingFrameCount;
     }
-    _dwelling = dwelling;
-    _dwellingQueue.addLast(_position);
+    _dwellingQueue.addFirst(_position);
   }
 
   void _updateFace(List<Face> faces, {Size size, CameraLensDirection direction}) {
@@ -53,23 +61,36 @@ class Pointer {
     _dwell();
   }
 
+  void draw(Canvas canvas, {targets, type: PointerType.Circle}) {
+    _pointerDrawer.drawPointer(canvas,
+        targets: targets, type: PointerType.Bubble);
+  }
+
   Offset getPosition() {
     _position = _mapping.calculateHeadPointing();
     return _position;
   }
 
-  void updateRadius(double radius) {
-    _radius = radius;
-  }
-
   double getRadius() {
-    return _radius;
+    return _pointerDrawer.getRadius();
   }
 
   bool pressedDown() {
     return _face.smilingProbability > 0.9 || _face.leftEyeOpenProbability < 0.1;
   }
-  bool dwelled() {
+
+  bool dwelling() {
     return _dwelling;
   }
+
+  double dwellingPercentage() {
+    return _dwellingPercentage;
+  }
+
+  void release() {
+    _dwelling = false;
+    _dwellingPercentage = 0;
+    _dwellingQueue = Queue();
+  }
+
 }

@@ -45,6 +45,16 @@ class Target {
     return (pointer.getPosition() - center).distance;
   }
 
+  double getInnerDistanceFromPointer(pointer) {
+    return (pointer.getPosition() - center).distance + width;
+  }
+
+  double getOuterDistanceFromPointer(pointer) {
+    return (pointer.getPosition() - center).distance - width;
+  }
+
+
+
   bool contains(pointer) {
     if (_targetShape == TargetShape.RectTarget)
       return _shape.contains(pointer.getPosition());
@@ -57,11 +67,12 @@ class Target {
 
   void _updateState(pointer) {
     if (contains(pointer)) {
-      if (pointer.dwelled()) {// {|| pointer.pressedDown())
+      if (pointer.dwelling()) {// {|| pointer.pressedDown())
         if (!_switched)
           pressed = !pressed;
         _switched = true;
         _highlighted = false;
+        pointer.release();
       }
       else
         _highlighted = true;
@@ -79,7 +90,7 @@ class Target {
     else
       _style.color = Colors.lightGreen;
     if (!_switched && _highlighted)
-      _style.color = Colors.white;
+      _style.color = Colors.grey;
     if (_targetShape == TargetShape.RectTarget)
       canvas.drawRect(_shape, _style);
     else if (_targetShape == TargetShape.CircleTarget)
