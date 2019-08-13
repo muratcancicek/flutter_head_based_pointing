@@ -2,14 +2,29 @@ import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/material.dart';
 import 'dart:collection';
 
+enum xAxisMode {
+  fromCheeks,
+  fromHeadEulerY,
+  fromNose
+}
+
+enum yAxisMode {
+  fromEyeMouthSquare,
+  fromNose
+}
+
 class HeadToCursorMapping {
-  Size _imageSize;
-  Face _face;
-  Offset _headPointing;
-  Offset _position;
+  int smoothingFrameCount = 60;
   Queue<Offset> _smoothingQueue;
   Queue<Offset> _velocityQueue;
-  int smoothingFrameCount = 60;
+  Queue<Offset> _noseQueue;
+  Offset _smoothedPrevNose;
+  Offset _smoothedNose;
+  Offset _headPointing;
+  Offset _position;
+  Size _imageSize;
+  Offset _speed = Offset(1000.0, 30000.0);
+  Face _face;
 
   HeadToCursorMapping(this._imageSize, this._face) {
     _imageSize = Size(420, 690); // manually detected size
@@ -18,13 +33,36 @@ class HeadToCursorMapping {
     _smoothingQueue = Queue();
     for (var i = 0; i < smoothingFrameCount; i++)
       _smoothingQueue.addFirst(_position);
+    _noseQueue = Queue();
+    for (var i = 0; i < smoothingFrameCount; i++)
+      _noseQueue.addFirst(_position);
     _velocityQueue = Queue();
     for (var i = 0; i < smoothingFrameCount; i++)
       _velocityQueue.addFirst(Offset(0, 0));
   }
 
-  double _calculateXFromCheeks() {
+  Offset _smoothNoseInput() {
     Offset nose = _face.getLandmark(FaceLandmarkType.noseBase).position;
+    var xDdifference = (_noseQueue.first.dx - nose.dx);
+    var yDdifference = (_noseQueue.first.dy - nose.dy);
+//    print(difference);
+    if (xDdifference*xDdifference < 0.0)
+      return _noseQueue.first;
+    else {
+      _noseQueue.removeLast();
+      double x = nose.dx, y = nose.dy;
+      for (var p in _noseQueue) { x += p.dx; y += p.dy; }
+      _smoothedPrevNose = _noseQueue.first;
+      final length = _noseQueue.length + 1;
+      _noseQueue.addFirst(Offset(x/length, y/length));
+      _smoothedNose = _noseQueue.first;
+
+    }
+    return _smoothedNose;
+  }
+
+  double _calculateXFromCheeks() {
+    Offset nose = _smoothedNose;// _face.getLandmark(FaceLandmarkType.noseBase).position;
     Offset leftCheek = _face.getLandmark(FaceLandmarkType.leftCheek).position;
     Offset rightCheek = _face.getLandmark(FaceLandmarkType.rightCheek).position;
     if (rightCheek.dx < leftCheek.dx) {
@@ -43,15 +81,28 @@ class HeadToCursorMapping {
     return scaleX * _imageSize.width;
   }
 
-  double _calculateX({bool useHeadEulerAngleY = true}) {
-    if (useHeadEulerAngleY)
-      return _imageSize.width - _calculateXFromHeadEulerAngleY();
-    else
-      return _imageSize.width - _calculateXFromCheeks();
+  double _calculateXFromNose() {
+    double diff = _smoothedNose.dx - _smoothedPrevNose.dx;
+//    print(diff.toString()+'o'+_headPointing.dx.toString());
+    diff *= - _speed.dx;
+    return _headPointing.dx + diff;
   }
 
-  double _calculateY() {
-    Offset nose = _face.getLandmark(FaceLandmarkType.noseBase).position;
+  double _calculateX({method}) {
+    switch (method) {
+      case xAxisMode.fromCheeks:
+        return _imageSize.width - _calculateXFromCheeks();
+      case xAxisMode.fromHeadEulerY:
+        return _imageSize.width - _calculateXFromHeadEulerAngleY();
+      case xAxisMode.fromNose:
+        return _calculateXFromNose();
+      default:
+        return _calculateXFromNose();
+    }
+  }
+
+  double _calculateYFromEyeMouthSquare() {
+    Offset nose = _smoothedNose; // _face.getLandmark(FaceLandmarkType.noseBase).position;
     Offset leftEye = _face.getLandmark(FaceLandmarkType.leftEye).position;
     Offset rightEye = _face.getLandmark(FaceLandmarkType.rightEye).position;
     double topY = (leftEye.dy + rightEye.dy) / 2;
@@ -61,6 +112,23 @@ class HeadToCursorMapping {
     double maxY = mouth.dy - range / 2;
     double scaleY = (nose.dy - minY) / ((maxY - minY)/1.6);
     return scaleY * _imageSize.height;
+  }
+
+  double _calculateYFromNose() {
+    double diff = _smoothedNose.dy - _smoothedPrevNose.dy;
+    diff *= - _speed.dy;
+    return _headPointing.dy + diff;
+  }
+
+  double _calculateY({method: false}) {
+    switch (method) {
+      case yAxisMode.fromEyeMouthSquare:
+       return _imageSize.height - _calculateYFromEyeMouthSquare();
+      case yAxisMode.fromNose:
+        return _imageSize.height - _calculateYFromNose();
+      default:
+        return _imageSize.height - _calculateYFromNose();
+    }
   }
 
   Offset _limitPosition(Offset newPosition) {
@@ -101,13 +169,15 @@ class HeadToCursorMapping {
     return Offset(x/_velocityQueue.length, y/_velocityQueue.length);
   }
   Offset calculateHeadPointing() {
+    _smoothNoseInput();
     var newHeadPointing = Offset(_calculateX(), _calculateY());
+    newHeadPointing = _limitPosition(newHeadPointing);
+    _headPointing = _smoothHeadPointing(newHeadPointing);
 //    final velocity = newHeadPointing - _headPointing;
 //    final acceleratedVelocity = addAcceleration(velocity);
 //    newHeadPointing = _headPointing + acceleratedVelocity;
-    _headPointing = _smoothHeadPointing(newHeadPointing);
-    final newPosition = _headPointing;
-    _position = _limitPosition(newPosition);
+
+    _position = _headPointing;
     return _position;
   }
 
