@@ -65,7 +65,7 @@ class Target {
 
   void _updateState(pointer) {
     if (contains(pointer)) {
-      if (pointer.dwelling()) {// {|| pointer.pressedDown())
+      if (pointer.dwelling() || pointer.pressedDown()){//) {
         if (!_switched)
           pressed = !pressed;
         _switched = true;
