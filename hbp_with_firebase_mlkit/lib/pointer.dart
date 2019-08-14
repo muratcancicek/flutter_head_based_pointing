@@ -12,6 +12,8 @@ class Pointer {
   int dwellingFrameCount = 40;
   double dwellingArea = 20;
   bool _dwelling = false;
+  bool _pressed = false;
+  bool _highlighting = false;
   PointerDrawer _pointerDrawer;
   Offset _position;
   Size _imageSize;
@@ -75,8 +77,21 @@ class Pointer {
     return _pointerDrawer.getRadius();
   }
 
+  void setHighlighting(bool highlighting) {
+    _highlighting = highlighting;
+  }
+
+  bool highlights() {
+    return _highlighting;
+  }
+
   bool pressedDown() {
-    return _face.smilingProbability > 0.9 || _face.leftEyeOpenProbability < 0.1;
+    if (!_pressed  && (_face.smilingProbability > 0.9 || _face.leftEyeOpenProbability < 0.1)) {
+      _pressed = true;
+    }
+//    else
+//      _pressed = false;
+    return _pressed;
   }
 
   bool dwelling() {
@@ -91,6 +106,7 @@ class Pointer {
     _dwelling = false;
     _dwellingPercentage = 0;
     _dwellingQueue = Queue();
+    _pressed = false;
   }
 
 }

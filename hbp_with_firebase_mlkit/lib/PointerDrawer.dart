@@ -107,7 +107,8 @@ class PointerDrawer {
     width = width < maxWidth ? width : maxWidth;
     _drawDwellingArcBackground(canvas, width);
     if (targets.length > 0)
-      if (targets[0].highlighted)
+      pointer.setHighlighting(targets[0].highlighted);
+      if (pointer.highlights())
         _drawDwellingArc(canvas, width);
   }
 
