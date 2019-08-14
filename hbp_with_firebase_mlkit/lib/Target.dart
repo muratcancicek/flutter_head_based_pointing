@@ -13,7 +13,7 @@ class Target {
   var width;
   var _switched = false;
   var pressed = false;
-  var _highlighted = false;
+  var highlighted = false;
 
   Target.fromRect(Rect rect, {Paint givenStyle}) {
     _targetShape = TargetShape.RectTarget;
@@ -53,8 +53,6 @@ class Target {
     return (pointer.getPosition() - center).distance - width;
   }
 
-
-
   bool contains(pointer) {
     if (_targetShape == TargetShape.RectTarget)
       return _shape.contains(pointer.getPosition());
@@ -71,14 +69,14 @@ class Target {
         if (!_switched)
           pressed = !pressed;
         _switched = true;
-        _highlighted = false;
+        highlighted = false;
         pointer.release();
       }
       else
-        _highlighted = true;
+        highlighted = true;
     }
     else {
-      _highlighted = false;
+      highlighted = false;
       _switched = false;
     }
   }
@@ -89,7 +87,7 @@ class Target {
       _style.color = Colors.blue;
     else
       _style.color = Colors.lightGreen;
-    if (!_switched && _highlighted)
+    if (!_switched && highlighted)
       _style.color = Colors.grey;
     if (_targetShape == TargetShape.RectTarget)
       canvas.drawRect(_shape, _style);

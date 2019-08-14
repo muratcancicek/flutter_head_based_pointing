@@ -55,35 +55,14 @@ class PointerDrawer {
     _radius = r;
   }
 
-  void _drawDwellingArcBackground(Canvas canvas, double width) {
-    final paintStyle2 = Paint()
-      ..color = Colors.yellowAccent;
-    _addCircle(canvas, pointer.getPosition(), radius: width/2, paint: paintStyle2);
-  }
-
-  void _drawDwellingArc(Canvas canvas, double width) {
-    final paintStyle = Paint()
-      ..color = Colors.deepOrange.withAlpha(190);
-    var l =  pointer.getPosition().dx - width/2;
-    var t =  pointer.getPosition().dy - width/2;
-    canvas.drawArc(new Rect.fromLTWH(l, t, width, width),
-        0, pointer.dwellingPercentage() * 2 * pi, true, paintStyle);
-  }
-
-  void _drawBubbleCenter(Canvas canvas) {
-    var width = _radius * 2;
-    final maxWidth = _canvasSize.width / 10;
-    width = width < maxWidth ? width : maxWidth;
-    _drawDwellingArcBackground(canvas, width);
-    _drawDwellingArc(canvas, width);
-  }
-
   void _drawPathToNearestTarget(Canvas canvas, targets) {
     if (targets.length > 0) {
-      final paint = Paint()
-        ..color = Colors.blue
-        ..strokeWidth = 4;
-      canvas.drawLine(pointer.getPosition(), targets[0].center, paint);
+      if (targets[0].highlighted) {
+        final paint = Paint()
+          ..color = Colors.blue
+          ..strokeWidth = 4;
+        canvas.drawLine(pointer.getPosition(), targets[0].center, paint);
+      }
     }
   }
 
@@ -107,10 +86,35 @@ class PointerDrawer {
     _drawBubbleEdge(canvas);
   }
 
+  void _drawDwellingArcBackground(Canvas canvas, double width) {
+    final paintStyle2 = Paint()
+      ..color = Colors.yellowAccent;
+    _addCircle(canvas, pointer.getPosition(), radius: width/2, paint: paintStyle2);
+  }
+
+  void _drawDwellingArc(Canvas canvas, double width) {
+    final paintStyle = Paint()
+      ..color = Colors.deepOrange.withAlpha(190);
+    var l =  pointer.getPosition().dx - width/2;
+    var t =  pointer.getPosition().dy - width/2;
+    canvas.drawArc(new Rect.fromLTWH(l, t, width, width),
+        0, pointer.dwellingPercentage() * 2 * pi, true, paintStyle);
+  }
+
+  void _drawBubbleCenter(Canvas canvas, targets) {
+    var width = _radius * 2;
+    final maxWidth = _canvasSize.width / 10;
+    width = width < maxWidth ? width : maxWidth;
+    _drawDwellingArcBackground(canvas, width);
+    if (targets.length > 0)
+      if (targets[0].highlighted)
+        _drawDwellingArc(canvas, width);
+  }
+
   void _drawBubblePointer(Canvas canvas, targets) {
     _drawBubbleRange(canvas);
     _drawPathToNearestTarget(canvas, targets);
-    _drawBubbleCenter(canvas);
+    _drawBubbleCenter(canvas, targets);
   }
 
   void drawPointer(Canvas canvas, {targets, type: PointerType.Circle}) {
