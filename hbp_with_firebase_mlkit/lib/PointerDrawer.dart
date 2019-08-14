@@ -17,7 +17,7 @@ class PointerDrawer {
     _radius = _canvasSize.width / 20;    
   }
 
-  void _addCircle(Canvas canvas, Offset offset,
+  void _drawCircle(Canvas canvas, Offset offset,
       {double radius: 0, Paint paint}) {
     if (paint == null)
       paint = Paint()
@@ -26,13 +26,47 @@ class PointerDrawer {
     canvas.drawCircle(offset, radius, paint);
   }
 
-  void _addCirclePointer(Canvas canvas) {
+  void _drawDwellingArcBackground(Canvas canvas, double width) {
+    final paintStyle2 = Paint()
+      ..color = Colors.yellowAccent;
+    _drawCircle(canvas, pointer.getPosition(), radius: width/2, paint: paintStyle2);
+  }
+
+  void _drawDwellingArc(Canvas canvas, double width) {
+    final paintStyle = Paint()
+      ..color = Colors.deepOrange.withAlpha(190);
+    var l =  pointer.getPosition().dx - width/2;
+    var t =  pointer.getPosition().dy - width/2;
+    canvas.drawArc(new Rect.fromLTWH(l, t, width, width),
+        0, pointer.dwellingPercentage() * 2 * pi, true, paintStyle);
+  }
+
+  void _drawBubbleCenter(Canvas canvas, targets) {
+    var width = _radius * 2;
+    final maxWidth = _canvasSize.width / 10;
+    width = width < maxWidth ? width : maxWidth;
+    _drawDwellingArcBackground(canvas, width);
+    if (targets.length > 0)
+      pointer.setHighlighting(targets[0].highlighted);
+    if (pointer.highlights())
+      _drawDwellingArc(canvas, width);
+  }
+
+  void _drawCircleEdge(Canvas canvas) {
     final paintStyle = Paint()
       ..color = Colors.red
       ..strokeWidth = 10.0
       ..style = PaintingStyle.stroke;
-    _addCircle(canvas, pointer.getPosition(),
+    _drawCircle(canvas, pointer.getPosition(),
         radius: _radius, paint: paintStyle);
+  }
+
+  void _drawCirclePointer(Canvas canvas, targets) {
+    targets.sort((Target a, Target b) => ((
+        a.getDistanceFromPointer(pointer) -
+            b.getDistanceFromPointer(pointer)).toInt()));
+    _drawBubbleCenter(canvas, targets);
+    _drawCircleEdge(canvas);
   }
 
   void _updateBubbleRadius(targets) {
@@ -71,14 +105,14 @@ class PointerDrawer {
       ..color = Colors.red.withAlpha(126)
       ..strokeWidth = 3.0
       ..style = PaintingStyle.stroke;
-    _addCircle(canvas, pointer.getPosition(),
+    _drawCircle(canvas, pointer.getPosition(),
         radius: _radius, paint: paintStyle);
   }
 
   void _drawBubbleBody(Canvas canvas) {
     final paintStyle = Paint()
       ..color = Colors.red.withAlpha(30);
-    _addCircle(canvas, pointer.getPosition(), radius: _radius, paint: paintStyle);
+    _drawCircle(canvas, pointer.getPosition(), radius: _radius, paint: paintStyle);
   }
 
   void _drawBubbleRange(Canvas canvas) {
@@ -86,45 +120,19 @@ class PointerDrawer {
     _drawBubbleEdge(canvas);
   }
 
-  void _drawDwellingArcBackground(Canvas canvas, double width) {
-    final paintStyle2 = Paint()
-      ..color = Colors.yellowAccent;
-    _addCircle(canvas, pointer.getPosition(), radius: width/2, paint: paintStyle2);
-  }
-
-  void _drawDwellingArc(Canvas canvas, double width) {
-    final paintStyle = Paint()
-      ..color = Colors.deepOrange.withAlpha(190);
-    var l =  pointer.getPosition().dx - width/2;
-    var t =  pointer.getPosition().dy - width/2;
-    canvas.drawArc(new Rect.fromLTWH(l, t, width, width),
-        0, pointer.dwellingPercentage() * 2 * pi, true, paintStyle);
-  }
-
-  void _drawBubbleCenter(Canvas canvas, targets) {
-    var width = _radius * 2;
-    final maxWidth = _canvasSize.width / 10;
-    width = width < maxWidth ? width : maxWidth;
-    _drawDwellingArcBackground(canvas, width);
-    if (targets.length > 0)
-      pointer.setHighlighting(targets[0].highlighted);
-      if (pointer.highlights())
-        _drawDwellingArc(canvas, width);
-  }
-
   void _drawBubblePointer(Canvas canvas, targets) {
+    if (targets != null)
+      _updateBubbleRadius(targets);
     _drawBubbleRange(canvas);
     _drawPathToNearestTarget(canvas, targets);
     _drawBubbleCenter(canvas, targets);
   }
 
   void drawPointer(Canvas canvas, {targets, type: PointerType.Circle}) {
-   if (type == PointerType.Bubble) {
-      if (targets != null)
-        _updateBubbleRadius(targets);
+    if (type != PointerType.Bubble) {
       _drawBubblePointer(canvas, targets);
     } else // if (type == PointerType.Circle)
-      _addCirclePointer(canvas);
+      _drawCirclePointer(canvas, targets);
   }
 
   double getRadius() {
