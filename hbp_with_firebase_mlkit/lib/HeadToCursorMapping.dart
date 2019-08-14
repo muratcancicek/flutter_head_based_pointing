@@ -2,6 +2,9 @@ import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/material.dart';
 import 'dart:collection';
 
+double abs(double a) {
+  return a >= 0 ? a: -a;
+}
 enum xAxisMode {
   fromCheeks,
   fromHeadEulerY,
@@ -14,7 +17,9 @@ enum yAxisMode {
 }
 
 class HeadToCursorMapping {
-  int smoothingFrameCount = 60;
+  int _frames = 0;
+  int _downSamplingRate = 1;
+  int smoothingFrameCount = 3;
   Queue<Offset> _smoothingQueue;
   Queue<Offset> _velocityQueue;
   Queue<Offset> _noseQueue;
@@ -23,7 +28,8 @@ class HeadToCursorMapping {
   Offset _headPointing;
   Offset _position;
   Size _imageSize;
-  Offset _speed = Offset(1000.0, 30000.0);
+  Offset _speed = Offset(10.0, 10.0);
+  Offset _motionThreshold = Offset(5.0, 5.0);
   Face _face;
 
   HeadToCursorMapping(this._imageSize, this._face) {
@@ -43,21 +49,13 @@ class HeadToCursorMapping {
 
   Offset _smoothNoseInput() {
     Offset nose = _face.getLandmark(FaceLandmarkType.noseBase).position;
-    var xDdifference = (_noseQueue.first.dx - nose.dx);
-    var yDdifference = (_noseQueue.first.dy - nose.dy);
-//    print(difference);
-    if (xDdifference*xDdifference < 0.0)
-      return _noseQueue.first;
-    else {
-      _noseQueue.removeLast();
-      double x = nose.dx, y = nose.dy;
-      for (var p in _noseQueue) { x += p.dx; y += p.dy; }
-      _smoothedPrevNose = _noseQueue.first;
-      final length = _noseQueue.length + 1;
-      _noseQueue.addFirst(Offset(x/length, y/length));
-      _smoothedNose = _noseQueue.first;
-
-    }
+    _noseQueue.removeLast();
+    double x = nose.dx, y = nose.dy;
+    for (var p in _noseQueue) { x += p.dx; y += p.dy; }
+    _smoothedPrevNose = _noseQueue.first;
+    final length = _noseQueue.length + 1;
+    _noseQueue.addFirst(Offset(x/length, y/length));
+    _smoothedNose = _noseQueue.first;
     return _smoothedNose;
   }
 
@@ -83,7 +81,7 @@ class HeadToCursorMapping {
 
   double _calculateXFromNose() {
     double diff = _smoothedNose.dx - _smoothedPrevNose.dx;
-//    print(diff.toString()+'o'+_headPointing.dx.toString());
+    diff = (diff / _face.boundingBox.width) * _imageSize.width;
     diff *= - _speed.dx;
     return _headPointing.dx + diff;
   }
@@ -116,19 +114,31 @@ class HeadToCursorMapping {
 
   double _calculateYFromNose() {
     double diff = _smoothedNose.dy - _smoothedPrevNose.dy;
-    diff *= - _speed.dy;
+    diff = (diff / _face.boundingBox.height) * _imageSize.height;
+//    print(diff.toString()+' '+_headPointing.dy.toString());
+    diff *= _speed.dy;
     return _headPointing.dy + diff;
   }
 
-  double _calculateY({method: false}) {
+  double _calculateY({method}) {
     switch (method) {
       case yAxisMode.fromEyeMouthSquare:
        return _imageSize.height - _calculateYFromEyeMouthSquare();
       case yAxisMode.fromNose:
-        return _imageSize.height - _calculateYFromNose();
+        return _calculateYFromNose();
       default:
-        return _imageSize.height - _calculateYFromNose();
+        return _calculateYFromNose();
     }
+  }
+
+  Offset _applyMotionThreshold(Offset newPointing) {
+    var dx = newPointing.dx;
+    if (abs(newPointing.dx - _headPointing.dx) < _motionThreshold.dx)
+      dx = _headPointing.dx;
+    var dy = newPointing.dy;
+    if (abs(newPointing.dy - _headPointing.dy) < _motionThreshold.dy)
+      dy = _headPointing.dy;
+    return Offset(dx, dy);
   }
 
   Offset _limitPosition(Offset newPosition) {
@@ -168,20 +178,24 @@ class HeadToCursorMapping {
     }
     return Offset(x/_velocityQueue.length, y/_velocityQueue.length);
   }
+
   Offset calculateHeadPointing() {
     _smoothNoseInput();
     var newHeadPointing = Offset(_calculateX(), _calculateY());
     newHeadPointing = _limitPosition(newHeadPointing);
+    newHeadPointing = _applyMotionThreshold(newHeadPointing);
     _headPointing = _smoothHeadPointing(newHeadPointing);
 //    final velocity = newHeadPointing - _headPointing;
 //    final acceleratedVelocity = addAcceleration(velocity);
 //    newHeadPointing = _headPointing + acceleratedVelocity;
-
     _position = _headPointing;
     return _position;
   }
 
   void update(Face face, {Size size}) {
-    _face = face;
+    if (_frames++ == _downSamplingRate) {
+      _face = face;
+      _frames = 0;
+    }
   }
 }
