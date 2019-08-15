@@ -57,7 +57,7 @@ class Target {
     if (_targetShape == TargetShape.RectTarget)
       return _shape.contains(pointer.getPosition());
     else if (_targetShape == TargetShape.CircleTarget) {
-      return getDistanceFromPointer(pointer) - pointer.getRadius() < _shape[1];
+      return pointer.touches(_shape[0], _shape[1]);
     }
     else
       return false;

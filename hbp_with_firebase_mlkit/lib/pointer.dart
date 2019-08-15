@@ -15,6 +15,7 @@ class Pointer {
   bool _pressed = false;
   bool _highlighting = false;
   PointerDrawer _pointerDrawer;
+  PointerType _type;
   Offset _position;
   Size _imageSize;
   Face _face;
@@ -64,6 +65,7 @@ class Pointer {
   }
 
   void draw(Canvas canvas, {targets, type: PointerType.Circle}) {
+    _type = type;
     _pointerDrawer.drawPointer(canvas,
         targets: targets, type: PointerType.Bubble);
   }
@@ -77,7 +79,15 @@ class Pointer {
     return _pointerDrawer.getRadius();
   }
 
-  void setHighlighting(bool highlighting) {
+  bool touches(Offset targetCenter, double targetWidth) {
+    if (_type == PointerType.Bubble)
+      return (_position - targetCenter).distance - getRadius() < targetWidth;
+    else
+      return (_position - targetCenter).distance < targetWidth;
+  }
+
+
+    void setHighlighting(bool highlighting) {
     _highlighting = highlighting;
   }
 
@@ -86,7 +96,8 @@ class Pointer {
   }
 
   bool pressedDown() {
-    if (!_pressed  && (_face.smilingProbability > 0.9 || _face.leftEyeOpenProbability < 0.1)) {
+    if (!_pressed  && (_face.smilingProbability > 0.9 ||
+                        _face.leftEyeOpenProbability < 0.1)) {
       _pressed = true;
     }
 //    else
