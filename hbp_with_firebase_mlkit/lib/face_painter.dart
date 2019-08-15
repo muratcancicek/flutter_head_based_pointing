@@ -19,8 +19,18 @@ class FacePainter extends CustomPainter {
   FacePainter(this.imageSize, this.faces, this._direction, this._pointer);
 
   void _addRect(Canvas canvas, Rect boundingBox, Size size) {
+    var ratio = (boundingBox.height / imageSize.height);
+    ratio = (ratio / 0.4);
+    if (ratio > 1.9)
+      ratio = 1.9;
+    else if (ratio < 0.05)
+      ratio = 0.05;
+    if (ratio > 1) {
+      ratio = 1 - (ratio - 1);
+    }
+    var g = (ratio * 255).toInt();
     final paintRectStyle = Paint()
-      ..color = Colors.blueAccent
+      ..color = Color.fromARGB(255,  255-g, g, 3)
       ..strokeWidth = 10.0
       ..style = PaintingStyle.stroke;
 
