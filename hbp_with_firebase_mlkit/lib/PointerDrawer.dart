@@ -27,14 +27,22 @@ class PointerDrawer {
   }
 
   void _drawDwellingArcBackground(Canvas canvas, double width) {
-    final paintStyle2 = Paint()
-      ..color = Colors.yellowAccent;
-    _drawCircle(canvas, pointer.getPosition(), radius: width/2, paint: paintStyle2);
+    final paintBack = Paint()
+    ..color = Colors.yellowAccent.withAlpha(80)
+    ..strokeWidth = 1;
+    _drawCircle(canvas, pointer.getPosition(), radius: width/2, paint: paintBack);
+    final paint = Paint()
+      ..color = Colors.red
+      ..strokeWidth = 1;
+    final c = pointer.getPosition();
+    final top = Offset(c.dx, c.dy-width/2), bottom = Offset(c.dx, c.dy+width/2);
+    final left = Offset(c.dx-width/2, c.dy), right = Offset(c.dx+width/2, c.dy);
+    canvas.drawLine(top, bottom, paint);
+    canvas.drawLine(left, right, paint);
   }
 
   void _drawDwellingArc(Canvas canvas, double width) {
-    final paintStyle = Paint()
-      ..color = Colors.deepOrange.withAlpha(190);
+    final paintStyle = Paint()..color = Colors.deepOrange.withAlpha(190);
     var l =  pointer.getPosition().dx - width/2;
     var t =  pointer.getPosition().dy - width/2;
     canvas.drawArc(new Rect.fromLTWH(l, t, width, width),
@@ -55,7 +63,7 @@ class PointerDrawer {
   void _drawCircleEdge(Canvas canvas) {
     final paintStyle = Paint()
       ..color = Colors.red
-      ..strokeWidth = 10.0
+      ..strokeWidth = 1.0
       ..style = PaintingStyle.stroke;
     _drawCircle(canvas, pointer.getPosition(),
         radius: _radius, paint: paintStyle);
