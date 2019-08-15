@@ -14,7 +14,7 @@ class PointerDrawer {
   double _radius;
 
   PointerDrawer(this.pointer, this._canvasSize) {
-    _radius = _canvasSize.width / 20;    
+    _radius = _canvasSize.width / 40;
   }
 
   void _drawCircle(Canvas canvas, Offset offset,
@@ -42,7 +42,7 @@ class PointerDrawer {
   }
 
   void _drawDwellingArc(Canvas canvas, double width) {
-    final paintStyle = Paint()..color = Colors.deepOrange.withAlpha(190);
+    final paintStyle = Paint()..color = Colors.deepOrange.withAlpha(80);
     var l =  pointer.getPosition().dx - width/2;
     var t =  pointer.getPosition().dy - width/2;
     canvas.drawArc(new Rect.fromLTWH(l, t, width, width),
@@ -84,7 +84,7 @@ class PointerDrawer {
     var r =  _canvasSize.width/30;
     if (targets.length > 1) {
       var inD = targets[0].getInnerDistanceFromPointer(pointer);
-      var space = _canvasSize.width/300;
+      var space = _canvasSize.width/30;
       var outD = targets[1].getOuterDistanceFromPointer(pointer) - space;
       r = inD < outD ? inD : outD;
     } else if (targets.length == 1) {
