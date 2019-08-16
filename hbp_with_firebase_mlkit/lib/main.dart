@@ -1,9 +1,11 @@
+import 'package:hbp_with_firebase_mlkit/Painting/PointingTaskBuilding/JeffTaskBuilder.dart';
+import 'package:hbp_with_firebase_mlkit/Painting/PointingTaskBuilding/MDCTaskBuilder.dart';
+import 'package:hbp_with_firebase_mlkit/Painting/PointingTaskBuilding/PointingTaskBuilder.dart';
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
-import 'package:hbp_with_firebase_mlkit/Painting/PointingTaskBuilding/TargetBuilder.dart';
 import 'package:hbp_with_firebase_mlkit/Painting/face_painter.dart';
 import 'pointer.dart';
 import 'utils.dart';
@@ -32,16 +34,22 @@ class MyCamView extends StatefulWidget {
   _MyCamViewState createState() => _MyCamViewState();
 }
 
+enum PointingTaskType {
+  Jeff,
+  MDC,
+}
+
 class _MyCamViewState extends State<MyCamView> {
   final FaceDetector faceDetector = FirebaseVision.instance.faceDetector(
       FaceDetectorOptions(
           enableClassification: true,
           enableLandmarks: true,
           enableTracking: true));
+  PointingTaskType _pointingTaskType = PointingTaskType.MDC ;
+  PointingTaskBuilder _targetBuilder;
   CameraController _camera;
   List<Face> faces;
   Pointer _pointer;
-  var _targetBuilder;
 
   bool _isDetecting = false;
   CameraLensDirection _direction = CameraLensDirection.front;
@@ -131,7 +139,10 @@ class _MyCamViewState extends State<MyCamView> {
         _camera.value.previewSize.height,
         _camera.value.previewSize.width,
       );
-      _targetBuilder = TargetBuilder(imageSize, _pointer);
+      if (_pointingTaskType == PointingTaskType.Jeff)
+        _targetBuilder = JeffTaskBuilder(imageSize, _pointer);
+      else if (_pointingTaskType == PointingTaskType.MDC)
+        _targetBuilder = MDCTaskBuilder(imageSize, _pointer);
     }
     return CustomPaint(painter: _targetBuilder.getPainter());
   }
