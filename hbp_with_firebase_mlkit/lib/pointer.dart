@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'dart:collection';
 import 'HeadToCursorMapping.dart';
-import 'PointerDrawer.dart';
+import 'package:hbp_with_firebase_mlkit/Painting/PointerDrawer.dart';
 
 class Pointer {
   HeadToCursorMapping _mapping;

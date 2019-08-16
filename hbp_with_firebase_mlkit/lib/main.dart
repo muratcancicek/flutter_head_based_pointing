@@ -3,8 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
-import 'TargetBuilder.dart';
-import 'face_painter.dart';
+import 'package:hbp_with_firebase_mlkit/Painting/PointingTaskBuilding/TargetBuilder.dart';
+import 'package:hbp_with_firebase_mlkit/Painting/face_painter.dart';
 import 'pointer.dart';
 import 'utils.dart';
 

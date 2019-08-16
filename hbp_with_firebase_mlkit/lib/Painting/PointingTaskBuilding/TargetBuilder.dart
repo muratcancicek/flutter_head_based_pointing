@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'pointer.dart';
+import '../../pointer.dart';
 import 'Target.dart';
 import 'dart:math';
 
@@ -16,7 +16,7 @@ class TargetPaint extends CustomPaint {
 class TargetBuilder {
   final Size imageSize;
   final Pointer pointer;
-  var _layoutType = LayoutType.Jeff;
+  var _layoutType = LayoutType.MDC;
   Size _canvasSize = Size(640, 360);
   List<Target> _targets = List<Target>();
   var _jeffTaskWidth = 80.0;
@@ -87,7 +87,7 @@ class TargetBuilder {
     _targets.add(Target.fromCircle(Offset(size.width-e, size.height-e), width));
   }
 
-  TargetBuilder(this.imageSize, this.pointer, {type: LayoutType.Jeff}) {
+  TargetBuilder(this.imageSize, this.pointer, {type: LayoutType.MDC}) {
     _layoutType = type;
     if (type == LayoutType.MDC)
      _createMDCTargets(330, 40, center: Offset(40, 100));

@@ -1,8 +1,8 @@
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
-import 'pointer.dart';
-import 'utils.dart';
+import '../pointer.dart';
+import '../utils.dart';
 
 class FacePaint extends CustomPaint {
   final CustomPainter painter;
