@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
-import '../pointer.dart';
 import 'package:hbp_with_firebase_mlkit/Painting/PointingTaskBuilding/Target.dart';
+import 'package:hbp_with_firebase_mlkit/pointer.dart';
+import 'package:flutter/material.dart';
 import 'dart:math';
 
 enum PointerType {

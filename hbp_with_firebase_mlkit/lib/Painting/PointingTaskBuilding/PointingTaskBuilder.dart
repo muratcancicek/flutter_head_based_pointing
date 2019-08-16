@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../pointer.dart';
+import 'package:hbp_with_firebase_mlkit/pointer.dart';
 import 'Target.dart';
 
 class TargetPaint extends CustomPaint {
