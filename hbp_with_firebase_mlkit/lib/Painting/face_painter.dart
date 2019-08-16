@@ -1,21 +1,14 @@
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
-import 'package:hbp_with_firebase_mlkit/pointer.dart';
 import 'package:hbp_with_firebase_mlkit/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
-
-class FacePaint extends CustomPaint {
-  final CustomPainter painter;
-  FacePaint({this.painter}) : super(painter: painter);
-}
 
 class FacePainter extends CustomPainter {
   final Size imageSize;
   final List<Face> faces;
   final CameraLensDirection _direction;
-  final Pointer _pointer;
 
-  FacePainter(this.imageSize, this.faces, this._direction, this._pointer);
+  FacePainter(this.imageSize, this.faces, this._direction);
 
   void _addRect(Canvas canvas, Rect boundingBox, Size size) {
     var ratio = (boundingBox.height / imageSize.height);
@@ -72,7 +65,6 @@ class FacePainter extends CustomPainter {
       _addRect(canvas, faces[i].boundingBox, size);
       _addAllLandmarks(canvas, faces[i], size);
     }
-    _pointer.update(faces, size: size, direction: _direction);
   }
 
   @override

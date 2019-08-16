@@ -40,7 +40,7 @@ enum PointingTaskType {
 }
 
 class _MyCamViewState extends State<MyCamView> {
-  final FaceDetector faceDetector = FirebaseVision.instance.faceDetector(
+  final FaceDetector _faceDetector = FirebaseVision.instance.faceDetector(
       FaceDetectorOptions(
           enableClassification: true,
           enableLandmarks: true,
@@ -48,7 +48,8 @@ class _MyCamViewState extends State<MyCamView> {
   PointingTaskType _pointingTaskType = PointingTaskType.MDC ;
   PointingTaskBuilder _targetBuilder;
   CameraController _camera;
-  List<Face> faces;
+  Size _imageSize;
+  List<Face> _faces;
   Pointer _pointer;
 
   bool _isDetecting = false;
@@ -79,15 +80,15 @@ class _MyCamViewState extends State<MyCamView> {
 
       _isDetecting = true;
 
-      detect(image, faceDetector.processImage, rotation).then(
+      detect(image, _faceDetector.processImage, rotation).then(
             (dynamic result) {
           setState(() {
-            faces = result;
+            _faces = result;
             Size size = Size(image.width.toDouble(), image.height.toDouble());
             if (_pointer == null)
-              _pointer = Pointer(size, faces[0]);
+              _pointer = Pointer(size, _faces[0]);
             else
-              _pointer.update(faces, size: size);
+              _pointer.update(_faces, size: size);
 //            _targetBuilder.pointer = _pointer;
           });
 
@@ -117,7 +118,7 @@ class _MyCamViewState extends State<MyCamView> {
 
   Widget _buildResults() {
     const Text noResultsText = const Text('No results!');
-    if (faces == null ||
+    if (_faces == null ||
         _camera == null ||
         !_camera.value.isInitialized) {
       return noResultsText;
@@ -128,22 +129,28 @@ class _MyCamViewState extends State<MyCamView> {
       _camera.value.previewSize.width,
     );
 
-    if (faces is! List<Face>) return noResultsText;
-    painter = FacePainter(imageSize, faces, _direction, _pointer);
+    if (_faces is! List<Face>) return noResultsText;
+    painter = FacePainter(imageSize, _faces, _direction);
     return CustomPaint(painter: painter);
+  }
+
+  CustomPaint _drawPointer() {
+    _pointer.update(_faces, size: _imageSize, direction: _direction);
+    return CustomPaint(painter: _pointer.getPainter());
   }
 
   CustomPaint _addTargets() {
     if (_targetBuilder == null) {
-      final Size imageSize = Size(
+      _imageSize = Size(
         _camera.value.previewSize.height,
         _camera.value.previewSize.width,
       );
       if (_pointingTaskType == PointingTaskType.Jeff)
-        _targetBuilder = JeffTaskBuilder(imageSize, _pointer);
+        _targetBuilder = JeffTaskBuilder(_imageSize, _pointer);
       else if (_pointingTaskType == PointingTaskType.MDC)
-        _targetBuilder = MDCTaskBuilder(imageSize, _pointer);
+        _targetBuilder = MDCTaskBuilder(_imageSize, _pointer);
     }
+//    _pointer.update(_faces, size: _imageSize, direction: _direction);
     return CustomPaint(painter: _targetBuilder.getPainter());
   }
 
@@ -163,8 +170,9 @@ class _MyCamViewState extends State<MyCamView> {
           : Stack(
         fit: StackFit.expand,
         children: <Widget>[
-          CameraPreview(_camera),
-          _buildResults(),
+//          CameraPreview(_camera),
+//          _buildResults(),
+          _drawPointer(),
           _addTargets(),
           _addPointerCoordinates(),
         ],

@@ -120,4 +120,8 @@ class Pointer {
     _pressed = false;
   }
 
+  PointerPainter getPainter() {
+    return _pointerDrawer.getPainter();
+  }
+
 }

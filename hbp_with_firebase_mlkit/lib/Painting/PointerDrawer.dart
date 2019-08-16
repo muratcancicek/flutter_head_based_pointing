@@ -10,11 +10,11 @@ enum PointerType {
 
 class PointerDrawer {
   Pointer pointer;
-  Size _canvasSize;
+  Size canvasSize;
   double _radius;
 
-  PointerDrawer(this.pointer, this._canvasSize) {
-    _radius = _canvasSize.width / 40;
+  PointerDrawer(this.pointer, this.canvasSize) {
+    _radius = canvasSize.width / 40;
   }
 
   void _drawCircle(Canvas canvas, Offset offset,
@@ -22,7 +22,7 @@ class PointerDrawer {
     if (paint == null)
       paint = Paint()
         ..color = Colors.yellow;
-    if (radius == 0) radius = _canvasSize.width / 100;
+    if (radius == 0) radius = canvasSize.width / 100;
     canvas.drawCircle(offset, radius, paint);
   }
 
@@ -51,7 +51,7 @@ class PointerDrawer {
 
   void _drawBubbleCenter(Canvas canvas, targets) {
     var width = _radius * 2;
-    final maxWidth = _canvasSize.width / 10;
+    final maxWidth = canvasSize.width / 10;
     width = width < maxWidth ? width : maxWidth;
     _drawDwellingArcBackground(canvas, width);
     if (targets.length > 0)
@@ -81,17 +81,17 @@ class PointerDrawer {
     targets.sort((Target a, Target b) => ((
         a.getOuterDistanceFromPointer(pointer) -
             b.getOuterDistanceFromPointer(pointer)).toInt()));
-    var r =  _canvasSize.width/30;
+    var r =  canvasSize.width/30;
     if (targets.length > 1) {
       var inD = targets[0].getInnerDistanceFromPointer(pointer);
-      var space = _canvasSize.width/30;
+      var space = canvasSize.width/30;
       var outD = targets[1].getOuterDistanceFromPointer(pointer) - space;
       r = inD < outD ? inD : outD;
     } else if (targets.length == 1) {
       r = targets[0].getInnerDistanceFromPointer(pointer);
     }
-    final maxR = 3 * _canvasSize.height / 8;
-    final minR = _canvasSize.width / 20;
+    final maxR = 3 * canvasSize.height / 8;
+    final minR = canvasSize.width / 20;
     r = r < maxR ? r : maxR;
     r = r > minR ? r : minR;
     _radius = r;
@@ -145,5 +145,33 @@ class PointerDrawer {
 
   double getRadius() {
     return _radius;
+  }
+
+  bool shouldRepaint(PointerDrawer oldDelegate) {
+    return canvasSize != oldDelegate.canvasSize || pointer != oldDelegate.pointer;
+  }
+
+  PointerPainter getPainter() {
+    return PointerPainter(this);
+  }
+}
+
+class PointerPainter extends CustomPainter {
+  PointerDrawer _pointerDrawer;
+
+  PointerPainter(this._pointerDrawer);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    _pointerDrawer.drawPointer(canvas);
+  }
+
+  @override
+  bool shouldRepaint(PointerPainter oldDelegate) {
+    return _pointerDrawer.shouldRepaint(oldDelegate.getTargetBuilder());
+  }
+
+  PointerDrawer getTargetBuilder() {
+    return _pointerDrawer;
   }
 }
