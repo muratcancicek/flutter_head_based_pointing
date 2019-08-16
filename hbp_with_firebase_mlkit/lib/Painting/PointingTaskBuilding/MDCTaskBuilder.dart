@@ -4,63 +4,89 @@ import 'dart:math';
 import 'PointingTaskBuilder.dart';
 
 class  MDCTaskBuilder extends PointingTaskBuilder {
+  double arcBegin = 0;
+  double arcEnd = 90;
+  int _subspace = 0;
+  int _targetWidth;
+  int _amplitude;
+  Offset _center;
 
-  List<double> detectSubspace(Offset center) {
-    var subspace = 4.0;
-    var arcBegin = 0.0;
-    var arcEnd = 90.0;
-    if (center.dx <= imageSize.width/2 && center.dy <= imageSize.height/2) {
-      subspace = 1;
-      arcBegin = 0;
-      arcEnd = 90;
+  List<double> _getArcForSubspace(subspace) {
+    switch (subspace) {
+      def: case 0: {
+        return [0.0, 90.0];
+      }
+      case 1: {
+        return [90.0, 180.0];
+      }
+      case 2: {
+        return [180, 270.0];
+      }
+      case 3: {
+        return [270.0, 360.0];
+      }
+      default:
+        continue def;
     }
-    if (center.dx > imageSize.width/2 && center.dy <= imageSize.height/2) {
-      subspace = 2;
-      arcBegin = 90;
-      arcEnd = 180;
-    }
-    if (center.dx <= imageSize.width/2 && center.dy > imageSize.height/2) {
-      subspace = 3;
-      arcBegin = 180;
-      arcEnd = 270;
-    }
-    if (center.dx > imageSize.width/2 && center.dy > imageSize.height/2) {
-      subspace = 4;
-      arcBegin = 270;
-      arcEnd = 360;
-    }
-    return [arcBegin, arcEnd, subspace];
+    return [0.0, 90.0];
   }
 
-  List<Offset> createArcPoints(double d, {double w, Offset center, double angle}) {
+  int detectSubspace(center) {
+    if (center.dx <= imageSize.width/2 && center.dy <= imageSize.height/2)
+      return 0;
+    else if (center.dx > imageSize.width/2 && center.dy <= imageSize.height/2)
+      return 1;
+    else if (center.dx <= imageSize.width/2 && center.dy > imageSize.height/2)
+      return 2;
+    else // if (center.dx > imageSize.width/2 && center.dy > imageSize.height/2)
+      return 3;
+  }
+
+  List<Offset> createArcPoints(double angle) {
     List<Offset> targetPoints = List<Offset>();
-    targetPoints.add(center == null ? Offset(100, 100) : center);
-    angle = angle == null ? 0.15 : angle;
+    targetPoints.add(_center);
     var i = 0;
-    var arc = detectSubspace(center);
-    var arcBegin = arc[0]; var arcEnd = arc[1];
     var a = (arcBegin + i * angle);
     while (a <= arcEnd) {
 //       print(a);
       var as = a * pi/180;
-      double dx = targetPoints[0].dx + (d * cos(as));
-      double dy = targetPoints[0].dy + (d * sin(as));
+      double dx = targetPoints[0].dx + (_amplitude * cos(as));
+      double dy = targetPoints[0].dy + (_amplitude * sin(as));
       targetPoints.add(Offset(dx, dy));
       a = (arcBegin + i++ * angle) * pi;
     }
     return targetPoints;
   }
 
-  void _createMDCTargets(double d, double width, {Offset center, double angle}) {
-    double range = 90.0 / (d / (width*0.5));
-    angle = angle == null ? range : angle;
-    final targetPoints = createArcPoints(d, w: width, center: center, angle: angle);
+  List<Offset> createArc({double angle: 5}) {
+//    double range = 90.0 / (_amplitude / (_targetWidth*0.5));
+//    angle = angle == null ? range : angle;
+    _subspace = detectSubspace(_center);
+    return createArcPoints(angle);
+  }
+
+  void _createSubspace() {
+    _center = Offset(50, 100);
+    final targetPoints = createArc();
     for (var point in targetPoints)
-      targets.add(Target.fromCircle(point, width));
+      targets.add(Target.fromCircle(point, _targetWidth.toDouble()));
+  }
+
+  void _switchToSubspace(int subspace) {
+    _subspace = subspace;
+    final arc = _getArcForSubspace(_subspace);
+    arcBegin = arc[0];
+    arcEnd = arc[1];
+  }
+  void _createMDCTargets(int distance, int width) {
+    _switchToSubspace(0);
+    _amplitude = distance;
+    _targetWidth = width;
+    _createSubspace();
   }
 
   MDCTaskBuilder(imageSize, pointer) : super(imageSize, pointer){
-      _createMDCTargets(330, 40, center: Offset(40, 100));
+      _createMDCTargets(330, 40);
   }
 
   void addTargetGrid(Canvas canvas) {
