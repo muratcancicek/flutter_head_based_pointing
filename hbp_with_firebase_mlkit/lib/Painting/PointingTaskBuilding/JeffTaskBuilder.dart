@@ -38,7 +38,7 @@ class JeffTaskBuilder extends PointingTaskBuilder {
   }
 
   @override
-  void addTargetGrid(Canvas canvas) {
+  void drawTargets(Canvas canvas) {
       _drawJeffTask(canvas);
   }
 }

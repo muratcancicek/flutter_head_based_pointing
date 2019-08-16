@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:hbp_with_firebase_mlkit/pointer.dart';
+import 'package:flutter/material.dart';
 import 'Target.dart';
 
 class TargetPaint extends CustomPaint {
@@ -15,12 +15,12 @@ class PointingTaskBuilder {
 
   PointingTaskBuilder(this.imageSize, this.pointer);
 
-  void addTargetGrid(Canvas canvas) {
+  void drawTargets(Canvas canvas) {
       targets.forEach((t) => (t.draw(canvas, pointer)));
   }
 
   void paint(Canvas canvas, Size size) {
-   addTargetGrid(canvas);
+   drawTargets(canvas);
    pointer.draw(canvas, targets: targets);
   }
 
