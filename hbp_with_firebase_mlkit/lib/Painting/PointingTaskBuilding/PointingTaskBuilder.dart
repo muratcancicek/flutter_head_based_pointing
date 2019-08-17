@@ -3,12 +3,11 @@ import 'package:flutter/material.dart';
 import 'Target.dart';
 
 class PointingTaskBuilder {
-  final Size imageSize;
+  final Size canvasSize;
   final Pointer pointer;
-  Size canvasSize = Size(640, 360);
   List<Target> targets = List<Target>();
 
-  PointingTaskBuilder(this.imageSize, this.pointer);
+  PointingTaskBuilder(this.canvasSize, this.pointer);
 
   void drawTargets(Canvas canvas) {
       targets.forEach((t) => (t.draw(canvas, pointer)));
@@ -20,7 +19,7 @@ class PointingTaskBuilder {
   }
 
   bool shouldRepaint(PointingTaskBuilder oldDelegate) {
-   return imageSize != oldDelegate.imageSize || pointer != oldDelegate.pointer;
+   return canvasSize != oldDelegate.canvasSize || pointer != oldDelegate.pointer;
   }
 
   TargetPainter getPainter() {

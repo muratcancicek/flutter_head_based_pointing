@@ -17,15 +17,15 @@ class Pointer {
   PointerDrawer _pointerDrawer;
   PointerType _type;
   Offset _position;
-  Size _imageSize;
+  Size _canvasSize;
   Face _face;
 
-  Pointer(this._imageSize, this._face) {
-    _pointerDrawer = PointerDrawer(this, _imageSize);
+  Pointer(this._canvasSize, this._face) {
+    _pointerDrawer = PointerDrawer(this, _canvasSize);
     _dwellingQueue = Queue();
-    _mapping = HeadToCursorMapping(_imageSize, _face);
+    _mapping = HeadToCursorMapping(_canvasSize, _face);
     for (var i = 0; i < dwellingFrameCount; i++)
-      _dwellingQueue.addFirst(Offset(_imageSize.width/2, _imageSize.width/2));
+      _dwellingQueue.addFirst(Offset(_canvasSize.width/2, _canvasSize.width/2));
   }
 
   void _dwell() {
@@ -62,7 +62,7 @@ class Pointer {
   }
   void update(List<Face> faces, {Size size, CameraLensDirection direction}) {
     _updateFace(faces, size: size, direction: direction);
-    _mapping.update(_face, size: _imageSize);
+    _mapping.update(_face, size: size);
     _dwell();
   }
 

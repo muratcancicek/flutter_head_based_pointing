@@ -27,14 +27,13 @@ class HeadToCursorMapping {
   Offset _smoothedNose;
   Offset _headPointing;
   Offset _position;
-  Size _imageSize;
-  Offset _speed = Offset(10.0, 10.0);
+  Size _canvasSize;
+  Offset _speed = Offset(6.0, 8.0);
   Offset _motionThreshold = Offset(5.0, 5.0);
   Face _face;
 
-  HeadToCursorMapping(this._imageSize, this._face) {
-    _imageSize = Size(420, 690); // manually detected size
-    _position = Offset(_imageSize.width/2, _imageSize.width/2);
+  HeadToCursorMapping(this._canvasSize, this._face) {
+    _position = Offset(_canvasSize.width/2, _canvasSize.width/2);
     _headPointing = _position;
     _smoothingQueue = Queue();
     for (var i = 0; i < smoothingFrameCount; i++)
@@ -70,18 +69,18 @@ class HeadToCursorMapping {
     double minX = leftCheek.dx + range / 2;
     double maxX = rightCheek.dx - range / 2;
     double scaleX = (nose.dx - minX) / (maxX - minX);
-    return scaleX * _imageSize.width;
+    return scaleX * _canvasSize.width;
   }
 
   double _calculateXFromHeadEulerAngleY({angle: 9.0}) {
     double minX = -angle, maxX = angle;
     double scaleX = (_face.headEulerAngleY  - minX) / (maxX - minX);
-    return scaleX * _imageSize.width;
+    return scaleX * _canvasSize.width;
   }
 
   double _calculateXFromNose() {
     double diff = _smoothedNose.dx - _smoothedPrevNose.dx;
-    diff = (diff / _face.boundingBox.width) * _imageSize.width;
+    diff = (diff / _face.boundingBox.width) * _canvasSize.width;
     diff *= - _speed.dx;
     return _headPointing.dx + diff;
   }
@@ -89,9 +88,9 @@ class HeadToCursorMapping {
   double _calculateX({method}) {
     switch (method) {
       case xAxisMode.fromCheeks:
-        return _imageSize.width - _calculateXFromCheeks();
+        return _canvasSize.width - _calculateXFromCheeks();
       case xAxisMode.fromHeadEulerY:
-        return _imageSize.width - _calculateXFromHeadEulerAngleY();
+        return _canvasSize.width - _calculateXFromHeadEulerAngleY();
       case xAxisMode.fromNose:
         return _calculateXFromNose();
       default:
@@ -109,12 +108,12 @@ class HeadToCursorMapping {
     double minY = topY + range / 2;
     double maxY = mouth.dy - range / 2;
     double scaleY = (nose.dy - minY) / ((maxY - minY)/1.6);
-    return scaleY * _imageSize.height;
+    return scaleY * _canvasSize.height;
   }
 
   double _calculateYFromNose() {
     double diff = _smoothedNose.dy - _smoothedPrevNose.dy;
-    diff = (diff / _face.boundingBox.height) * _imageSize.height;
+    diff = (diff / _face.boundingBox.height) * _canvasSize.height;
 //    print(diff.toString()+' '+_headPointing.dy.toString());
     diff *= _speed.dy;
     return _headPointing.dy + diff;
@@ -123,7 +122,7 @@ class HeadToCursorMapping {
   double _calculateY({method}) {
     switch (method) {
       case yAxisMode.fromEyeMouthSquare:
-       return _imageSize.height - _calculateYFromEyeMouthSquare();
+       return _canvasSize.height - _calculateYFromEyeMouthSquare();
       case yAxisMode.fromNose:
         return _calculateYFromNose();
       default:
@@ -143,13 +142,13 @@ class HeadToCursorMapping {
 
   Offset _limitPosition(Offset newPosition) {
     var dx = newPosition.dx;
-    if (dx >= _imageSize.width)
-      dx = _imageSize.width;
+    if (dx >= _canvasSize.width)
+      dx = _canvasSize.width;
     else if (newPosition.dx < 0)
       dx = 0;
     var dy = newPosition.dy;
-    if (dy >= _imageSize.height)
-      dy = _imageSize.height;
+    if (dy >= _canvasSize.height)
+      dy = _canvasSize.height;
     else if (newPosition.dy < 0)
       dy = 0;
     return Offset(dx, dy);

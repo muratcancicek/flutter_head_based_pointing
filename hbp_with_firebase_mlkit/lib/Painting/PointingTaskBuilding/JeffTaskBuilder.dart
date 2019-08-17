@@ -7,10 +7,9 @@ class JeffTaskBuilder extends PointingTaskBuilder {
   var _jeffTaskEdge = 100.0;
 
   void _createJeffTask(double width,{double e = 100}) { // e: edge
-    Size size = Size(420, 690); // manually detected size
-    canvasSize = size;
+    Size size = canvasSize; // Size(420, 690); // manually detected size
     targets.add(Target.fromCircle(Offset(e, e), width));
-    targets.add(Target.fromCircle(Offset(canvasSize.width-e, e), width));
+    targets.add(Target.fromCircle(Offset(size.width-e, e), width));
     targets.add(Target.fromCircle(Offset(size.width/2, size.height/2), width));
     targets.add(Target.fromCircle(Offset(e, size.height-e), width));
     targets.add(Target.fromCircle(Offset(size.width-e, size.height-e), width));

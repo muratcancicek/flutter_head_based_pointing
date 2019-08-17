@@ -14,7 +14,7 @@ class PointerDrawer {
   double _radius;
 
   PointerDrawer(this.pointer, this.canvasSize) {
-    _radius = canvasSize.width / 40;
+    _radius = canvasSize.width / 30;
   }
 
   void _drawCircle(Canvas canvas, Offset offset,

@@ -45,10 +45,10 @@ class _MyCamViewState extends State<MyCamView> {
           enableClassification: true,
           enableLandmarks: true,
           enableTracking: true));
-  PointingTaskType _pointingTaskType = PointingTaskType.MDC ;
+  PointingTaskType _pointingTaskType = PointingTaskType.MDC;
   PointingTaskBuilder _targetBuilder;
   CameraController _camera;
-  Size _imageSize;
+  Size _canvasSize;
   List<Face> _faces;
   Pointer _pointer;
 
@@ -58,6 +58,7 @@ class _MyCamViewState extends State<MyCamView> {
   @override
   void initState() {
     super.initState();
+    _canvasSize = Size(420, 690); // manually detected size
     _initializeCamera();
   }
 
@@ -84,12 +85,10 @@ class _MyCamViewState extends State<MyCamView> {
             (dynamic result) {
           setState(() {
             _faces = result;
-            Size size = Size(image.width.toDouble(), image.height.toDouble());
             if (_pointer == null)
-              _pointer = Pointer(size, _faces[0]);
+              _pointer = Pointer(_canvasSize, _faces[0]);
             else
-              _pointer.update(_faces, size: size);
-//            _targetBuilder.pointer = _pointer;
+              _pointer.update(_faces, size: _canvasSize);
           });
 
           _isDetecting = false;
@@ -124,31 +123,26 @@ class _MyCamViewState extends State<MyCamView> {
       return noResultsText;
     }
     CustomPainter painter;
-    final Size imageSize = Size(
+    if (_faces is! List<Face>) return noResultsText;
+    Size _imageSize = Size(
       _camera.value.previewSize.height,
       _camera.value.previewSize.width,
     );
-
-    if (_faces is! List<Face>) return noResultsText;
-    painter = FacePainter(imageSize, _faces, _direction);
+    painter = FacePainter(_imageSize, _faces, _direction);
     return CustomPaint(painter: painter);
   }
 
   CustomPaint _drawPointer() {
-    _pointer.update(_faces, size: _imageSize, direction: _direction);
+    _pointer.update(_faces, size: _canvasSize, direction: _direction);
     return CustomPaint(painter: _pointer.getPainter());
   }
 
   CustomPaint _addTargets() {
     if (_targetBuilder == null) {
-      _imageSize = Size(
-        _camera.value.previewSize.height,
-        _camera.value.previewSize.width,
-      );
       if (_pointingTaskType == PointingTaskType.Jeff)
-        _targetBuilder = JeffTaskBuilder(_imageSize, _pointer);
+        _targetBuilder = JeffTaskBuilder(_canvasSize, _pointer);
       else if (_pointingTaskType == PointingTaskType.MDC)
-        _targetBuilder = MDCTaskBuilder(_imageSize, _pointer);
+        _targetBuilder = MDCTaskBuilder(_canvasSize, _pointer);
     }
 //    _pointer.update(_faces, size: _imageSize, direction: _direction);
     return CustomPaint(painter: _targetBuilder.getPainter());
