@@ -54,8 +54,9 @@ class PointerDrawer {
     final maxWidth = canvasSize.width / 10;
     width = width < maxWidth ? width : maxWidth;
     _drawDwellingArcBackground(canvas, width);
-    if (targets.length > 0)
-      pointer.setHighlighting(targets[0].highlighted);
+    if (targets != null)
+      if (targets.length > 0)
+        pointer.setHighlighting(targets[0].highlighted);
     if (pointer.highlights())
       _drawDwellingArc(canvas, width);
   }
@@ -65,12 +66,16 @@ class PointerDrawer {
       ..color = Colors.red
       ..strokeWidth = 1.0
       ..style = PaintingStyle.stroke;
+    final scale = pointer.getType() == PointerType.Bubble ? 20 : 10;
+    final maxWidth = canvasSize.width / scale;
+    var width = _radius*2 < maxWidth ? _radius : maxWidth;
     _drawCircle(canvas, pointer.getPosition(),
-        radius: _radius, paint: paintStyle);
+        radius: width, paint: paintStyle);
   }
 
   void _drawCirclePointer(Canvas canvas, targets) {
-    targets.sort((Target a, Target b) => ((
+    if (targets != null)
+      targets.sort((Target a, Target b) => ((
         a.getDistanceFromPointer(pointer) -
             b.getDistanceFromPointer(pointer)).toInt()));
     _drawBubbleCenter(canvas, targets);
@@ -137,7 +142,7 @@ class PointerDrawer {
   }
 
   void drawPointer(Canvas canvas, {targets, type: PointerType.Circle}) {
-    if (type != PointerType.Bubble) {
+    if (type == PointerType.Bubble) {
       _drawBubblePointer(canvas, targets);
     } else // if (type == PointerType.Circle)
       _drawCirclePointer(canvas, targets);

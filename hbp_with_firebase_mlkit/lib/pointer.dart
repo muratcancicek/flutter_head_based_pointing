@@ -34,7 +34,7 @@ class Pointer {
       bool dwelling = true;
       var dwellingFrames = 0;
       for (var p in _dwellingQueue) {
-        if (_position == null)
+        if (p == null || _position == null)
           dwelling = false;
         else if ((p - _position).distance > dwellingArea)
           dwelling = false;
@@ -48,6 +48,8 @@ class Pointer {
   }
 
   void _updateFace(List<Face> faces, {Size size, CameraLensDirection direction}) {
+    if (faces.length <= 0)
+      return;
     bool differentFace = true;
     for (var face in faces) {
       if (face.trackingId == _face.trackingId) {
@@ -67,7 +69,7 @@ class Pointer {
   void draw(Canvas canvas, {targets, type: PointerType.Circle}) {
     _type = type;
     _pointerDrawer.drawPointer(canvas,
-        targets: targets, type: PointerType.Bubble);
+        targets: targets, type: type);
   }
 
   Offset getPosition() {
@@ -123,5 +125,7 @@ class Pointer {
   PointerPainter getPainter() {
     return _pointerDrawer.getPainter();
   }
-
+  PointerType getType() {
+    return _type;
+  }
 }
