@@ -24,8 +24,10 @@ class Pointer {
     _pointerDrawer = PointerDrawer(this, _canvasSize);
     _dwellingQueue = Queue();
     _mapping = HeadToCursorMapping(_canvasSize, _face);
+    _position = _mapping.calculateHeadPointing();
     for (var i = 0; i < dwellingFrameCount; i++)
       _dwellingQueue.addFirst(Offset(_canvasSize.width/2, _canvasSize.width/2));
+
   }
 
   void _dwell() {
@@ -60,20 +62,24 @@ class Pointer {
     }
     if (differentFace) _face = faces[0];
   }
+
+  void updatePosition() {
+    _position = _mapping.calculateHeadPointing();
+  }
+
   void update(List<Face> faces, {Size size, CameraLensDirection direction}) {
     _updateFace(faces, size: size, direction: direction);
     _mapping.update(_face, size: size);
+    updatePosition();
     _dwell();
   }
 
   void draw(Canvas canvas, {targets, type: PointerType.Circle}) {
     _type = type;
-    _pointerDrawer.drawPointer(canvas,
-        targets: targets, type: type);
+    _pointerDrawer.drawPointer(canvas, targets: targets, type: type);
   }
 
   Offset getPosition() {
-    _position = _mapping.calculateHeadPointing();
     return _position;
   }
 

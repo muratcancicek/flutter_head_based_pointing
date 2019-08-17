@@ -46,11 +46,12 @@ class _MyCamViewState extends State<MyCamView> {
           enableLandmarks: true,
           enableTracking: true));
   PointingTaskType _pointingTaskType = PointingTaskType.MDC;
-  PointingTaskBuilder _targetBuilder;
   CameraController _camera;
-  Size _canvasSize;
+  var _targetBuilder;
   List<Face> _faces;
+  Size _canvasSize;
   Pointer _pointer;
+  String _outputToDisplay = '';
 
   bool _isDetecting = false;
   CameraLensDirection _direction = CameraLensDirection.front;
@@ -101,7 +102,7 @@ class _MyCamViewState extends State<MyCamView> {
     });
   }
 
-  Positioned _addPointerCoordinates() {
+  Positioned _displayOutput() {
     return Positioned(
       bottom: 0.0,
       left: 0.0,
@@ -110,16 +111,14 @@ class _MyCamViewState extends State<MyCamView> {
         color: Colors.white,
         height: 30.0,
         child:
-        Text(_pointer.getPosition().toString()),
+        Text(_outputToDisplay),
       ),
     );
   }
 
   Widget _buildResults() {
     const Text noResultsText = const Text('No results!');
-    if (_faces == null ||
-        _camera == null ||
-        !_camera.value.isInitialized) {
+    if (_faces == null ||  _camera == null ||  !_camera.value.isInitialized) {
       return noResultsText;
     }
     CustomPainter painter;
@@ -144,7 +143,7 @@ class _MyCamViewState extends State<MyCamView> {
       else if (_pointingTaskType == PointingTaskType.MDC)
         _targetBuilder = MDCTaskBuilder(_canvasSize, _pointer);
     }
-//    _pointer.update(_faces, size: _imageSize, direction: _direction);
+    _outputToDisplay = _targetBuilder.getLastMovementDuration().toString() + ' seconds';
     return CustomPaint(painter: _targetBuilder.getPainter());
   }
 
@@ -164,11 +163,11 @@ class _MyCamViewState extends State<MyCamView> {
           : Stack(
         fit: StackFit.expand,
         children: <Widget>[
-//          CameraPreview(_camera),
-//          _buildResults(),
-          _drawPointer(),
+          CameraPreview(_camera),
+          _buildResults(),
+          _displayOutput(),
           _addTargets(),
-          _addPointerCoordinates(),
+          _drawPointer(),
         ],
       ),
     );

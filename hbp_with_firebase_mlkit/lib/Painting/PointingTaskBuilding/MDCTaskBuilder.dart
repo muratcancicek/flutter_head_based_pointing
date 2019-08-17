@@ -13,7 +13,9 @@ enum Subspace {
 class  MDCTaskBuilder extends PointingTaskBuilder {
   List<Target> _subspaceTargets = List<Target>();
   Subspace _subspace = Subspace.TopLeftCorner;
+  List<double> _movementDurations = List<double>();
   Offset _offsetToEdges = Offset(50, 50);
+  int _lastSelectionMoment = 0;
   int _currentTargetIndex = 0;
   int _outerTargetCounter = 2;
   int _subspaceID = 0;
@@ -142,7 +144,17 @@ class  MDCTaskBuilder extends PointingTaskBuilder {
     _switchToSubspace(_subspace);
   }
 
+  void _recordMovementTime() {
+    final selectionMoment = new DateTime.now().millisecondsSinceEpoch;
+    if (_currentTargetIndex > 0) {
+      _movementDurations.add((selectionMoment - _lastSelectionMoment) / 1000);
+      print(_movementDurations.last);
+    }
+    _lastSelectionMoment = selectionMoment;
+  }
+
   void _switchToNextTarget() {
+    _recordMovementTime();
     targets.removeLast();
     _currentTargetIndex++;
     if (_currentTargetIndex < _subspaceTargets.length) {
@@ -160,5 +172,12 @@ class  MDCTaskBuilder extends PointingTaskBuilder {
       else
         targets[0].draw(canvas, pointer);
     }
+  }
+
+  double getLastMovementDuration() {
+    if (_movementDurations.length > 0)
+      return _movementDurations.last;
+    else
+      return 0;
   }
 }

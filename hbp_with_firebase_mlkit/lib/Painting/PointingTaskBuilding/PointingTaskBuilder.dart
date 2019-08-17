@@ -15,7 +15,6 @@ class PointingTaskBuilder {
 
   void paint(Canvas canvas, Size size) {
    drawTargets(canvas);
-   pointer.draw(canvas, targets: targets);
   }
 
   bool shouldRepaint(PointingTaskBuilder oldDelegate) {

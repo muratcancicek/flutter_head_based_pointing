@@ -142,6 +142,7 @@ class PointerDrawer {
   }
 
   void drawPointer(Canvas canvas, {targets, type: PointerType.Circle}) {
+    pointer.updatePosition();
     if (type == PointerType.Bubble) {
       _drawBubblePointer(canvas, targets);
     } else // if (type == PointerType.Circle)
