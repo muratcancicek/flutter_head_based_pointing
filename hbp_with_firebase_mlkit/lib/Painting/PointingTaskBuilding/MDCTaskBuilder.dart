@@ -11,8 +11,10 @@ enum Subspace {
   Center
 }
 class  MDCTaskBuilder extends PointingTaskBuilder {
+  List<Target> _subspaceTargets = List<Target>();
   Subspace _subspace = Subspace.TopLeftCorner;
   Offset _offsetToEdges = Offset(50, 50);
+  int _currentTargetIndex = 0;
   int _outerTargetCounter = 2;
   int _subspaceID = 0;
   int _targetWidth;
@@ -81,15 +83,22 @@ class  MDCTaskBuilder extends PointingTaskBuilder {
     return angles;
   }
 
+  Offset _createOuterPoint(Offset center, double angle) {
+    return Offset(center.dx + (_amplitude * cos(angle)),
+                  center.dy + (_amplitude * sin(angle)));
+
+  }
+
   List<Offset> _createArcPoints(double angularDistance) {
     List<Offset> targetPoints = List<Offset>();
     List<double> angles = _calculateTargetAngles(angularDistance);
     targetPoints.add(_center);
     for (double ang in angles) {
-      double dx = targetPoints[0].dx + (_amplitude * cos(ang));
-      double dy = targetPoints[0].dy + (_amplitude * sin(ang));
-      targetPoints.add(Offset(dx, dy));
+      Offset target = _createOuterPoint(_center, ang);
+      targetPoints.add(target);
+      targetPoints.add(_center);
     }
+    targetPoints.removeLast();
     return targetPoints;
   }
 
@@ -101,10 +110,13 @@ class  MDCTaskBuilder extends PointingTaskBuilder {
   }
 
   void _createSubspace() {
+    _subspaceTargets = List<Target>();
     _center = _getCenterForSubspace(_subspace);
+    _currentTargetIndex = 0;
     final targetPoints = _createArc();
-    for (var point in targetPoints)
-      targets.add(Target.fromCircle(point, _targetWidth.toDouble()));
+    for (var i = 0; i < targetPoints.length; i++)
+      _subspaceTargets.add(Target.fromCircle(targetPoints[i], _targetWidth.toDouble()));
+    targets.add(_subspaceTargets[0]);
   }
 
   void _createMDCTargets(int distance, int width) {
@@ -130,13 +142,23 @@ class  MDCTaskBuilder extends PointingTaskBuilder {
     _switchToSubspace(_subspace);
   }
 
-  void drawTargets(Canvas canvas) {
-    for(var i = 0; i < targets.length; i++) {
-      targets[i].draw(canvas, pointer);
-      if (targets[i].pressed)
-        targets.removeAt(i);
+  void _switchToNextTarget() {
+    targets.removeLast();
+    _currentTargetIndex++;
+    if (_currentTargetIndex < _subspaceTargets.length) {
+      Target nextTarget = _subspaceTargets[_currentTargetIndex];
+      targets.add(nextTarget);
     }
-    if (targets.length <= 0)
+    else
       _switchToNextSubspace();
+  }
+
+  void drawTargets(Canvas canvas) {
+    if (targets.length > 0) {
+      if (targets[0].pressed)
+        _switchToNextTarget();
+      else
+        targets[0].draw(canvas, pointer);
+    }
   }
 }
