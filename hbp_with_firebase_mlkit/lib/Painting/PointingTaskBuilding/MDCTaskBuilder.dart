@@ -3,37 +3,45 @@ import 'Target.dart';
 import 'dart:math';
 import 'PointingTaskBuilder.dart';
 
+enum Subspace {
+  TopLeftCorner,
+  TopRightCorner,
+  BottomRightCorner,
+  BottomLeftCorner,
+  Center
+}
 class  MDCTaskBuilder extends PointingTaskBuilder {
-  int _subspace = 0;
+  Subspace _subspace = Subspace.TopLeftCorner;
+  int _subspaceID = 0;
   int _targetWidth;
   int _amplitude;
   Offset _center;
 
-  int _detectSubspace(center) {
-    if (center.dx <= imageSize.width/2 && center.dy <= imageSize.height/2)
-      return 0;
-    else if (center.dx > imageSize.width/2 && center.dy <= imageSize.height/2)
-      return 1;
-    else if (center.dx <= imageSize.width/2 && center.dy > imageSize.height/2)
-      return 2;
-    else // if (center.dx > imageSize.width/2 && center.dy > imageSize.height/2)
-      return 3;
+  Subspace _detectSubspace(center) {
+    if (center.dx < imageSize.width/2 && center.dy < imageSize.height/2)
+      return Subspace.TopLeftCorner;
+    else if (center.dx > imageSize.width/2 && center.dy < imageSize.height/2)
+      return  Subspace.TopRightCorner;
+    else if (center.dx > imageSize.width/2 && center.dy > imageSize.height/2)
+      return  Subspace.BottomRightCorner;
+    else if (center.dx > imageSize.width/2 && center.dy > imageSize.height/2)
+      return  Subspace.BottomLeftCorner;
+    else
+      return  Subspace.Center;
   }
 
   List<double> _getArcForSubspace(subspace) {
     switch (subspace) {
-      def: case 0: {
+      def: case  Subspace.TopLeftCorner:
         return [0.0, 90.0];
-      }
-      case 1: {
+      case  Subspace.TopRightCorner:
         return [90.0, 180.0];
-      }
-      case 2: {
+      case  Subspace.BottomRightCorner:
         return [180, 270.0];
-      }
-      case 3: {
+      case  Subspace.BottomLeftCorner:
         return [270.0, 360.0];
-      }
+      case  Subspace.Center:
+        return [0.0, 360.0];
       default:
         continue def;
     }
@@ -62,7 +70,7 @@ class  MDCTaskBuilder extends PointingTaskBuilder {
     return targetPoints;
   }
 
-  List<Offset> _createArc({int outerTargetCounter: 4, double angle}) {
+  List<Offset> _createArc({int outerTargetCounter: 2, double angle}) {
     angle = angle == null ? (90.0 / (outerTargetCounter-1)) : angle;
     return _createArcPoints(angle);
   }
@@ -74,7 +82,7 @@ class  MDCTaskBuilder extends PointingTaskBuilder {
       targets.add(Target.fromCircle(point, _targetWidth.toDouble()));
   }
 
-  void _switchToSubspace(int subspace) {
+  void _switchToSubspace(Subspace subspace) {
     _subspace = subspace;
     _createSubspace();
   }
@@ -96,6 +104,8 @@ class  MDCTaskBuilder extends PointingTaskBuilder {
         targets.removeAt(i);
     }
     if (targets.length <= 0)
-      _switchToSubspace(_subspace+1);
+      _switchToSubspace(Subspace.values[_subspaceID++]);
+    if (_subspaceID > 3)
+      _subspaceID = 0;
   }
 }
