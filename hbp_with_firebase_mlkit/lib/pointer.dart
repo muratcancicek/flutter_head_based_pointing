@@ -49,7 +49,7 @@ class Pointer {
     _dwellingQueue.addFirst(_position);
   }
 
-  void _updateFace(List<Face> faces, {Size size, CameraLensDirection direction}) {
+  void _updateFace(List<Face> faces, {Size size}) {
     if (faces.length <= 0)
       return;
     bool differentFace = true;
@@ -68,7 +68,7 @@ class Pointer {
   }
 
   void update(List<Face> faces, {Size size, CameraLensDirection direction}) {
-    _updateFace(faces, size: size, direction: direction);
+    _updateFace(faces, size: size);
     _mapping.update(_face, size: size);
     updatePosition();
     _dwell();
