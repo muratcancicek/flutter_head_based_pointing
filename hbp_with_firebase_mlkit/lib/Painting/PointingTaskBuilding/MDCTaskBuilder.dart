@@ -1,7 +1,8 @@
+import 'package:hbp_with_firebase_mlkit/Painting/PointingTaskBuilding/PointingTaskBuilder.dart';
+import 'package:hbp_with_firebase_mlkit/Painting/PointingTaskBuilding/Target.dart';
+import 'package:hbp_with_firebase_mlkit/MDCTaskRecorder.dart';
 import 'package:flutter/material.dart';
-import 'Target.dart';
 import 'dart:math';
-import 'PointingTaskBuilder.dart';
 
 enum Subspace {
   TopLeftCorner,
@@ -10,19 +11,18 @@ enum Subspace {
   BottomLeftCorner,
   Center
 }
+
 class  MDCTaskBuilder extends PointingTaskBuilder {
   List<Target> _subspaceTargets = List<Target>();
   Subspace _subspace = Subspace.TopLeftCorner;
-  List<double> _movementDurations = List<double>();
   Offset _offsetToEdges = Offset(50, 50);
-  int _lastSelectionMoment = 0;
   int _currentTargetIndex = 0;
-  int _outerTargetCounter = 2;
+  int _outerTargetCount = 2;
+  MDCTaskRecorder _recorder;
   int _subspaceID = 0;
   int _targetWidth;
   int _amplitude;
   Offset _center;
-
 
   Subspace detectSubspace({center}) {
     if (center == null) center = _center;
@@ -88,7 +88,6 @@ class  MDCTaskBuilder extends PointingTaskBuilder {
   Offset _createOuterPoint(Offset center, double angle) {
     return Offset(center.dx + (_amplitude * cos(angle)),
                   center.dy + (_amplitude * sin(angle)));
-
   }
 
   List<Offset> _createArcPoints(double angularDistance) {
@@ -100,13 +99,12 @@ class  MDCTaskBuilder extends PointingTaskBuilder {
       targetPoints.add(target);
       targetPoints.add(_center);
     }
-    targetPoints.removeLast();
     return targetPoints;
   }
 
   List<Offset> _createArc({int outerTargetCounter, double angle}) {
     if (outerTargetCounter ==  null)
-      outerTargetCounter = _outerTargetCounter;
+      outerTargetCounter = _outerTargetCount;
     angle = angle == null ? (90.0 / (outerTargetCounter-1)) : angle;
     return _createArcPoints(angle);
   }
@@ -116,19 +114,26 @@ class  MDCTaskBuilder extends PointingTaskBuilder {
     _center = _getCenterForSubspace(_subspace);
     _currentTargetIndex = 0;
     final targetPoints = _createArc();
+    _recorder.recordTargetPoints(targetPoints);
     for (var i = 0; i < targetPoints.length; i++)
-      _subspaceTargets.add(Target.fromCircle(targetPoints[i], _targetWidth.toDouble()));
+      _subspaceTargets.add(
+          Target.fromCircle(targetPoints[i], _targetWidth.toDouble()));
     targets.add(_subspaceTargets[0]);
   }
 
-  void _createMDCTargets(int distance, int width) {
-    _amplitude = distance;
-    _targetWidth = width;
+  void _createMDCTargets(int amplitude, int targetWidth) {
+    _recorder.recordBlockConstants(amplitude, targetWidth,
+        _outerTargetCount, pointer.getDwellTime());
+    _amplitude = amplitude;
+    _targetWidth = targetWidth;
     _createSubspace();
   }
 
-  MDCTaskBuilder(imageSize, pointer) : super(imageSize, pointer){
-      _createMDCTargets(160, 30);
+  MDCTaskBuilder(imageSize, pointer, recorder,
+      {int amplitude: 160, int targetWidth: 30})
+      : super(imageSize, pointer) {
+    _recorder = recorder;
+    _createMDCTargets(amplitude, targetWidth);
   }
 
   void _switchToSubspace(Subspace subspace) {
@@ -144,17 +149,9 @@ class  MDCTaskBuilder extends PointingTaskBuilder {
     _switchToSubspace(_subspace);
   }
 
-  void _recordMovementTime() {
-    final selectionMoment = new DateTime.now().millisecondsSinceEpoch;
-    if (_currentTargetIndex > 0) {
-      _movementDurations.add((selectionMoment - _lastSelectionMoment) / 1000);
-      print(_movementDurations.last);
-    }
-    _lastSelectionMoment = selectionMoment;
-  }
-
   void _switchToNextTarget() {
-    _recordMovementTime();
+    _recorder.recordTrialDuration(_currentTargetIndex,
+        dwellTime: pointer.getExactDwellDuration());
     targets.removeLast();
     _currentTargetIndex++;
     if (_currentTargetIndex < _subspaceTargets.length) {
@@ -172,12 +169,5 @@ class  MDCTaskBuilder extends PointingTaskBuilder {
       else
         targets[0].draw(canvas, pointer);
     }
-  }
-
-  double getLastMovementDuration() {
-    if (_movementDurations.length > 0)
-      return _movementDurations.last;
-    else
-      return 0;
   }
 }

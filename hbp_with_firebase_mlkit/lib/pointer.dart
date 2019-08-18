@@ -65,6 +65,14 @@ class Pointer {
     }
   }
 
+  double getExactDwellDuration() {
+    return _dwellingPercentage * _dwellTime / 1000;
+  }
+
+  double getDwellTime() {
+    return _dwellTime / 1000;
+  }
+
   void _updateFace(List<Face> faces, {Size size}) {
     if (faces.length <= 0)
       return;
@@ -112,8 +120,7 @@ class Pointer {
       return (_position - targetCenter).distance < targetWidth;
   }
 
-
-    void setHighlighting(bool highlighting) {
+  void setHighlighting(bool highlighting) {
     _highlighting = highlighting;
   }
 
@@ -156,6 +163,10 @@ class Pointer {
     final answer = _updated;
     _updated = false;
     return answer;
+  }
+
+  Queue<Offset> getDwellingQueue() {
+    return _dwellingQueue;
   }
 
 }

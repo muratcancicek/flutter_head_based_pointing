@@ -1,6 +1,7 @@
 import 'package:hbp_with_firebase_mlkit/Painting/PointingTaskBuilding/JeffTaskBuilder.dart';
 import 'package:hbp_with_firebase_mlkit/Painting/PointingTaskBuilding/MDCTaskBuilder.dart';
 import 'package:hbp_with_firebase_mlkit/Painting/face_painter.dart';
+import 'package:hbp_with_firebase_mlkit/MDCTaskRecorder.dart';
 import 'package:hbp_with_firebase_mlkit/CameraHandler.dart';
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/rendering.dart';
@@ -17,11 +18,14 @@ class TaskScreen {
   Size _canvasSize = Size(420, 690); // manually detected size
   String _outputToDisplay = '';
   CameraHandler _cameraHandler;
+  MDCTaskRecorder _recorder;
   var _targetBuilder;
   List<Face> _faces;
   Pointer _pointer;
 
-  TaskScreen(this._cameraHandler);
+  TaskScreen(this._cameraHandler) {
+    _recorder = MDCTaskRecorder();
+  }
 
   void updateInput(dynamic result)  {
       _faces = result;
@@ -31,6 +35,7 @@ class TaskScreen {
   }
 
   Positioned _displayOutput() {
+    _outputToDisplay = _recorder.getLastMovementDuration().toString() + ' seconds';
     return Positioned(
       bottom: 0.0,
       left: 0.0,
@@ -56,6 +61,7 @@ class TaskScreen {
 
   Widget _drawPointer() {
     _pointer.update(_faces, targets: _targetBuilder.getTargets(), size: _canvasSize);
+    _recorder.logPointer(_pointer);
     return CustomPaint(painter: _pointer.getPainter());
   }
 
@@ -64,9 +70,8 @@ class TaskScreen {
       if (_pointingTaskType == PointingTaskType.Jeff)
         _targetBuilder = JeffTaskBuilder(_canvasSize, _pointer);
       else if (_pointingTaskType == PointingTaskType.MDC)
-        _targetBuilder = MDCTaskBuilder(_canvasSize, _pointer);
+        _targetBuilder = MDCTaskBuilder(_canvasSize, _pointer, _recorder);
     }
-    _outputToDisplay = _targetBuilder.getLastMovementDuration().toString() + ' seconds';
     return CustomPaint(painter: _targetBuilder.getPainter());
   }
 
