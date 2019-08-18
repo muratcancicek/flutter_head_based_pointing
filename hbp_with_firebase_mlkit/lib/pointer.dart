@@ -5,9 +5,10 @@ import 'HeadToCursorMapping.dart';
 import 'dart:collection';
 
 class Pointer {
+  Queue<int> _dwellingTimestampQueue;
   double _dwellingPercentage = 0;
   Queue<Offset> _dwellingQueue;
-  int dwellingFrameCount = 40;
+  int _dwellTime = 800;
   double dwellingArea = 20;
   PointerDrawer _pointerDrawer;
   HeadToCursorMapping _mapping;
@@ -23,30 +24,45 @@ class Pointer {
   Pointer(this._canvasSize, this._face) {
     _pointerDrawer = PointerDrawer(this, _canvasSize);
     _dwellingQueue = Queue();
+    _dwellingTimestampQueue = Queue();
     _mapping = HeadToCursorMapping(_canvasSize, _face);
     _position = _mapping.calculateHeadPointing();
-    for (var i = 0; i < dwellingFrameCount; i++)
-      _dwellingQueue.addFirst(Offset(_canvasSize.width/2, _canvasSize.width/2));
+  }
 
+  void _resetDwelling(int moment) {
+    _dwellingQueue = Queue<Offset>();
+    _dwellingTimestampQueue = Queue<int>();
+    _dwellingQueue.addLast(_position);
+    _dwellingTimestampQueue.addLast(moment);
+    _dwelling = false;
+  }
+
+  bool _isDwellLoading(int moment) {
+    for (var p in _dwellingQueue) {
+      if (p == null || _position == null) {
+        return false;
+      } else if ((p - _position).distance > dwellingArea) {
+        _resetDwelling(moment);
+        return false;
+      }
+    }
+    return true;
   }
 
   void _dwell() {
-    if (_dwellingQueue.length >= dwellingFrameCount) {
-      _dwellingQueue.removeLast();
-      bool dwelling = true;
-      var dwellingFrames = 0;
-      for (var p in _dwellingQueue) {
-        if (p == null || _position == null)
-          dwelling = false;
-        else if ((p - _position).distance > dwellingArea)
-          dwelling = false;
-        else
-          dwellingFrames++;
-      }
-      _dwelling = dwelling;
-      _dwellingPercentage = dwellingFrames / dwellingFrameCount;
+    final moment = new DateTime.now().millisecondsSinceEpoch;
+    if (_dwellingTimestampQueue.length <= 0) {
+      _resetDwelling(moment);
+      return;
     }
-    _dwellingQueue.addFirst(_position);
+    bool dwelling = _isDwellLoading(moment);
+    if (dwelling) {
+      _dwellingTimestampQueue.addLast(moment);
+      _dwellingQueue.addLast(_position);
+      _dwellingPercentage = (moment - _dwellingTimestampQueue.first) / _dwellTime;
+      if (moment - _dwellingTimestampQueue.first > _dwellTime)
+          _dwelling = true;
+    }
   }
 
   void _updateFace(List<Face> faces, {Size size}) {
