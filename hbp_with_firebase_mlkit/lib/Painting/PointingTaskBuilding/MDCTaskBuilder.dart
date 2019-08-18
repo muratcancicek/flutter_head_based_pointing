@@ -122,6 +122,7 @@ class  MDCTaskBuilder extends PointingTaskBuilder {
   }
 
   void _createMDCTargets(int amplitude, int targetWidth) {
+
     _recorder.recordBlockConstants(amplitude, targetWidth,
         _outerTargetCount, pointer.getDwellTime());
     _amplitude = amplitude;

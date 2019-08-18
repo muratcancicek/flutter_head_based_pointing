@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
 
 class MDCTaskRecorder {
   List<double> _subspaceSwitchingDurations = List<double>();
@@ -12,6 +13,13 @@ class MDCTaskRecorder {
   int _outerTargetCount;
   int _currentAmplitude;
   double _dwellTime;
+
+  Map<String, dynamic> toJson() => {
+//    'subspaceSwitchingDurations': _subspaceSwitchingDurations,
+    'trialDurations': _trialDurations,
+//    'trials': _trails,
+    'dwellTime': _dwellTime
+  };
 
   MDCTaskRecorder() {
     _selectionMoments.add(new DateTime.now().millisecondsSinceEpoch);
@@ -41,6 +49,7 @@ class MDCTaskRecorder {
     }
     _selectionMoments.add(selectionMoment);
     _trialLogs = List<Offset>();
+    print(jsonEncode(this));
   }
 
   void logPointer(pointer) {
@@ -53,4 +62,6 @@ class MDCTaskRecorder {
     else
       return 0;
   }
+
+
 }

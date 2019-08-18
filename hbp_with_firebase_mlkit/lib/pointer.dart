@@ -77,6 +77,9 @@ class Pointer {
     if (faces.length <= 0)
       return;
     bool differentFace = true;
+    if (_face == null) {
+      _face = faces[0];
+    }
     for (var face in faces) {
       if (face.trackingId == _face.trackingId) {
         _face = face;
@@ -93,11 +96,14 @@ class Pointer {
 
   void update(List<Face> faces, {targets, Size size}) {
     _updated = true;
-    _updateFace(faces, size: size);
-    _mapping.update(_face, size: size);
-    _pointerDrawer.update(targets: targets);
-    updatePosition();
-    _dwell();
+    if (faces != null)
+      if (faces.length > 0) {
+        _updateFace(faces, size: size);
+        _mapping.update(_face, size: size);
+        _pointerDrawer.update(targets: targets);
+        updatePosition();
+        _dwell();
+      }
   }
 
   void draw(Canvas canvas, {targets, type: PointerType.Circle}) {

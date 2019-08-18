@@ -24,14 +24,15 @@ class TaskScreen {
   Pointer _pointer;
 
   TaskScreen(this._cameraHandler) {
+    _pointer = Pointer(_canvasSize, null);
     _recorder = MDCTaskRecorder();
   }
 
   void updateInput(dynamic result)  {
-      _faces = result;
-      if (_pointer == null)
-        _pointer = Pointer(_canvasSize, _faces[0]);
-      _pointer.update(_faces, size: _canvasSize);
+//    print(result.length);
+    _faces = result;
+    _pointer.update(_faces, size: _canvasSize);
+    _recorder.logPointer(_pointer);
   }
 
   Positioned _displayOutput() {

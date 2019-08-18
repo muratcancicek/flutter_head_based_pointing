@@ -179,15 +179,17 @@ class HeadToCursorMapping {
   }
 
   Offset calculateHeadPointing() {
-    _smoothNoseInput();
-    var newHeadPointing = Offset(_calculateX(), _calculateY());
-    newHeadPointing = _limitPosition(newHeadPointing);
-    newHeadPointing = _applyMotionThreshold(newHeadPointing);
-    _headPointing = _smoothHeadPointing(newHeadPointing);
+    if (_face != null) {
+      _smoothNoseInput();
+      var newHeadPointing = Offset(_calculateX(), _calculateY());
+      newHeadPointing = _limitPosition(newHeadPointing);
+      newHeadPointing = _applyMotionThreshold(newHeadPointing);
+      _headPointing = _smoothHeadPointing(newHeadPointing);
 //    final velocity = newHeadPointing - _headPointing;
 //    final acceleratedVelocity = addAcceleration(velocity);
 //    newHeadPointing = _headPointing + acceleratedVelocity;
-    _position = _headPointing;
+      _position = _headPointing;
+    }
     return _position;
   }
 
