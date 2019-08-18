@@ -12,6 +12,7 @@ class PointerDrawer {
   Pointer pointer;
   Size canvasSize;
   double _radius;
+  var _targets;
 
   PointerDrawer(this.pointer, this.canvasSize) {
     _radius = canvasSize.width / 30;
@@ -49,14 +50,14 @@ class PointerDrawer {
         0, pointer.dwellingPercentage() * 2 * pi, true, paintStyle);
   }
 
-  void _drawBubbleCenter(Canvas canvas, targets) {
+  void _drawBubbleCenter(Canvas canvas) {
     var width = _radius * 2;
     final maxWidth = canvasSize.width / 10;
     width = width < maxWidth ? width : maxWidth;
     _drawDwellingArcBackground(canvas, width);
-    if (targets != null)
-      if (targets.length > 0)
-        pointer.setHighlighting(targets[0].highlighted);
+    if (_targets != null)
+      if (_targets.length > 0)
+        pointer.setHighlighting(_targets[0].highlighted);
     if (pointer.highlights())
       _drawDwellingArc(canvas, width);
   }
@@ -73,27 +74,29 @@ class PointerDrawer {
         radius: width, paint: paintStyle);
   }
 
-  void _drawCirclePointer(Canvas canvas, targets) {
-    if (targets != null)
-      targets.sort((Target a, Target b) => ((
+  void _drawCirclePointer(Canvas canvas) {
+    if (_targets != null)
+      _targets.sort((Target a, Target b) => ((
         a.getDistanceFromPointer(pointer) -
             b.getDistanceFromPointer(pointer)).toInt()));
-    _drawBubbleCenter(canvas, targets);
+    _drawBubbleCenter(canvas);
     _drawCircleEdge(canvas);
   }
 
-  void _updateBubbleRadius(targets) {
-    targets.sort((Target a, Target b) => ((
+  void _updateBubbleRadius() {
+    if (_targets == null)
+      return;
+    _targets.sort((Target a, Target b) => ((
         a.getOuterDistanceFromPointer(pointer) -
             b.getOuterDistanceFromPointer(pointer)).toInt()));
     var r =  canvasSize.width/30;
-    if (targets.length > 1) {
-      var inD = targets[0].getInnerDistanceFromPointer(pointer);
+    if (_targets.length > 1) {
+      var inD = _targets[0].getInnerDistanceFromPointer(pointer);
       var space = canvasSize.width/30;
-      var outD = targets[1].getOuterDistanceFromPointer(pointer) - space;
+      var outD = _targets[1].getOuterDistanceFromPointer(pointer) - space;
       r = inD < outD ? inD : outD;
-    } else if (targets.length == 1) {
-      r = targets[0].getInnerDistanceFromPointer(pointer);
+    } else if (_targets.length == 1) {
+      r = _targets[0].getInnerDistanceFromPointer(pointer);
     }
     final maxR = 3 * canvasSize.height / 8;
     final minR = canvasSize.width / 20;
@@ -102,13 +105,13 @@ class PointerDrawer {
     _radius = r;
   }
 
-  void _drawPathToNearestTarget(Canvas canvas, targets) {
-    if (targets.length > 0) {
-      if (targets[0].highlighted) {
+  void _drawPathToNearestTarget(Canvas canvas) {
+    if (_targets.length > 0) {
+      if (_targets[0].highlighted) {
         final paint = Paint()
           ..color = Colors.blue
           ..strokeWidth = 4;
-        canvas.drawLine(pointer.getPosition(), targets[0].center, paint);
+        canvas.drawLine(pointer.getPosition(), _targets[0].center, paint);
       }
     }
   }
@@ -133,20 +136,22 @@ class PointerDrawer {
     _drawBubbleEdge(canvas);
   }
 
-  void _drawBubblePointer(Canvas canvas, targets) {
-    if (targets != null)
-      _updateBubbleRadius(targets);
+  void _drawBubblePointer(Canvas canvas) {
+      _updateBubbleRadius();
     _drawBubbleRange(canvas);
-    _drawPathToNearestTarget(canvas, targets);
-    _drawBubbleCenter(canvas, targets);
+    _drawPathToNearestTarget(canvas);
+    _drawBubbleCenter(canvas);
   }
 
-  void drawPointer(Canvas canvas, {targets, type: PointerType.Circle}) {
-    pointer.updatePosition();
+  void drawPointer(Canvas canvas, {type: PointerType.Circle}) {
     if (type == PointerType.Bubble) {
-      _drawBubblePointer(canvas, targets);
+      _drawBubblePointer(canvas);
     } else // if (type == PointerType.Circle)
-      _drawCirclePointer(canvas, targets);
+      _drawCirclePointer(canvas);
+  }
+
+  void update({targets}) {
+    _targets = targets;
   }
 
   double getRadius() {
@@ -174,7 +179,7 @@ class PointerPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(PointerPainter oldDelegate) {
-    return _pointerDrawer.shouldRepaint(oldDelegate.getTargetBuilder());
+    return _pointerDrawer.pointer.isUpdated();
   }
 
   PointerDrawer getTargetBuilder() {

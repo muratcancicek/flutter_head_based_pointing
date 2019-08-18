@@ -39,7 +39,6 @@ class CameraHandler {
     _rotation = rotationIntToImageRotation(description.sensorOrientation);
     _camera = _getCameraController(description);
     await _camera.initialize();
-    print(_camera);
     _camera.startImageStream(_streamImage);
   }
 

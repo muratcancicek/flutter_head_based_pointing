@@ -27,8 +27,7 @@ class TaskScreen {
       _faces = result;
       if (_pointer == null)
         _pointer = Pointer(_canvasSize, _faces[0]);
-      else
-        _pointer.update(_faces, size: _canvasSize);
+      _pointer.update(_faces, size: _canvasSize);
   }
 
   Positioned _displayOutput() {
@@ -55,8 +54,8 @@ class TaskScreen {
     return CustomPaint(painter: painter);
   }
 
-  CustomPaint _drawPointer() {
-    _pointer.update(_faces, size: _canvasSize);
+  Widget _drawPointer() {
+    _pointer.update(_faces, targets: _targetBuilder.getTargets(), size: _canvasSize);
     return CustomPaint(painter: _pointer.getPainter());
   }
 
@@ -75,8 +74,8 @@ class TaskScreen {
     return Stack(
       fit: StackFit.expand,
       children: <Widget>[
-        _cameraHandler.getCameraPreview(),
-        _buildResults(),
+//        _cameraHandler.getCameraPreview(),
+//        _buildResults(),
         _displayOutput(),
         _addTargets(),
         _drawPointer(),

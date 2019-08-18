@@ -1,20 +1,20 @@
+import 'package:hbp_with_firebase_mlkit/Painting/PointerDrawer.dart';
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/material.dart';
-import 'package:camera/camera.dart';
-import 'dart:collection';
 import 'HeadToCursorMapping.dart';
-import 'package:hbp_with_firebase_mlkit/Painting/PointerDrawer.dart';
+import 'dart:collection';
 
 class Pointer {
-  HeadToCursorMapping _mapping;
   double _dwellingPercentage = 0;
   Queue<Offset> _dwellingQueue;
   int dwellingFrameCount = 40;
   double dwellingArea = 20;
+  PointerDrawer _pointerDrawer;
+  HeadToCursorMapping _mapping;
+  bool _highlighting = false;
   bool _dwelling = false;
   bool _pressed = false;
-  bool _highlighting = false;
-  PointerDrawer _pointerDrawer;
+  bool _updated = false;
   PointerType _type;
   Offset _position;
   Size _canvasSize;
@@ -67,16 +67,18 @@ class Pointer {
     _position = _mapping.calculateHeadPointing();
   }
 
-  void update(List<Face> faces, {Size size, CameraLensDirection direction}) {
+  void update(List<Face> faces, {targets, Size size}) {
+    _updated = true;
     _updateFace(faces, size: size);
     _mapping.update(_face, size: size);
+    _pointerDrawer.update(targets: targets);
     updatePosition();
     _dwell();
   }
 
   void draw(Canvas canvas, {targets, type: PointerType.Circle}) {
     _type = type;
-    _pointerDrawer.drawPointer(canvas, targets: targets, type: type);
+    _pointerDrawer.drawPointer(canvas, type: type);
   }
 
   Offset getPosition() {
@@ -108,8 +110,6 @@ class Pointer {
                         _face.leftEyeOpenProbability < 0.1)) {
       _pressed = true;
     }
-//    else
-//      _pressed = false;
     return _pressed;
   }
 
@@ -131,7 +131,15 @@ class Pointer {
   PointerPainter getPainter() {
     return _pointerDrawer.getPainter();
   }
+
   PointerType getType() {
     return _type;
   }
+
+  bool isUpdated() {
+    final answer = _updated;
+    _updated = false;
+    return answer;
+  }
+
 }

@@ -24,6 +24,10 @@ class PointingTaskBuilder {
   TargetPainter getPainter() {
    return TargetPainter(this);
   }
+
+  List<Target> getTargets() {
+    return targets;
+  }
 }
 
 class TargetPainter extends CustomPainter {
