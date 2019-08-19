@@ -22,7 +22,15 @@ class MDCTaskRecorder {
   List<List<List<double>>> listOfOffsetsToListOfList(List<List<Offset>> list) =>
       list.map((l) => (l.map((e) => offsetToList(e)).toList())).toList();
 
-  Map<String, dynamic> toJsonBasic() => {
+  Map<String, dynamic> logInformation() => {
+    '\"SelectionMoments\"': _selectionMoments,
+    '\"trailDurations\"': _trailDurations,
+    '\"subspaceSwitchingDurations\"': _subspaceSwitchingDurations,
+    '\"trails\"': _trails,
+    '\"transitions\"': _transitions,
+  };
+
+  Map<String, dynamic> blockInformation() => {
     '\"Amplitude\"': _taskBuilder.getAmplitude(),
     '\"TargetWidth\"': _taskBuilder.getTargetWidth(),
     '\"OuterTargetCount\"': _taskBuilder.getOuterTargetCount(),
@@ -31,16 +39,20 @@ class MDCTaskRecorder {
     '\"OffsetToEdges\"':  offsetToList(_taskBuilder.getOffsetToEdges()),
     '\"TargetLocations\"': _targetPoints,
     '\"TaskBuilderCanvasSize\"': sizeToList(_taskBuilder.getCanvasSize()),
-    '\"DwellTime\"': _pointer.getDwellTime(),
-    '\"DwellRadius\"': _pointer.getDwellRadius(),
-    '\"PointerRadius\"': _pointer.getRadius(),
+    '\"LogInformation\"': logInformation(),
+  };
+
+  Map<String, dynamic> pointerInformation() => {
     '\"PointerType\"': '\"'+_pointer.getType().toString()+'\"',
+    '\"PointerRadius\"': _pointer.getRadius(),
+    '\"DwellRadius\"': _pointer.getDwellRadius(),
+    '\"DwellTime\"': _pointer.getDwellTime(),
     '\"PointerCanvasSize\"': sizeToList(_pointer.getCanvasSize()),
-    '\"SelectionMoments\"': _selectionMoments,
-    '\"trailDurations\"': _trailDurations,
-    '\"subspaceSwitchingDurations\"': _subspaceSwitchingDurations,
-    '\"trails\"': _trails,
-    '\"transitions\"': _transitions,
+  };
+
+  Map<String, dynamic> toJsonBasic() => {
+    '\"BlockInformation\"': blockInformation(),
+    '\"PointerInformation\"': pointerInformation(),
   };
 
   MDCTaskRecorder(this._pointer) {
