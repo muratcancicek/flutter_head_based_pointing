@@ -186,7 +186,7 @@ class  MDCTaskBuilder extends PointingTaskBuilder {
   }
 
   int getBlockTargetCount() {
-    return _subspaceTargets.length;
+    return 4 * _subspaceTargets.length;
   }
 
   Offset getOffsetToEdges() {

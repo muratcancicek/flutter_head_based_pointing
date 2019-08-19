@@ -23,36 +23,49 @@ class MDCTaskRecorder {
       list.map((l) => (l.map((e) => offsetToList(e)).toList())).toList();
 
   Map<String, dynamic> logInformation() => {
-    '\"SelectionMoments\"': _selectionMoments,
-    '\"trailDurations\"': _trailDurations,
-    '\"subspaceSwitchingDurations\"': _subspaceSwitchingDurations,
-    '\"trails\"': _trails,
-    '\"transitions\"': _transitions,
+    '"SelectionMoments"': _selectionMoments,
+    '"trailDurations"': _trailDurations,
+    '"subspaceSwitchingDurations"': _subspaceSwitchingDurations,
+    '"trails"': _trails, // frame by frame pointer logs with timestamps
+    '"transitions"': _transitions, // pointer logs with timestamps between subspaces
   };
 
   Map<String, dynamic> blockInformation() => {
-    '\"Amplitude\"': _taskBuilder.getAmplitude(),
-    '\"TargetWidth\"': _taskBuilder.getTargetWidth(),
-    '\"OuterTargetCount\"': _taskBuilder.getOuterTargetCount(),
-    '\"SubspaceTargetCount\"': _taskBuilder.getSubspaceTargetCount(),
-    '\"BlockTargetCount\"': _taskBuilder.getBlockTargetCount(),
-    '\"OffsetToEdges\"':  offsetToList(_taskBuilder.getOffsetToEdges()),
-    '\"TargetLocations\"': _targetPoints,
-    '\"TaskBuilderCanvasSize\"': sizeToList(_taskBuilder.getCanvasSize()),
-    '\"LogInformation\"': logInformation(),
+    '"Amplitude"': _taskBuilder.getAmplitude(),
+    '"TargetWidth"': _taskBuilder.getTargetWidth(),
+    '"OuterTargetCount"': _taskBuilder.getOuterTargetCount(), // ones on circumference
+    '"SubspaceTargetCount"': _taskBuilder.getSubspaceTargetCount(), // in a subspace
+    '"BlockTargetCount"': _taskBuilder.getBlockTargetCount(), // in the block (4 subspaces)
+    '"OffsetToEdges"':  offsetToList(_taskBuilder.getOffsetToEdges()), // location of top-left center
+    '"TargetLocations"': _targetPoints, // coordinates
+    '"TaskBuilderCanvasSize"': sizeToList(_taskBuilder.getCanvasSize()),
+    '"LogInformation"': logInformation(), // lists of important timestamps and pointer logs
   };
-
+  
+  Map<String, dynamic> pointerMappingInformation() {
+    final mappingInfo = _pointer.mappingInformation();
+    return {
+      '"PointerSpeed"': mappingInfo['"PointerSpeed"'],
+      '"MotionThreshold"': mappingInfo['"MotionThreshold"'],
+      '"DownSamplingRate"': mappingInfo['"DownSamplingRate"'],
+      '"SmoothingFrameCount"': mappingInfo['"SmoothingFrameCount"'],
+      '"XAxisMode"': mappingInfo['"XAxisMode"'],
+      '"YAxisMode"': mappingInfo['"YAxisMode"'],
+    };
+  }
+  
   Map<String, dynamic> pointerInformation() => {
-    '\"PointerType\"': '\"'+_pointer.getType().toString()+'\"',
-    '\"PointerRadius\"': _pointer.getRadius(),
-    '\"DwellRadius\"': _pointer.getDwellRadius(),
-    '\"DwellTime\"': _pointer.getDwellTime(),
-    '\"PointerCanvasSize\"': sizeToList(_pointer.getCanvasSize()),
+    '"PointerType"': '"'+_pointer.getType().toString()+'"',
+    '"PointerRadius"': _pointer.getRadius(),
+    '"DwellRadius"': _pointer.getDwellRadius(), // size of area dwelling keeps counting
+    '"DwellTime"': _pointer.getDwellTime(),
+    '"PointerCanvasSize"': sizeToList(_pointer.getCanvasSize()),
+    '"PointerMappingInformation"': pointerMappingInformation(),
   };
 
   Map<String, dynamic> toJsonBasic() => {
-    '\"BlockInformation\"': blockInformation(),
-    '\"PointerInformation\"': pointerInformation(),
+    '"BlockInformation"': blockInformation(),
+    '"PointerInformation"': pointerInformation(),
   };
 
   MDCTaskRecorder(this._pointer) {

@@ -19,7 +19,7 @@ enum yAxisMode {
 class HeadToCursorMapping {
   int _frames = 0;
   int _downSamplingRate = 1;
-  int smoothingFrameCount = 3;
+  int _smoothingFrameCount = 3;
   Queue<Offset> _smoothingQueue;
   Queue<Offset> _velocityQueue;
   Queue<Offset> _noseQueue;
@@ -30,19 +30,21 @@ class HeadToCursorMapping {
   Size _canvasSize;
   Offset _speed = Offset(6.0, 8.0);
   Offset _motionThreshold = Offset(5.0, 5.0);
+  xAxisMode _xAxisMode = xAxisMode.fromNose;
+  yAxisMode _yAxisMode = yAxisMode.fromNose;
   Face _face;
 
   HeadToCursorMapping(this._canvasSize, this._face) {
     _position = Offset(_canvasSize.width/2, _canvasSize.width/2);
     _headPointing = _position;
     _smoothingQueue = Queue();
-    for (var i = 0; i < smoothingFrameCount; i++)
+    for (var i = 0; i < _smoothingFrameCount; i++)
       _smoothingQueue.addFirst(_position);
     _noseQueue = Queue();
-    for (var i = 0; i < smoothingFrameCount; i++)
+    for (var i = 0; i < _smoothingFrameCount; i++)
       _noseQueue.addFirst(_position);
     _velocityQueue = Queue();
-    for (var i = 0; i < smoothingFrameCount; i++)
+    for (var i = 0; i < _smoothingFrameCount; i++)
       _velocityQueue.addFirst(Offset(0, 0));
   }
 
@@ -86,7 +88,8 @@ class HeadToCursorMapping {
   }
 
   double _calculateX({method}) {
-    switch (method) {
+    _xAxisMode = method == null ? _xAxisMode : method;
+    switch (_xAxisMode) {
       case xAxisMode.fromCheeks:
         return _canvasSize.width - _calculateXFromCheeks();
       case xAxisMode.fromHeadEulerY:
@@ -120,7 +123,8 @@ class HeadToCursorMapping {
   }
 
   double _calculateY({method}) {
-    switch (method) {
+    _yAxisMode = method == null ? _yAxisMode : method;
+    switch (_yAxisMode) {
       case yAxisMode.fromEyeMouthSquare:
        return _canvasSize.height - _calculateYFromEyeMouthSquare();
       case yAxisMode.fromNose:
@@ -199,4 +203,16 @@ class HeadToCursorMapping {
       _frames = 0;
     }
   }
+
+  Offset getSpeed() => _speed;
+
+  Offset getMotionThreshold() => _motionThreshold;
+
+  int getDownSamplingRate() => _downSamplingRate;
+
+  int getSmoothingFrameCount() => _smoothingFrameCount;
+
+  xAxisMode getXAxisMode() => _xAxisMode;
+
+  yAxisMode getYAxisMode() => _yAxisMode;
 }
