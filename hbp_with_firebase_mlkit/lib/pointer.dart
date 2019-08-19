@@ -4,7 +4,17 @@ import 'package:flutter/material.dart';
 import 'HeadToCursorMapping.dart';
 import 'dart:collection';
 
+enum SelectionMode {
+  Dwelling,
+  Blinking,
+  LeftWinking,
+  RightWinking,
+  Smalling,
+}
+
 class Pointer {
+  List<SelectionMode> _enabledSelectionModes;
+  SelectionMode _lastFiredSelectionMode;
   Queue<int> _dwellingTimestampQueue;
   double _dwellingPercentage = 0;
   Queue<Offset> _dwellingQueue;
@@ -21,13 +31,34 @@ class Pointer {
   Size _canvasSize;
   Face _face;
 
-  Pointer(this._canvasSize, this._face, {type: PointerType.Circle}) {
+  Pointer(this._canvasSize, this._face,
+      {PointerType type: PointerType.Circle,
+        List<SelectionMode> enabledSelectionModes}) {
+    _enabledSelectionModes = enabledSelectionModes == null
+        ? SelectionMode.values : enabledSelectionModes;
     _mapping = HeadToCursorMapping(_canvasSize, _face);
     _position = _mapping.calculateHeadPointing();
     _pointerDrawer = PointerDrawer(this, _canvasSize);
     _dwellingTimestampQueue = Queue();
     _dwellingQueue = Queue();
     _type = type;
+  }
+
+  void _updateFace(List<Face> faces, {Size size}) {
+    if (faces.length <= 0)
+      return;
+    bool differentFace = true;
+    if (_face == null) {
+      _face = faces[0];
+    }
+    for (var face in faces) {
+      if (face.trackingId == _face.trackingId) {
+        _face = face;
+        differentFace = false;
+        break;
+      }
+    }
+    if (differentFace) _face = faces[0];
   }
 
   void _resetDwelling(int moment) {
@@ -66,39 +97,6 @@ class Pointer {
     }
   }
 
-  double getExactDwellDuration() {
-    return _dwellingPercentage * _dwellTime / 1000;
-  }
-
-  double getDwellTime() {
-    return _dwellTime / 1000;
-  }
-
-  double getDwellRadius() {
-    return _dwellingArea;
-  }
-
-  Queue<Offset> getDwellingQueue() {
-    return _dwellingQueue;
-  }
-
-  void _updateFace(List<Face> faces, {Size size}) {
-    if (faces.length <= 0)
-      return;
-    bool differentFace = true;
-    if (_face == null) {
-      _face = faces[0];
-    }
-    for (var face in faces) {
-      if (face.trackingId == _face.trackingId) {
-        _face = face;
-        differentFace = false;
-        break;
-      }
-    }
-    if (differentFace) _face = faces[0];
-  }
-
   void updatePosition() {
     _position = _mapping.calculateHeadPointing();
   }
@@ -120,14 +118,6 @@ class Pointer {
     _pointerDrawer.drawPointer(canvas, type: type);
   }
 
-  Offset getPosition() {
-    return _position;
-  }
-
-  double getRadius() {
-    return _pointerDrawer.getRadius();
-  }
-
   bool touches(Offset targetCenter, double targetWidth) {
     if (_type == PointerType.Bubble)
       return (_position - targetCenter).distance - getRadius() < targetWidth;
@@ -139,24 +129,50 @@ class Pointer {
     _highlighting = highlighting;
   }
 
-  bool highlights() {
-    return _highlighting;
-  }
+  bool isDwelling() => _dwelling;
 
-  bool pressedDown() {
-    if (!_pressed  && (_face.smilingProbability > 0.9 ||
-                        _face.leftEyeOpenProbability < 0.1)) {
-      _pressed = true;
-    }
+  bool isLeftWinking() =>
+      _face.leftEyeOpenProbability < 0.1 && _face.rightEyeOpenProbability > 0.5;
+
+  bool isRightWinking() =>
+      _face.rightEyeOpenProbability < 0.1 && _face.leftEyeOpenProbability > 0.5;
+
+  bool isBlinking() =>
+      _face.leftEyeOpenProbability < 0.1 && _face.rightEyeOpenProbability < 0.1;
+
+  bool isSmiling() => _face.smilingProbability > 0.9;
+
+  bool fireSelection() {
+    if (_pressed)
+      return false;
+    bool select = false;
+    if (_enabledSelectionModes.contains(SelectionMode.LeftWinking))
+      if (isLeftWinking()) {
+        select = true;
+        _lastFiredSelectionMode = SelectionMode.LeftWinking;
+      }
+    if (_enabledSelectionModes.contains(SelectionMode.RightWinking))
+      if (isLeftWinking()) {
+        select = true;
+        _lastFiredSelectionMode = SelectionMode.RightWinking;
+      }
+    if (_enabledSelectionModes.contains(SelectionMode.Blinking))
+      if (isBlinking()) {
+        select = true;
+        _lastFiredSelectionMode = SelectionMode.Blinking;
+      }
+    if (_enabledSelectionModes.contains(SelectionMode.Smalling))
+      if (isSmiling()) {
+        select = true;
+        _lastFiredSelectionMode = SelectionMode.Smalling;
+      }
+    if (_enabledSelectionModes.contains(SelectionMode.Dwelling))
+      if (isDwelling()) {
+        select = true;
+        _lastFiredSelectionMode = SelectionMode.Dwelling;
+      }
+    _pressed = select;
     return _pressed;
-  }
-
-  bool dwelling() {
-    return _dwelling;
-  }
-
-  double dwellingPercentage() {
-    return _dwellingPercentage;
   }
 
   void release() {
@@ -166,23 +182,37 @@ class Pointer {
     _pressed = false;
   }
 
-  PointerPainter getPainter() {
-    return _pointerDrawer.getPainter();
-  }
-
-  PointerType getType() {
-    return _type;
-  }
-
   bool isUpdated() {
     final answer = _updated;
     _updated = false;
     return answer;
   }
 
-  Size getCanvasSize() {
-    return _canvasSize;
-  }
+  PointerType getType() => _type;
+
+  Offset getPosition() => _position;
+
+  bool highlights() => _highlighting;
+
+  Size getCanvasSize() => _canvasSize;
+
+  double getRadius() => _pointerDrawer.getRadius();
+
+  PointerPainter getPainter() => _pointerDrawer.getPainter();
+
+  SelectionMode getLastFiredSelectionMode() => _lastFiredSelectionMode;
+
+  List<SelectionMode> getEnabledSelectionModes() => _enabledSelectionModes;
+
+  double getDwellRadius() => _dwellingArea;
+
+  double getDwellTime() => _dwellTime / 1000;
+
+  Queue<Offset> getDwellingQueue() => _dwellingQueue;
+
+  double getDwellingPercentage() => _dwellingPercentage;
+
+  double getExactDwellDuration()  => _dwellingPercentage * _dwellTime / 1000;
 
   List<double> _offsetToList(Offset o) => [o.dx, o.dy];
 

@@ -47,7 +47,7 @@ class PointerDrawer {
     var l =  pointer.getPosition().dx - width/2;
     var t =  pointer.getPosition().dy - width/2;
     canvas.drawArc(new Rect.fromLTWH(l, t, width, width),
-        0, pointer.dwellingPercentage() * 2 * pi, true, paintStyle);
+        0, pointer.getDwellingPercentage() * 2 * pi, true, paintStyle);
   }
 
   void _drawBubbleCenter(Canvas canvas) {

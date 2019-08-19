@@ -9,6 +9,7 @@ class MDCTaskRecorder {
   List<double> _trailDurations = List<double>();
   List<List<int>> _targetPoints = List<List<int>>();
   List<int> _selectionMoments = List<int>();
+  List<String> _firedSelectionModes = List<String>();
   List<List<double>> _trailLogs = List<List<double>>();
   MDCTaskBuilder _taskBuilder;
   Pointer _pointer;
@@ -23,6 +24,7 @@ class MDCTaskRecorder {
       list.map((l) => (l.map((e) => offsetToList(e)).toList())).toList();
 
   Map<String, dynamic> logInformation() => {
+    '"SelectionModes"': _firedSelectionModes, // dwelling, blinking record per selection
     '"SelectionMoments"': _selectionMoments,
     '"trailDurations"': _trailDurations,
     '"subspaceSwitchingDurations"': _subspaceSwitchingDurations,
@@ -53,9 +55,16 @@ class MDCTaskRecorder {
       '"YAxisMode"': mappingInfo['"YAxisMode"'],
     };
   }
-  
+
+  String enumToString(e) => '"' + e.toString() + '"';
+
+  List<String> enumListToStringList(List list) =>
+                          list.map((e) => enumToString(e)).toList();
+
   Map<String, dynamic> pointerInformation() => {
-    '"PointerType"': '"'+_pointer.getType().toString()+'"',
+    '"PointerType"': enumToString(_pointer.getType()),
+    '"EnabledSelectionModes"':
+                      enumListToStringList(_pointer.getEnabledSelectionModes()),
     '"PointerRadius"': _pointer.getRadius(),
     '"DwellRadius"': _pointer.getDwellRadius(), // size of area dwelling keeps counting
     '"DwellTime"': _pointer.getDwellTime(),
@@ -64,8 +73,8 @@ class MDCTaskRecorder {
   };
 
   Map<String, dynamic> toJsonBasic() => {
-    '"BlockInformation"': blockInformation(),
-    '"PointerInformation"': pointerInformation(),
+//    '"BlockInformation"': blockInformation(),
+//    '"PointerInformation"': pointerInformation(),
   };
 
   MDCTaskRecorder(this._pointer) {
@@ -80,8 +89,7 @@ class MDCTaskRecorder {
     _targetPoints.addAll(targetPoints.map((o) => offsetToIntList(o)));
   }
 
-  void recordTrailDuration(currentTargetIndex, {dwellTime}) {
-    final selectionMoment = new DateTime.now().millisecondsSinceEpoch;
+  void _recordTrailDuration(currentTargetIndex, selectionMoment) {
     final trialDuration = (selectionMoment - _selectionMoments.last) / 1000;
     if (currentTargetIndex > 0) {
       _trailDurations.add(trialDuration);
@@ -90,8 +98,16 @@ class MDCTaskRecorder {
       _subspaceSwitchingDurations.add(trialDuration);
       _transitions.add(_trailLogs);
     }
-    _selectionMoments.add(selectionMoment);
     _trailLogs = List<List<double>>();
+
+  }
+
+  void recordTrail(currentTargetIndex, {dwellTime}) {
+    final selectionMoment = new DateTime.now().millisecondsSinceEpoch;
+    _selectionMoments.add(selectionMoment);
+    _recordTrailDuration(currentTargetIndex, selectionMoment);
+    final selectionMode = _pointer.getLastFiredSelectionMode();
+    _firedSelectionModes.add(enumToString(selectionMode));
     print(toJsonBasic());
 //    print(jsonEncode(this));
   }

@@ -148,7 +148,7 @@ class  MDCTaskBuilder extends PointingTaskBuilder {
   }
 
   void _switchToNextTarget() {
-    _recorder.recordTrailDuration(_currentTargetIndex,
+    _recorder.recordTrail(_currentTargetIndex,
         dwellTime: pointer.getExactDwellDuration());
     targets.removeLast();
     _currentTargetIndex++;
