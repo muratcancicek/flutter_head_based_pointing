@@ -122,9 +122,6 @@ class  MDCTaskBuilder extends PointingTaskBuilder {
   }
 
   void _createMDCTargets(int amplitude, int targetWidth) {
-
-    _recorder.recordBlockConstants(amplitude, targetWidth,
-        _outerTargetCount, pointer.getDwellTime());
     _amplitude = amplitude;
     _targetWidth = targetWidth;
     _createSubspace();
@@ -151,7 +148,7 @@ class  MDCTaskBuilder extends PointingTaskBuilder {
   }
 
   void _switchToNextTarget() {
-    _recorder.recordTrialDuration(_currentTargetIndex,
+    _recorder.recordTrailDuration(_currentTargetIndex,
         dwellTime: pointer.getExactDwellDuration());
     targets.removeLast();
     _currentTargetIndex++;
@@ -170,5 +167,33 @@ class  MDCTaskBuilder extends PointingTaskBuilder {
       else
         targets[0].draw(canvas, pointer);
     }
+  }
+
+  int getAmplitude() {
+    return _amplitude;
+  }
+
+  int getTargetWidth() {
+    return _targetWidth;
+  }
+
+  int getOuterTargetCount() {
+    return _outerTargetCount;
+  }
+
+  int getSubspaceTargetCount() {
+    return _subspaceTargets.length;
+  }
+
+  int getBlockTargetCount() {
+    return _subspaceTargets.length;
+  }
+
+  Offset getOffsetToEdges() {
+    return _offsetToEdges;
+  }
+
+  Size getCanvasSize() {
+    return canvasSize;
   }
 }

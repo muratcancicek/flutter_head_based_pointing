@@ -25,7 +25,12 @@ class TaskScreen {
 
   TaskScreen(this._cameraHandler) {
     _pointer = Pointer(_canvasSize, null);
-    _recorder = MDCTaskRecorder();
+    _recorder = MDCTaskRecorder(_pointer);
+    if (_pointingTaskType == PointingTaskType.Jeff)
+      _targetBuilder = JeffTaskBuilder(_canvasSize, _pointer);
+    else if (_pointingTaskType == PointingTaskType.MDC)
+      _targetBuilder = MDCTaskBuilder(_canvasSize, _pointer, _recorder);
+    _recorder.updateTaskBuilder(_targetBuilder);
   }
 
   void updateInput(dynamic result)  {
@@ -67,12 +72,6 @@ class TaskScreen {
   }
 
   CustomPaint _addTargets() {
-    if (_targetBuilder == null) {
-      if (_pointingTaskType == PointingTaskType.Jeff)
-        _targetBuilder = JeffTaskBuilder(_canvasSize, _pointer);
-      else if (_pointingTaskType == PointingTaskType.MDC)
-        _targetBuilder = MDCTaskBuilder(_canvasSize, _pointer, _recorder);
-    }
     return CustomPaint(painter: _targetBuilder.getPainter());
   }
 

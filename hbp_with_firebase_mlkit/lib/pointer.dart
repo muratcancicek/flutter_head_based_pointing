@@ -9,7 +9,7 @@ class Pointer {
   double _dwellingPercentage = 0;
   Queue<Offset> _dwellingQueue;
   int _dwellTime = 800;
-  double dwellingArea = 20;
+  double _dwellingArea = 20;
   PointerDrawer _pointerDrawer;
   HeadToCursorMapping _mapping;
   bool _highlighting = false;
@@ -21,12 +21,13 @@ class Pointer {
   Size _canvasSize;
   Face _face;
 
-  Pointer(this._canvasSize, this._face) {
-    _pointerDrawer = PointerDrawer(this, _canvasSize);
-    _dwellingQueue = Queue();
-    _dwellingTimestampQueue = Queue();
+  Pointer(this._canvasSize, this._face, {type: PointerType.Circle}) {
     _mapping = HeadToCursorMapping(_canvasSize, _face);
     _position = _mapping.calculateHeadPointing();
+    _pointerDrawer = PointerDrawer(this, _canvasSize);
+    _dwellingTimestampQueue = Queue();
+    _dwellingQueue = Queue();
+    _type = type;
   }
 
   void _resetDwelling(int moment) {
@@ -41,7 +42,7 @@ class Pointer {
     for (var p in _dwellingQueue) {
       if (p == null || _position == null) {
         return false;
-      } else if ((p - _position).distance > dwellingArea) {
+      } else if ((p - _position).distance > _dwellingArea) {
         _resetDwelling(moment);
         return false;
       }
@@ -71,6 +72,14 @@ class Pointer {
 
   double getDwellTime() {
     return _dwellTime / 1000;
+  }
+
+  double getDwellRadius() {
+    return _dwellingArea;
+  }
+
+  Queue<Offset> getDwellingQueue() {
+    return _dwellingQueue;
   }
 
   void _updateFace(List<Face> faces, {Size size}) {
@@ -171,8 +180,7 @@ class Pointer {
     return answer;
   }
 
-  Queue<Offset> getDwellingQueue() {
-    return _dwellingQueue;
+  Size getCanvasSize() {
+    return _canvasSize;
   }
-
 }
