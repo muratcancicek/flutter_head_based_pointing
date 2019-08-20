@@ -15,7 +15,10 @@ enum PointingTaskType {
 
 class TaskScreen {
   PointingTaskType _pointingTaskType = PointingTaskType.MDC;
-  Size _canvasSize = Size(420, 690); // manually detected size
+  Size _canvasSize = Size(420, 720); // manually detected size
+  bool _drawingFacialLandmarks = false;
+  bool _headPointingActive = false;
+  bool _blockCompleted = false;
   String _outputToDisplay = '';
   CameraHandler _cameraHandler;
   MDCTaskRecorder _recorder;
@@ -34,28 +37,63 @@ class TaskScreen {
   }
 
   void updateInput(dynamic result)  {
-//    print(result.length);
-    _faces = result;
-    _pointer.update(_faces, size: _canvasSize);
-    _recorder.logPointerNow();
+    if (_headPointingActive) {
+      _faces = result;
+      _pointer.update(_faces, size: _canvasSize);
+      _recorder.logPointerNow();
+    }
   }
 
-  Positioned _displayOutput() {
+  RaisedButton getMainButton() {
+    final buttonText = _headPointingActive ? Text('Pause') : Text('Resume');
+    return RaisedButton(
+      elevation: 4.0,
+      color: Colors.purple,
+      textColor: Colors.white,
+      child: buttonText,
+      splashColor: Colors.blueGrey,
+      onPressed: () {
+        print('Done');
+        _headPointingActive = !_headPointingActive;
+      },
+    );
+  }
+  List<Widget> getHeaderUIComponents() {
+    return  <Widget>[
+      Container(
+        padding: const EdgeInsets.all(8.0),
+        child: Text(_outputToDisplay, textAlign: TextAlign.center),
+      ),
+      Container(
+        child:  getMainButton(),
+      ),
+    ];
+  }
+  Container displayOutput() {
     _outputToDisplay = _recorder.getLastMovementDuration().toString() + ' seconds';
-    return Positioned(
-      bottom: 0.0,
-      left: 0.0,
-      right: 0.0,
+    return Container(
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.all(8.0),
+        children: getHeaderUIComponents(),
+      )
+    );
+  }
+  Center _displaySummaryScreen() {
+    return Center(
       child: Container(
-        color: Colors.white,
-        height: 30.0,
-        child:
-        Text(_outputToDisplay),
+        height: 150.0,
+        child: ListView(
+          padding: const EdgeInsets.all(8.0),
+          children: <Widget>[
+            Text('Summary')
+          ],
+        )
       ),
     );
   }
 
-  Widget _buildResults() {
+  Widget _drawFacialLandmarks() {
     const Text noResultsText = const Text('No results!');
     if (_faces == null || _cameraHandler.isCameraEmpty() || _faces is! List<Face>)
       return noResultsText;
@@ -70,21 +108,21 @@ class TaskScreen {
     return CustomPaint(painter: _pointer.getPainter());
   }
 
-  CustomPaint _addTargets() {
+  CustomPaint _drawTargets() {
     return CustomPaint(painter: _targetBuilder.getPainter());
   }
 
   Stack getTaskScreenView() {
-    return Stack(
-      fit: StackFit.expand,
-      children: <Widget>[
-//        _cameraHandler.getCameraPreview(),
-//        _buildResults(),
-        _displayOutput(),
-        _addTargets(),
-        _drawPointer(),
-      ],
-    );
+    List<Widget> screen = List<Widget>();
+    if (_blockCompleted) {
+      _displaySummaryScreen();
+    } else {
+      screen.add(_drawTargets());
+      screen.add(_drawPointer());
+      if (_drawingFacialLandmarks)
+        screen.add(_drawFacialLandmarks());
+    }
+    return Stack(fit: StackFit.expand, children: screen);
   }
 
 }

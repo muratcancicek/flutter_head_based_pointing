@@ -66,12 +66,13 @@ class MyMainViewState extends State<MyMainView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
+        title: _taskScreen.displayOutput(),
+
       ),
       body: Center(
         child:  _buildMainView(),
       ),
-      floatingActionButton: _addFloatingActionButton(),
+//      floatingActionButton: _addFloatingActionButton(),
     );
   }
 }
