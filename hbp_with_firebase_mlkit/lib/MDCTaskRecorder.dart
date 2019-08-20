@@ -43,6 +43,7 @@ class MDCTaskRecorder {
   Map<String, dynamic> blockInformation() => {
     '"Amplitude"': _taskBuilder.getAmplitude(),
     '"TargetWidth"': _taskBuilder.getTargetWidth(),
+    '"BlockTrailCount"': _taskBuilder.getBlockTrailCount(),
     '"OuterTargetCount"': _taskBuilder.getOuterTargetCount(), // ones on circumference
     '"SubspaceTargetCount"': _taskBuilder.getSubspaceTargetCount(), // in a subspace
     '"BlockTargetCount"': _taskBuilder.getBlockTargetCount(), // in the block (4 subspaces)

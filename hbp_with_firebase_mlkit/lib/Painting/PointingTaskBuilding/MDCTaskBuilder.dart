@@ -169,31 +169,19 @@ class  MDCTaskBuilder extends PointingTaskBuilder {
     }
   }
 
-  int getAmplitude() {
-    return _amplitude;
-  }
+  int getAmplitude() => _amplitude;
 
-  int getTargetWidth() {
-    return _targetWidth;
-  }
+  int getTargetWidth() => _targetWidth;
 
-  int getOuterTargetCount() {
-    return _outerTargetCount;
-  }
+  int getOuterTargetCount() => _outerTargetCount;
 
-  int getSubspaceTargetCount() {
-    return _subspaceTargets.length;
-  }
+  int getSubspaceTargetCount() => _subspaceTargets.length;
 
-  int getBlockTargetCount() {
-    return 4 * _subspaceTargets.length;
-  }
+  int getBlockTargetCount() => 4 * _subspaceTargets.length;
 
-  Offset getOffsetToEdges() {
-    return _offsetToEdges;
-  }
+  int getBlockTrailCount() => 4 * (_subspaceTargets.length - 1);
 
-  Size getCanvasSize() {
-    return canvasSize;
-  }
+  Offset getOffsetToEdges() => _offsetToEdges;
+
+  Size getCanvasSize() => canvasSize;
 }
