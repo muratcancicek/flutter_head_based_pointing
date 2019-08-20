@@ -101,16 +101,19 @@ class Pointer {
     _position = _mapping.calculateHeadPointing();
   }
 
-  void update(List<Face> faces, {targets, Size size}) {
+  void update(List<Face> faces, {Size size}) {
     _updated = true;
     if (faces != null)
       if (faces.length > 0) {
         _updateFace(faces, size: size);
         _mapping.update(_face, size: size);
-        _pointerDrawer.update(targets: targets);
         updatePosition();
         _dwell();
       }
+  }
+
+  void updateDrawer({targets}) {
+    _pointerDrawer.update(targets: targets);
   }
 
   void draw(Canvas canvas, {targets, type: PointerType.Circle}) {
@@ -142,36 +145,40 @@ class Pointer {
 
   bool isSmiling() => _face.smilingProbability > 0.9;
 
-  bool fireSelection() {
-    if (_pressed)
-      return false;
-    bool select = false;
+
+  bool pressingDown() {
+    bool pressedDown = false;
     if (_enabledSelectionModes.contains(SelectionMode.LeftWinking))
       if (isLeftWinking()) {
-        select = true;
+        pressedDown = true;
         _lastFiredSelectionMode = SelectionMode.LeftWinking;
       }
     if (_enabledSelectionModes.contains(SelectionMode.RightWinking))
       if (isLeftWinking()) {
-        select = true;
+        pressedDown = true;
         _lastFiredSelectionMode = SelectionMode.RightWinking;
       }
     if (_enabledSelectionModes.contains(SelectionMode.Blinking))
       if (isBlinking()) {
-        select = true;
+        pressedDown = true;
         _lastFiredSelectionMode = SelectionMode.Blinking;
       }
     if (_enabledSelectionModes.contains(SelectionMode.Smalling))
       if (isSmiling()) {
-        select = true;
+        pressedDown = true;
         _lastFiredSelectionMode = SelectionMode.Smalling;
       }
     if (_enabledSelectionModes.contains(SelectionMode.Dwelling))
       if (isDwelling()) {
-        select = true;
+        pressedDown = true;
         _lastFiredSelectionMode = SelectionMode.Dwelling;
       }
-    _pressed = select;
+    return pressedDown;
+  }
+  bool fireSelection() {
+    if (_pressed)
+      return false;
+    _pressed = pressingDown();
     return _pressed;
   }
 

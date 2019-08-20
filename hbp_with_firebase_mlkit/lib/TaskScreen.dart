@@ -37,7 +37,7 @@ class TaskScreen {
 //    print(result.length);
     _faces = result;
     _pointer.update(_faces, size: _canvasSize);
-    _recorder.logPointer(_pointer);
+    _recorder.logPointerNow();
   }
 
   Positioned _displayOutput() {
@@ -66,8 +66,7 @@ class TaskScreen {
   }
 
   Widget _drawPointer() {
-    _pointer.update(_faces, targets: _targetBuilder.getTargets(), size: _canvasSize);
-    _recorder.logPointer(_pointer);
+    _pointer.updateDrawer(targets: _targetBuilder.getTargets());
     return CustomPaint(painter: _pointer.getPainter());
   }
 
