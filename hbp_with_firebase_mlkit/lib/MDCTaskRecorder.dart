@@ -1,18 +1,23 @@
 import 'package:hbp_with_firebase_mlkit/Painting/PointingTaskBuilding/MDCTaskBuilder.dart';
 import 'package:hbp_with_firebase_mlkit/pointer.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 
 class MDCTaskRecorder {
-  List<double> _subspaceSwitchingDurations = List<double>();
-  List<List<List>> _transitions = List<List<List>>();
-  List<List<List>> _trails = List<List<List>>();
-  List<double> _trailDurations = List<double>();
   List<Offset> _targetPoints = List<Offset>();
-  List<int> _selectionMoments = List<int>();
-  List<List> _missedSelections = List<List>();
-  List<String> _firedSelectionModes = List<String>();
-  List<List> _trailLogs = List<List>();
-  int _trailID = 0;
+  List<Map> _missedSelections = List<Map>();
+  List<Map> _selections = List<Map>();
+  List<Map> _trailLogs = List<Map>();
+  List<Map> _transitions = List<Map>();
+  List<Map> _trails = List<Map>();
+  double _lastMovementDuration = 0;
+  int _lastSelectionMoment = 1;
+  int _missedSelectionID = 1;
+  int _selectionID = 1;
+  int _transitionID = 1;
+  int _trailID = 1;
+  int _blockID = 1;
   MDCTaskBuilder _taskBuilder;
   Pointer _pointer;
 
@@ -30,17 +35,37 @@ class MDCTaskRecorder {
   List<String> enumListToStringList(List list) =>
       list.map((e) => enumToString(e)).toList();
 
+  Map<String, dynamic> pointerLog(Offset pos, int moment) => {
+    '"Moment"': moment,
+    '"Position"': offsetToList(pos),
+  };
+
+  Map<String, dynamic> trailLog(id, double duration, List<Map> trail, Offset target) => {
+    '"ID"': id,
+    '"Duration"': duration,
+    '"Start"':  trail.first,
+    '"End"': trail.last,
+    '"Logs"': trail,
+    '"TargetLocation"': offsetToList(target),
+  };
+
+  Map<String, dynamic> selectionLog(id, int moment, Offset pos, mode, Offset target) => {
+    '"ID"': id,
+    '"Moment"': moment,
+    '"Coordinates"': offsetToList(pos),
+    '"Mode"': enumToString(mode),
+    '"TargetLocation"': offsetToList(target),
+  };
+
   Map<String, dynamic> logInformation() => {
-    '"SelectionModes"': _firedSelectionModes, // dwelling, blinking record per selection
-    '"SelectionMoments"': _selectionMoments,
+    '"CorrectSelections"':  _selections,
     '"MissedSelections"':  _missedSelections,
-    '"trailDurations"': _trailDurations,
-    '"subspaceSwitchingDurations"': _subspaceSwitchingDurations,
     '"trails"': _trails, // frame by frame pointer logs with timestamps
     '"transitions"': _transitions, // pointer logs with timestamps between subspaces
   };
 
-  Map<String, dynamic> blockInformation() => {
+  Map<String, dynamic> blockInformation(id) => {
+    '"ID"': id,
     '"Amplitude"': _taskBuilder.getAmplitude(),
     '"TargetWidth"': _taskBuilder.getTargetWidth(),
     '"BlockTrailCount"': _taskBuilder.getBlockTrailCount(),
@@ -76,12 +101,23 @@ class MDCTaskRecorder {
   };
 
   Map<String, dynamic> toJsonBasic() => {
-    '"BlockInformation"': blockInformation(),
+    '"BlockInformation"': blockInformation(_blockID++),
     '"PointerInformation"': pointerInformation(),
   };
 
+  void saveJsonFile({Directory dir, String fileName: 'BlockOne'}) async {
+    fileName += (new DateTime.now().millisecondsSinceEpoch).toString();
+    Directory appDocDir = await getApplicationDocumentsDirectory();
+    String path = appDocDir.path + "/" + fileName+'.json';
+    print("Creating file to $path!");
+    File file = new File(path);
+//    print(appDocDir);
+    file.createSync();
+    file.writeAsStringSync(toJsonBasic().toString());
+  }
+
   MDCTaskRecorder(this._pointer) {
-    _selectionMoments.add(new DateTime.now().millisecondsSinceEpoch);
+    _lastSelectionMoment = new DateTime.now().millisecondsSinceEpoch;
   }
 
   void updateTaskBuilder(MDCTaskBuilder taskBuilder) {
@@ -92,54 +128,58 @@ class MDCTaskRecorder {
     _targetPoints.addAll(targetPoints);
   }
 
-  void _recordTrailDuration(currentTargetIndex, selectionMoment) {
-    final trialDuration = (selectionMoment - _selectionMoments.last) / 1000;
-    _selectionMoments.add(selectionMoment);
+  void _recordTrailLog(currentTargetIndex, selectionMoment, target) {
+    _lastMovementDuration = (selectionMoment - _lastSelectionMoment) / 1000;
     if (currentTargetIndex > 0) {
-      _trailDurations.add(trialDuration);
-      _trails.add(_trailLogs);
+      final log = trailLog(_trailID, _lastMovementDuration, _trailLogs, target);
+      _trails.add(log);
+      _trailID++;
     } else {
-      _subspaceSwitchingDurations.add(trialDuration);
-      _transitions.add(_trailLogs);
+      final log = trailLog(_trailID, _lastMovementDuration, _trailLogs, target);
+      _transitions.add(log);
+      _transitionID++;
     }
-    _trailLogs = List<List>();
+    _trailLogs = List<Map>();
+  }
+  void _recordSelection(currentTargetIndex, selectionMoment, target) {
+    final mode = _pointer.getLastFiredSelectionMode();
+    final p = _pointer.getPosition();
+    final log = selectionLog(_selectionID, selectionMoment, p, mode, target);
+    _selections.add(log);
+    _selectionID++;
   }
 
   void recordTrail(currentTargetIndex, {dwellTime}) {
     final selectionMoment = new DateTime.now().millisecondsSinceEpoch;
-    _recordTrailDuration(currentTargetIndex, selectionMoment);
-    final selectionMode = _pointer.getLastFiredSelectionMode();
-    _firedSelectionModes.add(enumToString(selectionMode));
-    _trailID++;
-    print(toJsonBasic());
+    final target = _targetPoints[_trailID + _transitionID - 2]; // Target Index
+    _recordTrailLog(currentTargetIndex, selectionMoment, target);
+    _recordSelection(currentTargetIndex, selectionMoment, target);
+    _lastSelectionMoment = selectionMoment;
+//    print(toJsonBasic());
+//    saveJsonFile();
 //    print(jsonEncode(this));
   }
 
-  void _recordIfMissedSelection(log) {
+  void _recordIfMissedSelection(selectionMoment, position) {
     if (_pointer.pressingDown()) {
       final targetWidth = _taskBuilder.getTargetWidth().toDouble();
-      if (!_pointer.touches(_targetPoints[_trailID], targetWidth)) {
+      final target = _targetPoints[_trailID + _transitionID - 2]; // Target Index
+      if (!_pointer.touches(target, targetWidth)) {
         final selectionMode = _pointer.getLastFiredSelectionMode();
-        var newLog = List<dynamic>();
-        newLog.add(enumToString(selectionMode));
-        newLog.addAll(log);
-        _missedSelections.add(newLog);
+        final log = selectionLog(_missedSelectionID, selectionMoment, position, selectionMode, target);
+        _missedSelections.add(log);
+        _missedSelectionID++;
       }
     }
   }
 
   void logPointerNow() {
     final now = new DateTime.now().millisecondsSinceEpoch;
-    final pos = offsetToList(_pointer.getPosition());
-    final log = [pos, now];
+    final pos = _pointer.getPosition();
+    final log = pointerLog(pos, now);
     _trailLogs.add(log);
-    _recordIfMissedSelection(log);
+    _recordIfMissedSelection(now, pos);
   }
 
-  double getLastMovementDuration() {
-    if (_trailDurations.length > 0)
-      return _trailDurations.last;
-    else
-      return 0;
-  }
+  double getLastMovementDuration() => _lastMovementDuration;
 }

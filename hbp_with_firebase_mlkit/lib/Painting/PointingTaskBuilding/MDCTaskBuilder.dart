@@ -141,8 +141,10 @@ class  MDCTaskBuilder extends PointingTaskBuilder {
 
   void _switchToNextSubspace() {
     _subspaceID++;
-    if (_subspaceID > 3)
+    if (_subspaceID > 3) {
       _subspaceID = 0;
+      _recorder.saveJsonFile();
+    }
     _subspace = Subspace.values[_subspaceID];
     _switchToSubspace(_subspace);
   }
