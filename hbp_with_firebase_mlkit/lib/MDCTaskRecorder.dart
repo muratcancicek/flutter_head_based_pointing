@@ -11,13 +11,24 @@ class MDCTaskRecorder {
   List<Map> _trailLogs = List<Map>();
   List<Map> _transitions = List<Map>();
   List<Map> _trails = List<Map>();
+  bool _blockStarted = false;
+  bool _blockCompleted = false;
+  bool _blockPaused = false;
   double _lastMovementDuration = 0;
+  double _totalPauseDuration = 0;
+  double _pauseDuration = 0;
+  double _blockDuration = 0;
+  int _blockPauseMoment = 0;
+  int _blockStartMoment = 0;
   int _lastSelectionMoment = 1;
   int _missedSelectionID = 1;
   int _selectionID = 1;
   int _transitionID = 1;
+  int _targetID = 0;
   int _trailID = 1;
   int _blockID = 1;
+  int _testID = 1;
+  int _now = 1;
   MDCTaskBuilder _taskBuilder;
   Pointer _pointer;
 
@@ -46,6 +57,7 @@ class MDCTaskRecorder {
     '"Start"':  trail.first,
     '"End"': trail.last,
     '"Logs"': trail,
+    '"TargetID"': _targetID,
     '"TargetLocation"': offsetToList(target),
   };
 
@@ -54,6 +66,7 @@ class MDCTaskRecorder {
     '"Moment"': moment,
     '"Coordinates"': offsetToList(pos),
     '"Mode"': enumToString(mode),
+    '"TargetID"': _targetID,
     '"TargetLocation"': offsetToList(target),
   };
 
@@ -116,9 +129,7 @@ class MDCTaskRecorder {
     file.writeAsStringSync(toJsonBasic().toString());
   }
 
-  MDCTaskRecorder(this._pointer) {
-    _lastSelectionMoment = new DateTime.now().millisecondsSinceEpoch;
-  }
+  MDCTaskRecorder(this._pointer);
 
   void updateTaskBuilder(MDCTaskBuilder taskBuilder) {
     _taskBuilder = taskBuilder;
@@ -147,11 +158,12 @@ class MDCTaskRecorder {
     final log = selectionLog(_selectionID, selectionMoment, p, mode, target);
     _selections.add(log);
     _selectionID++;
+    _targetID++;
   }
 
   void recordTrail(currentTargetIndex, {dwellTime}) {
-    final selectionMoment = new DateTime.now().millisecondsSinceEpoch;
-    final target = _targetPoints[_trailID + _transitionID - 2]; // Target Index
+    final selectionMoment = _now;
+    final target = _targetPoints[_targetID]; // Target Index
     _recordTrailLog(currentTargetIndex, selectionMoment, target);
     _recordSelection(currentTargetIndex, selectionMoment, target);
     _lastSelectionMoment = selectionMoment;
@@ -163,7 +175,7 @@ class MDCTaskRecorder {
   void _recordIfMissedSelection(selectionMoment, position) {
     if (_pointer.pressingDown()) {
       final targetWidth = _taskBuilder.getTargetWidth().toDouble();
-      final target = _targetPoints[_trailID + _transitionID - 2]; // Target Index
+      final target = _targetPoints[_targetID]; // Target Index
       if (!_pointer.touches(target, targetWidth)) {
         final selectionMode = _pointer.getLastFiredSelectionMode();
         final log = selectionLog(_missedSelectionID, selectionMoment, position, selectionMode, target);
@@ -174,12 +186,70 @@ class MDCTaskRecorder {
   }
 
   void logPointerNow() {
-    final now = new DateTime.now().millisecondsSinceEpoch;
     final pos = _pointer.getPosition();
-    final log = pointerLog(pos, now);
+    final log = pointerLog(pos, _now);
     _trailLogs.add(log);
-    _recordIfMissedSelection(now, pos);
+    _recordIfMissedSelection(_now, pos);
   }
 
+  void logTime() {
+    _now = new DateTime.now().millisecondsSinceEpoch;
+//    print((_now - _blockStartMoment) / 1000);
+    if (_blockStarted) {
+      if (_blockPaused)
+        _pauseDuration = (_now - _blockPauseMoment) / 1000;
+      else
+        _blockDuration =
+            (_now - _blockStartMoment) / 1000 - _totalPauseDuration;
+    }
+  }
+
+  void start() {
+    print(_blockStartMoment);
+    _blockStarted = true;
+    _blockStartMoment = _now;
+    _lastSelectionMoment = _blockStartMoment;
+    print(_now);
+  }
+
+  void pause() {
+    _blockPauseMoment = _now;
+    _blockPaused = true;
+  }
+
+  void resume() {
+    print('Resumed block!');
+    _blockPauseMoment = _now;
+    _totalPauseDuration += _pauseDuration;
+    print(_totalPauseDuration);
+    _blockPaused = false;
+  }
+
+  bool isBlockStarted() => _blockStarted;
+
+  bool isBlockPaused() => _blockPaused;
+
+  bool isBlockCompleted() => _blockCompleted;
+
+  bool isTestRunning() => _blockStarted && !_blockPaused;
+
   double getLastMovementDuration() => _lastMovementDuration;
+
+  String _doubleToPrettyString(double d, {int padding: 4, int frictions: 0}) {
+    return d.toStringAsFixed(frictions).padLeft(padding, '0');
+  }
+
+  String _getBlockOutputToDisplay() {
+    final target = _targetID.toString().padLeft(2, '0');
+    final count = _taskBuilder.getBlockTargetCount().toString().padLeft(2, '0');
+    final duration = _doubleToPrettyString(_blockDuration);
+    return 'Ts: $_testID B: $_blockID T: $target/$count D: $duration';
+  }
+
+  String getOutputToDisplay() {
+    if (isTestRunning())
+      return _getBlockOutputToDisplay();
+    else
+      return _getBlockOutputToDisplay(); // for now
+  }
 }

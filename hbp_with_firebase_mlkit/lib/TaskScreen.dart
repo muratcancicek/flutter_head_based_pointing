@@ -17,8 +17,6 @@ class TaskScreen {
   PointingTaskType _pointingTaskType = PointingTaskType.MDC;
   Size _canvasSize = Size(420, 720); // manually detected size
   bool _drawingFacialLandmarks = false;
-  bool _headPointingActive = false;
-  bool _blockCompleted = false;
   String _outputToDisplay = '';
   CameraHandler _cameraHandler;
   MDCTaskRecorder _recorder;
@@ -35,33 +33,51 @@ class TaskScreen {
       _targetBuilder = MDCTaskBuilder(_canvasSize, _pointer, _recorder);
     _recorder.updateTaskBuilder(_targetBuilder);
   }
+
+  void updateInput(dynamic result) {
+    _recorder.logTime();
+    if (_recorder.isTestRunning()) {
+      _faces = result;
+      _pointer.update(_faces, size: _canvasSize);
+      _recorder.logPointerNow();
+    }
+  }
+
   void _onPressedAppBarButton() {
-    print('Done');
-    _headPointingActive = !_headPointingActive;
+    if (_recorder.isBlockStarted())
+      if (_recorder.isTestRunning())
+        _recorder.pause();
+      else
+        _recorder.resume();
+    else
+      _recorder.start();
   }
 
   RaisedButton _getAppBarButton() {
-    final buttonText = _headPointingActive ? Text('Pause') : Text('Resume');
+    var text = _recorder.isBlockCompleted() ? Text('Next') : Text('Start');
+    if (_recorder.isBlockStarted())
+      text = _recorder.isTestRunning() ? Text('Pause') : Text('Resume');
     return RaisedButton(
       elevation: 4.0,
       color: Colors.purple,
       textColor: Colors.white,
-      child: buttonText,
+      child: text,
       splashColor: Colors.blueGrey,
       onPressed: _onPressedAppBarButton,
     );
   }
   Text _getAppBarText() {
-    _outputToDisplay = _recorder.getLastMovementDuration().toString() + ' seconds';
+    _outputToDisplay = _recorder.getOutputToDisplay();
     return Text(_outputToDisplay, textAlign: TextAlign.center);
   }
 
   List<Widget> _getAppBarUIComponents() {
     return <Widget>[
       Container(child: _getAppBarText(), padding: const EdgeInsets.all(8.0)),
-      Container(child: _getAppBarButton()),
+      Container(child: _getAppBarButton(), alignment: Alignment.bottomRight),
     ];
   }
+
   Container getAppBarUI() {
     return Container(
       child: ListView(
@@ -71,6 +87,7 @@ class TaskScreen {
       )
     );
   }
+
   Center _displaySummaryScreen() {
     return Center(
       child: Container(
@@ -106,7 +123,7 @@ class TaskScreen {
 
   Stack getTaskScreenView() {
     List<Widget> screen = List<Widget>();
-    if (_blockCompleted) {
+    if (_recorder.isBlockCompleted()) {
       _displaySummaryScreen();
     } else {
       if (_drawingFacialLandmarks)
@@ -116,14 +133,4 @@ class TaskScreen {
     }
     return Stack(fit: StackFit.expand, children: screen);
   }
-
-  void updateInput(dynamic result)  {
-    if (_headPointingActive) {
-      _faces = result;
-      _pointer.update(_faces, size: _canvasSize);
-      _recorder.logPointerNow();
-    }
-  }
-
-
 }
