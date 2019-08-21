@@ -4,16 +4,23 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 
+enum TestState {
+  BlockNotStarted,
+  BlockRunning,
+  BlockPaused,
+  BlockCompleted,
+  TestCompleted,
+  StudyCompleted,
+}
+
 class MDCTaskRecorder {
+  TestState _state = TestState.BlockNotStarted;
   List<Offset> _targetPoints = List<Offset>();
   List<Map> _missedSelections = List<Map>();
   List<Map> _selections = List<Map>();
   List<Map> _trailLogs = List<Map>();
   List<Map> _transitions = List<Map>();
   List<Map> _trails = List<Map>();
-  bool _blockStarted = false;
-  bool _blockCompleted = false;
-  bool _blockPaused = false;
   double _lastMovementDuration = 0;
   double _totalPauseDuration = 0;
   double _pauseDuration = 0;
@@ -29,9 +36,9 @@ class MDCTaskRecorder {
   int _blockID = 1;
   int _testID = 1;
   int _now = 1;
+  String _actionText = 'Start';
   MDCTaskBuilder _taskBuilder;
   Pointer _pointer;
-
   List<double> offsetToList(Offset o) => [o.dx, o.dy];
 
   List<int> offsetToIntList(Offset o) => [o.dx.toInt(), o.dy.toInt()];
@@ -194,44 +201,44 @@ class MDCTaskRecorder {
 
   void logTime() {
     _now = new DateTime.now().millisecondsSinceEpoch;
-//    print((_now - _blockStartMoment) / 1000);
-    if (_blockStarted) {
-      if (_blockPaused)
-        _pauseDuration = (_now - _blockPauseMoment) / 1000;
-      else
-        _blockDuration =
-            (_now - _blockStartMoment) / 1000 - _totalPauseDuration;
-    }
+    if (_state == TestState.BlockPaused)
+      _pauseDuration = (_now - _blockPauseMoment) / 1000;
+    else if (_state == TestState.BlockRunning)
+      _blockDuration = (_now - _blockStartMoment) / 1000 - _totalPauseDuration;
   }
 
-  void start() {
-    print(_blockStartMoment);
-    _blockStarted = true;
+  void startBlock() {
     _blockStartMoment = _now;
     _lastSelectionMoment = _blockStartMoment;
-    print(_now);
+    _state = TestState.BlockRunning;
   }
 
   void pause() {
     _blockPauseMoment = _now;
-    _blockPaused = true;
+    _state = TestState.BlockPaused;
   }
 
   void resume() {
     print('Resumed block!');
     _blockPauseMoment = _now;
     _totalPauseDuration += _pauseDuration;
-    print(_totalPauseDuration);
-    _blockPaused = false;
+    _state = TestState.BlockRunning;
+  }
+  void completeBlock() {
+    print('Completed block!');
+    _state = TestState.BlockCompleted;
+    //      _recorder.saveJsonFile();
   }
 
-  bool isBlockStarted() => _blockStarted;
+  TestState getTestState() => _state;
 
-  bool isBlockPaused() => _blockPaused;
+  bool isBlockStarted() => _state != TestState.BlockNotStarted;
 
-  bool isBlockCompleted() => _blockCompleted;
+  bool isBlockPaused() => _state == TestState.BlockPaused;
 
-  bool isTestRunning() => _blockStarted && !_blockPaused;
+  bool isBlockCompleted() => _state == TestState.BlockCompleted;
+
+  bool isTestRunning() => _state == TestState.BlockRunning;
 
   double getLastMovementDuration() => _lastMovementDuration;
 
@@ -251,15 +258,24 @@ class MDCTaskRecorder {
   }
 
   String getTitleToDisplay() {
-    if (isTestRunning())
-      return _getBlockOutputToDisplay();
-    else if (!_blockStarted)
-      return _getDynamicTitleToDisplay();
-    else if (_blockPaused)
-      return _getDynamicTitleToDisplay(prefix: 'Resume');
-    else if (_blockCompleted)
-      return _getDynamicTitleToDisplay(prefix: 'Summary of');
-    else
-      return 'Head-based Pointing with Flutter';
+    switch(_state) {
+      case TestState.BlockNotStarted:
+        _actionText = 'START!';
+        return _getDynamicTitleToDisplay(prefix: 'Start');
+      case TestState.BlockRunning:
+        _actionText = 'PAUSE!';
+        return _getBlockOutputToDisplay();
+      case TestState.BlockPaused:
+        _actionText = 'RESUME!';
+        return _getDynamicTitleToDisplay(prefix: 'Resume');
+      case TestState.BlockCompleted:
+        _actionText = 'NEXT!';
+        return _getDynamicTitleToDisplay(prefix: 'Results of');
+      default :
+        _actionText = 'RUN!';
+       return 'Head-based Pointing with Flutter';
+    }
   }
+
+  String getActionString() => _actionText;
 }

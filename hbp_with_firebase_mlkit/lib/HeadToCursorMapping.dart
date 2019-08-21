@@ -35,7 +35,7 @@ class HeadToCursorMapping {
   Face _face;
 
   HeadToCursorMapping(this._canvasSize, this._face) {
-    _position = Offset(_canvasSize.width/2, _canvasSize.width/2);
+    _position = Offset(_canvasSize.width/2, _canvasSize.height/2);
     _headPointing = _position;
     _smoothingQueue = Queue();
     for (var i = 0; i < _smoothingFrameCount; i++)

@@ -68,11 +68,11 @@ class  MDCTaskBuilder extends PointingTaskBuilder {
       case  Subspace.BottomLeftCorner:
         return Offset(_offsetToEdges.dx, canvasSize.height - _offsetToEdges.dy);
       case  Subspace.Center:
-        return Offset(canvasSize.width / 2, canvasSize.width / 2);
+        return Offset(canvasSize.width / 2, canvasSize.height / 2);
       default:
         continue def;
     }
-    return Offset(canvasSize.width / 2, canvasSize.width / 2);
+    return Offset(canvasSize.width / 2, canvasSize.height / 2);
   }
 
   List<double> _calculateTargetAngles(double angularDistance) {
@@ -94,11 +94,11 @@ class  MDCTaskBuilder extends PointingTaskBuilder {
     List<Offset> targetPoints = List<Offset>();
     List<double> angles = _calculateTargetAngles(angularDistance);
     targetPoints.add(_center);
-    for (double ang in angles) {
-      Offset target = _createOuterPoint(_center, ang);
-      targetPoints.add(target);
-      targetPoints.add(_center);
-    }
+//    for (double ang in angles) {
+//      Offset target = _createOuterPoint(_center, ang);
+//      targetPoints.add(target);
+//      targetPoints.add(_center);
+//    }
     return targetPoints;
   }
 
@@ -141,9 +141,9 @@ class  MDCTaskBuilder extends PointingTaskBuilder {
 
   void _switchToNextSubspace() {
     _subspaceID++;
-    if (_subspaceID > 3) {
-      _subspaceID = 0;
-//      _recorder.saveJsonFile();
+    if (_subspaceID > 0) {
+      _recorder.completeBlock();
+//      _subspaceID = 0;
     }
     _subspace = Subspace.values[_subspaceID];
     _switchToSubspace(_subspace);

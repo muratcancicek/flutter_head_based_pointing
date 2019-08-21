@@ -37,8 +37,7 @@ class TaskScreen {
   void updateInput(dynamic result) {
     _recorder.logTime();
     if (_recorder.isTestRunning()) {
-      _faces = result;
-      _pointer.update(_faces, size: _canvasSize);
+      _pointer.update(result, size: _canvasSize);
       _recorder.logPointerNow();
     }
   }
@@ -50,22 +49,20 @@ class TaskScreen {
       else
         _recorder.resume();
     else
-      _recorder.start();
+      _recorder.startBlock();
   }
 
   RaisedButton getAppBarButton() {
-    var text = _recorder.isBlockCompleted() ? Text('Next') : Text('Start');
-    if (_recorder.isBlockStarted())
-      text = _recorder.isTestRunning() ? Text('Pause') : Text('Resume');
     return RaisedButton(
       elevation: 4.0,
       color: Colors.purple,
       textColor: Colors.white,
-      child: text,
+      child: Text(_recorder.getActionString()),
       splashColor: Colors.blueGrey,
       onPressed: _onPressedAppBarButton,
     );
   }
+
   Text getAppBarText() {
     _outputToDisplay = _recorder.getTitleToDisplay();
     return Text(_outputToDisplay, textAlign: TextAlign.center);
@@ -74,11 +71,16 @@ class TaskScreen {
   Center _displaySummaryScreen() {
     return Center(
       child: Container(
-        height: 150.0,
         child: ListView(
           padding: const EdgeInsets.all(8.0),
           children: <Widget>[
-            Text('Summary')
+            Text(
+              'Summary',
+              style: TextStyle(
+                color: Colors.green,
+                fontSize: 30.0,
+              )
+            ),
           ],
         )
       ),
@@ -107,7 +109,7 @@ class TaskScreen {
   Stack getTaskScreenView() {
     List<Widget> screen = List<Widget>();
     if (_recorder.isBlockCompleted()) {
-      _displaySummaryScreen();
+      screen.add(_displaySummaryScreen());
     } else {
       if (_drawingFacialLandmarks)
         screen.add(_drawFacialLandmarks());
