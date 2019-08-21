@@ -246,10 +246,20 @@ class MDCTaskRecorder {
     return 'Ts: $_testID B: $_blockID T: $target/$count D: $duration';
   }
 
-  String getOutputToDisplay() {
+  String _getDynamicTitleToDisplay({String prefix: 'Start'}) {
+    return '$prefix Block $_blockID of Test $_testID:';
+  }
+
+  String getTitleToDisplay() {
     if (isTestRunning())
       return _getBlockOutputToDisplay();
+    else if (!_blockStarted)
+      return _getDynamicTitleToDisplay();
+    else if (_blockPaused)
+      return _getDynamicTitleToDisplay(prefix: 'Resume');
+    else if (_blockCompleted)
+      return _getDynamicTitleToDisplay(prefix: 'Summary of');
     else
-      return _getBlockOutputToDisplay(); // for now
+      return 'Head-based Pointing with Flutter';
   }
 }

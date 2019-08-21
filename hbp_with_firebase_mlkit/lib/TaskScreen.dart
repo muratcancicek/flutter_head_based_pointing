@@ -53,7 +53,7 @@ class TaskScreen {
       _recorder.start();
   }
 
-  RaisedButton _getAppBarButton() {
+  RaisedButton getAppBarButton() {
     var text = _recorder.isBlockCompleted() ? Text('Next') : Text('Start');
     if (_recorder.isBlockStarted())
       text = _recorder.isTestRunning() ? Text('Pause') : Text('Resume');
@@ -66,26 +66,9 @@ class TaskScreen {
       onPressed: _onPressedAppBarButton,
     );
   }
-  Text _getAppBarText() {
-    _outputToDisplay = _recorder.getOutputToDisplay();
+  Text getAppBarText() {
+    _outputToDisplay = _recorder.getTitleToDisplay();
     return Text(_outputToDisplay, textAlign: TextAlign.center);
-  }
-
-  List<Widget> _getAppBarUIComponents() {
-    return <Widget>[
-      Container(child: _getAppBarText(), padding: const EdgeInsets.all(8.0)),
-      Container(child: _getAppBarButton(), alignment: Alignment.bottomRight),
-    ];
-  }
-
-  Container getAppBarUI() {
-    return Container(
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.all(8.0),
-        children: _getAppBarUIComponents(),
-      )
-    );
   }
 
   Center _displaySummaryScreen() {
