@@ -66,7 +66,7 @@ class MyMainViewState extends State<MyMainView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: _taskScreen.displayOutput(),
+        title: _taskScreen.getAppBarUI(),
 
       ),
       body: Center(

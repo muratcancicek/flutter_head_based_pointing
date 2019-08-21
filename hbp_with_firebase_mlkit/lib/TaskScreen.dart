@@ -35,16 +35,12 @@ class TaskScreen {
       _targetBuilder = MDCTaskBuilder(_canvasSize, _pointer, _recorder);
     _recorder.updateTaskBuilder(_targetBuilder);
   }
-
-  void updateInput(dynamic result)  {
-    if (_headPointingActive) {
-      _faces = result;
-      _pointer.update(_faces, size: _canvasSize);
-      _recorder.logPointerNow();
-    }
+  void _onPressedAppBarButton() {
+    print('Done');
+    _headPointingActive = !_headPointingActive;
   }
 
-  RaisedButton getMainButton() {
+  RaisedButton _getAppBarButton() {
     final buttonText = _headPointingActive ? Text('Pause') : Text('Resume');
     return RaisedButton(
       elevation: 4.0,
@@ -52,30 +48,26 @@ class TaskScreen {
       textColor: Colors.white,
       child: buttonText,
       splashColor: Colors.blueGrey,
-      onPressed: () {
-        print('Done');
-        _headPointingActive = !_headPointingActive;
-      },
+      onPressed: _onPressedAppBarButton,
     );
   }
-  List<Widget> getHeaderUIComponents() {
-    return  <Widget>[
-      Container(
-        padding: const EdgeInsets.all(8.0),
-        child: Text(_outputToDisplay, textAlign: TextAlign.center),
-      ),
-      Container(
-        child:  getMainButton(),
-      ),
+  Text _getAppBarText() {
+    _outputToDisplay = _recorder.getLastMovementDuration().toString() + ' seconds';
+    return Text(_outputToDisplay, textAlign: TextAlign.center);
+  }
+
+  List<Widget> _getAppBarUIComponents() {
+    return <Widget>[
+      Container(child: _getAppBarText(), padding: const EdgeInsets.all(8.0)),
+      Container(child: _getAppBarButton()),
     ];
   }
-  Container displayOutput() {
-    _outputToDisplay = _recorder.getLastMovementDuration().toString() + ' seconds';
+  Container getAppBarUI() {
     return Container(
       child: ListView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.all(8.0),
-        children: getHeaderUIComponents(),
+        children: _getAppBarUIComponents(),
       )
     );
   }
@@ -103,13 +95,13 @@ class TaskScreen {
     return CustomPaint(painter: painter);
   }
 
+  CustomPaint _drawTargets() {
+    return CustomPaint(painter: _targetBuilder.getPainter());
+  }
+
   Widget _drawPointer() {
     _pointer.updateDrawer(targets: _targetBuilder.getTargets());
     return CustomPaint(painter: _pointer.getPainter());
-  }
-
-  CustomPaint _drawTargets() {
-    return CustomPaint(painter: _targetBuilder.getPainter());
   }
 
   Stack getTaskScreenView() {
@@ -117,12 +109,21 @@ class TaskScreen {
     if (_blockCompleted) {
       _displaySummaryScreen();
     } else {
-      screen.add(_drawTargets());
-      screen.add(_drawPointer());
       if (_drawingFacialLandmarks)
         screen.add(_drawFacialLandmarks());
+      screen.add(_drawTargets());
+      screen.add(_drawPointer());
     }
     return Stack(fit: StackFit.expand, children: screen);
   }
+
+  void updateInput(dynamic result)  {
+    if (_headPointingActive) {
+      _faces = result;
+      _pointer.update(_faces, size: _canvasSize);
+      _recorder.logPointerNow();
+    }
+  }
+
 
 }
