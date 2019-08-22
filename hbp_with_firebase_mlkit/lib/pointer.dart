@@ -31,17 +31,25 @@ class Pointer {
   Size _canvasSize;
   Face _face;
 
+
+  void reset() {
+    if (_mapping == null)
+      _mapping = HeadToCursorMapping(_canvasSize, _face);
+    else
+      _mapping.reset();
+    _position = _mapping.calculateHeadPointing();
+    _pointerDrawer = PointerDrawer(this, _canvasSize);
+    _dwellingTimestampQueue = Queue();
+    _dwellingQueue = Queue();
+
+  }
   Pointer(this._canvasSize, this._face,
       {PointerType type: PointerType.Circle,
         List<SelectionMode> enabledSelectionModes}) {
     _enabledSelectionModes = enabledSelectionModes == null
         ? SelectionMode.values : enabledSelectionModes;
-    _mapping = HeadToCursorMapping(_canvasSize, _face);
-    _position = _mapping.calculateHeadPointing();
-    _pointerDrawer = PointerDrawer(this, _canvasSize);
-    _dwellingTimestampQueue = Queue();
-    _dwellingQueue = Queue();
     _type = type;
+    reset();
   }
 
   void _updateFace(List<Face> faces, {Size size}) {

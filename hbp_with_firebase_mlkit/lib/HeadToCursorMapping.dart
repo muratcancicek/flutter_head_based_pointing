@@ -34,7 +34,7 @@ class HeadToCursorMapping {
   yAxisMode _yAxisMode = yAxisMode.fromNose;
   Face _face;
 
-  HeadToCursorMapping(this._canvasSize, this._face) {
+  void reset() {
     _position = Offset(_canvasSize.width/2, _canvasSize.height/2);
     _headPointing = _position;
     _smoothingQueue = Queue();
@@ -46,6 +46,10 @@ class HeadToCursorMapping {
     _velocityQueue = Queue();
     for (var i = 0; i < _smoothingFrameCount; i++)
       _velocityQueue.addFirst(Offset(0, 0));
+  }
+
+  HeadToCursorMapping(this._canvasSize, this._face) {
+    reset();
   }
 
   Offset _smoothNoseInput() {
