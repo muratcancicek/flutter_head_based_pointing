@@ -34,10 +34,10 @@ class Pointer {
 
   void reset() {
     if (_mapping == null)
-      _mapping = HeadToCursorMapping(_canvasSize, _face);
+      _mapping = HeadToCursorMapping(_canvasSize, null);
     else
       _mapping.reset();
-    _position = _mapping.calculateHeadPointing();
+    _position = Offset(_canvasSize.width/2, _canvasSize.height/2);
     _pointerDrawer = PointerDrawer(this, _canvasSize);
     _dwellingTimestampQueue = Queue();
     _dwellingQueue = Queue();
