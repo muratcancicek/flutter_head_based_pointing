@@ -98,11 +98,11 @@ class  MDCTaskBuilder extends PointingTaskBuilder {
     List<Offset> targetPoints = List<Offset>();
     List<double> angles = _calculateTargetAngles(angularDistance);
     targetPoints.add(_center);
-//    for (double ang in angles) {
-//      Offset target = _createOuterPoint(_center, ang);
-//      targetPoints.add(target);
-//      targetPoints.add(_center);
-//    }
+    for (double ang in angles) {
+      Offset target = _createOuterPoint(_center, ang);
+      targetPoints.add(target);
+      targetPoints.add(_center);
+    }
     return targetPoints;
   }
 

@@ -7,7 +7,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/material.dart';
 
 class TaskScreen {
-  Size _canvasSize = Size(420, 720); // manually detected size
+  Size _canvasSize = Size(420, 670); // manually detected size
   bool _drawingFacialLandmarks = false;
   CameraHandler _cameraHandler;
   MDCTaskRecorder _recorder;

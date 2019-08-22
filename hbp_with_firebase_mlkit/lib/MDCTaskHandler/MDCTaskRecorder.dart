@@ -9,8 +9,8 @@ final configs = [
   <String, dynamic>{
     'PointingTaskType': PointingTaskType.MDC,
     'Amplitude': 150,
-    'TargetWidth': 400,
-    'OuterTargetCount': 0,
+    'TargetWidth': 80,
+    'OuterTargetCount': 3,
     'Angle': 30.0
   },
   <String, dynamic>{
