@@ -83,7 +83,7 @@ class TaskScreen {
     List<Widget> screen = List<Widget>();
     if (_recorder.getCurrentTest().isBlockCompleted()) {
       screen.add(_displaySummaryScreen());
-    } else {
+    } else if (_recorder.getCurrentTest().isBlockStarted()) { //
       if (_drawingFacialLandmarks)
         screen.add(_drawFacialLandmarks());
       screen.add(_drawTargets());

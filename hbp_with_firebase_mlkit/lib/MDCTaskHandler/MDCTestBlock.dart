@@ -1,12 +1,8 @@
-//import 'package:hbp_with_firebase_mlkit/Painting/PointingTaskBuilding/JeffTaskBuilder.dart';
+import 'package:hbp_with_firebase_mlkit/Painting/PointingTaskBuilding/PointingTaskBuilder.dart';
+import 'package:hbp_with_firebase_mlkit/Painting/PointingTaskBuilding/JeffTaskBuilder.dart';
 import 'package:hbp_with_firebase_mlkit/Painting/PointingTaskBuilding/MDCTaskBuilder.dart';
 import 'package:hbp_with_firebase_mlkit/pointer.dart';
 import 'package:flutter/material.dart';
-
-enum PointingTaskType {
-  Jeff,
-  MDC,
-}
 
 List<double> offsetToList(Offset o) => [o.dx, o.dy];
 
@@ -44,10 +40,11 @@ class MDCTestBlock {
   int _transitionID = 1;
   int _trailID = 1;
   int _blockID = 1;
-  bool _paused = false;
-  MDCTaskBuilder _taskBuilder;
   int _now = 1;
+  bool _paused = false;
+  bool _completed = false;
   Pointer _pointer;
+  dynamic _taskBuilder;
 
   Map<String, dynamic> pointerLog(Offset pos, int moment) => {
     '"Moment"': moment,
@@ -95,13 +92,17 @@ class MDCTestBlock {
     '"LogInformation"': logInformation(), // lists of important timestamps and pointer logs
   };
 
-  MDCTestBlock(this._blockID, this._pointer, this._now, {pointingTaskType}) {
+  MDCTestBlock(this._blockID, this._pointer, this._now, {Map config}) {
     _startMoment = _now;
     _lastSelectionMoment = _startMoment;
-//    if (pointingTaskType == PointingTaskType.Jeff)
-//      _targetBuilder = JeffTaskBuilder(_canvasSize, _pointer);
-//    else if (_pointingTaskType == PointingTaskType.MDC)
-    _taskBuilder = MDCTaskBuilder(_canvasSize, _pointer, this);
+    if (config == null)
+      _taskBuilder = MDCTaskBuilder(_canvasSize, _pointer, this);
+    else if (config.containsKey('PointingTaskType')) {
+      if (config['PointingTaskType'] == PointingTaskType.Jeff)
+        _taskBuilder = JeffTaskBuilder(_canvasSize, _pointer);
+      else // if (pointingTaskType == PointingTaskType.MDC)
+       _taskBuilder = MDCTaskBuilder(_canvasSize, _pointer, this, layout: config);
+    }
   }
 
   void updateTaskBuilder(MDCTaskBuilder taskBuilder) {
@@ -192,13 +193,15 @@ class MDCTestBlock {
     return 'Test: $_testID B: $_blockID T: $target/$count D: $duration';
   }
 
+  void completeBlock() {
+    _completed = true;
+  }
+
+  bool isCompleted() => _completed;
+
   MDCTaskBuilder getTaskBuilder() => _taskBuilder;
 
   int getStartMoment() => _startMoment;
 
   double getLastMovementDuration() => _lastMovementDuration;
-
-  void completeBlock() {
-
-  }
 }

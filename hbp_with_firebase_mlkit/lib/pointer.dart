@@ -31,7 +31,6 @@ class Pointer {
   Size _canvasSize;
   Face _face;
 
-
   void reset() {
     if (_mapping == null)
       _mapping = HeadToCursorMapping(_canvasSize, null);
@@ -41,8 +40,8 @@ class Pointer {
     _pointerDrawer = PointerDrawer(this, _canvasSize);
     _dwellingTimestampQueue = Queue();
     _dwellingQueue = Queue();
-
   }
+
   Pointer(this._canvasSize, this._face,
       {PointerType type: PointerType.Circle,
         List<SelectionMode> enabledSelectionModes}) {

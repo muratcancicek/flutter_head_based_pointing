@@ -49,12 +49,18 @@ class MDCTest {
     '"PointerInformation"': pointerInformation(),
   };
 
-  void _createBlock() {
-    _block = MDCTestBlock(_blockID, _pointer, _now);
+  void _createBlock({Map config}) {
+    _block = MDCTestBlock(_blockID, _pointer, _now, config: config);
   }
 
-  MDCTest(this._testID, this._pointer, this._now) {
-    _createBlock();
+  MDCTest(this._testID, this._pointer, this._now, {Map config}) {
+    _createBlock(config: config);
+  }
+
+  void completeBlock() {
+    print('Completed block!');
+    _state = TestState.BlockCompleted;
+    //      _recorder.saveJsonFile();
   }
 
   void update(now) {
@@ -63,6 +69,8 @@ class MDCTest {
     _block.keepPaused(now);
     else if (_state == TestState.BlockRunning)
      _block.log(now);
+    if (_block.isCompleted() && _state != TestState.BlockCompleted)
+      completeBlock();
   }
 
   void start() {
@@ -78,15 +86,18 @@ class MDCTest {
     _state = TestState.BlockRunning;
   }
 
-  void completeBlock() {
-    print('Completed block!');
-    _state = TestState.BlockCompleted;
-    //      _recorder.saveJsonFile();
+  void switchNextBlock() {
+    print('New block!');
+    _blockID++;
+    _pointer.reset();
+    _block = MDCTestBlock(_blockID, _pointer, _now);
+    _state = TestState.BlockNotStarted;
   }
 
   String getDynamicTitleToDisplay({String prefix: 'Start'}) {
     return '$prefix Block $_blockID of Test $_testID:';
   }
+
   String getCurrentStatusToDisplay() {
     return _block.getCurrentStatusToDisplay(_testID);
   }

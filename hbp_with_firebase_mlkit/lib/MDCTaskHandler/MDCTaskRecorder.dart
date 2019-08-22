@@ -1,8 +1,40 @@
+import 'package:hbp_with_firebase_mlkit/Painting/PointingTaskBuilding/PointingTaskBuilder.dart';
 import 'package:hbp_with_firebase_mlkit/Painting/PointingTaskBuilding/MDCTaskBuilder.dart';
 import 'package:hbp_with_firebase_mlkit/MDCTaskHandler/MDCTest.dart';
 import 'package:hbp_with_firebase_mlkit/pointer.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
+
+final configs = [
+  <String, dynamic>{
+    'PointingTaskType': PointingTaskType.MDC,
+    'Amplitude': 150,
+    'TargetWidth': 80,
+    'OuterTargetCount': 3,
+    'Angle': 30.0
+  },
+  <String, dynamic>{
+    'PointingTaskType': PointingTaskType.MDC,
+    'Amplitude': 150,
+    'TargetWidth': 40,
+    'OuterTargetCount': 2,
+    'Angle': 30.0
+  },
+  <String, dynamic>{
+    'PointingTaskType': PointingTaskType.MDC,
+    'Amplitude': 450,
+    'TargetWidth': 80,
+    'OuterTargetCount': 3,
+    'Angle': 15.0
+  },
+  <String, dynamic>{
+    'PointingTaskType': PointingTaskType.MDC,
+    'Amplitude': 450,
+    'TargetWidth': 40,
+    'OuterTargetCount': 3,
+    'Angle': 15.0
+  },
+];
 
 class MDCTaskRecorder {
   String _titleToDisplay = '';
@@ -22,18 +54,19 @@ class MDCTaskRecorder {
     file.writeAsStringSync(json);
   }
 
-  void _createTest(Pointer pointer) {
-    _test = MDCTest(_testID, pointer, new DateTime.now().millisecondsSinceEpoch);
+  void _createTest(Pointer pointer, {config}) {
+    final now = new DateTime.now().millisecondsSinceEpoch;
+    _test = MDCTest(_testID, pointer, now, config: config);
   }
 
   MDCTaskRecorder(Pointer pointer) {
-    _createTest(pointer);
+    _createTest(pointer, config: configs[_testID-1]);
     _nextAction = _test.start;
   }
 
+
   void update() {
     _test.update(new DateTime.now().millisecondsSinceEpoch);
-    print(_test.getState());
     switch(_test.getState()) {
       case TestState.BlockNotStarted:
         _nextAction = _test.start;
@@ -51,7 +84,7 @@ class MDCTaskRecorder {
         _titleToDisplay = _test.getDynamicTitleToDisplay(prefix: 'Resume');
         break;
       case TestState.BlockCompleted:
-        _nextAction = _createTest;
+        _nextAction = _test.switchNextBlock;
         _nextActionText = 'NEXT!';
         _titleToDisplay = _test.getDynamicTitleToDisplay(prefix: 'Results of');
         break;

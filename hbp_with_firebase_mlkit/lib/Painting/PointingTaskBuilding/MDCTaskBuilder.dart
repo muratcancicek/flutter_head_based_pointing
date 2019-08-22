@@ -18,11 +18,12 @@ class  MDCTaskBuilder extends PointingTaskBuilder {
   Offset _offsetToEdges = Offset(50, 50);
   int _currentTargetIndex = 0;
   int _outerTargetCount = 2;
-  MDCTestBlock _recorder;
+  int _targetWidth = 30;
+  int _amplitude = 160;
+  MDCTestBlock _testBlock;
   int _subspaceID = 0;
-  int _targetWidth;
-  int _amplitude;
   Offset _center;
+  double _angle;
 
   Subspace detectSubspace({center}) {
     if (center == null) center = _center;
@@ -80,7 +81,10 @@ class  MDCTaskBuilder extends PointingTaskBuilder {
     double arcBegin = arc[0];
     double arcEnd = arc[1];
     List<double> angles = List<double>();
-    for (double ang = arcBegin; ang <= arcEnd; ang += angularDistance)
+    if (_subspace == Subspace.TopRightCorner || _subspace == Subspace.BottomLeftCorner)
+    for (double ang = arcBegin; (ang <= arcEnd && angles.length<_outerTargetCount); ang += angularDistance)
+      angles.add(ang * pi / 180);
+    for (double ang = arcEnd; (ang >= arcBegin&& angles.length<_outerTargetCount); ang -= angularDistance)
       angles.add(ang * pi / 180);
     return angles;
   }
@@ -94,19 +98,17 @@ class  MDCTaskBuilder extends PointingTaskBuilder {
     List<Offset> targetPoints = List<Offset>();
     List<double> angles = _calculateTargetAngles(angularDistance);
     targetPoints.add(_center);
-//    for (double ang in angles) {
-//      Offset target = _createOuterPoint(_center, ang);
-//      targetPoints.add(target);
-//      targetPoints.add(_center);
-//    }
+    for (double ang in angles) {
+      Offset target = _createOuterPoint(_center, ang);
+      targetPoints.add(target);
+      targetPoints.add(_center);
+    }
     return targetPoints;
   }
 
-  List<Offset> _createArc({int outerTargetCounter, double angle}) {
-    if (outerTargetCounter ==  null)
-      outerTargetCounter = _outerTargetCount;
-    angle = angle == null ? (90.0 / (outerTargetCounter-1)) : angle;
-    return _createArcPoints(angle);
+  List<Offset> _createArc() {
+    _angle = _angle == null ? (90.0 / (_outerTargetCount-1)) : _angle;
+    return _createArcPoints(_angle);
   }
 
   void _createSubspace() {
@@ -114,24 +116,28 @@ class  MDCTaskBuilder extends PointingTaskBuilder {
     _center = _getCenterForSubspace(_subspace);
     _currentTargetIndex = 0;
     final targetPoints = _createArc();
-    _recorder.recordTargetPoints(targetPoints);
+    _testBlock.recordTargetPoints(targetPoints);
     for (var i = 0; i < targetPoints.length; i++)
       _subspaceTargets.add(
           Target.fromCircle(targetPoints[i], _targetWidth.toDouble()));
     targets.add(_subspaceTargets[0]);
   }
 
-  void _createMDCTargets(int amplitude, int targetWidth) {
-    _amplitude = amplitude;
-    _targetWidth = targetWidth;
-    _createSubspace();
-  }
-
-  MDCTaskBuilder(imageSize, pointer, recorder,
-      {int amplitude: 160, int targetWidth: 30})
+  MDCTaskBuilder(imageSize, pointer, recorder, {Map layout})
       : super(imageSize, pointer) {
-    _recorder = recorder;
-    _createMDCTargets(amplitude, targetWidth);
+    if (layout != null) {
+      _outerTargetCount = layout.containsKey('OuterTargetCount')
+          ? layout['OuterTargetCount']
+          : _outerTargetCount;
+      _targetWidth =
+      layout.containsKey('TargetWidth') ? layout['TargetWidth'] : _targetWidth;
+      _offsetToEdges = Offset(_targetWidth+20.0, _targetWidth+20.0);
+      _amplitude =
+      layout.containsKey('Amplitude') ? layout['Amplitude'] : _amplitude;
+      _angle = layout.containsKey('Angle') ? layout['Angle'] : _angle;
+    }
+    _testBlock = recorder;
+    _createSubspace();
   }
 
   void _switchToSubspace(Subspace subspace) {
@@ -141,16 +147,16 @@ class  MDCTaskBuilder extends PointingTaskBuilder {
 
   void _switchToNextSubspace() {
     _subspaceID++;
-    if (_subspaceID > 0) {
-      _recorder.completeBlock();
-//      _subspaceID = 0;
+    if (_subspaceID > 3) {
+      _testBlock.completeBlock();
+      return;
     }
     _subspace = Subspace.values[_subspaceID];
     _switchToSubspace(_subspace);
   }
 
   void _switchToNextTarget() {
-    _recorder.recordTrail(_currentTargetIndex,
+    _testBlock.recordTrail(_currentTargetIndex,
         dwellTime: pointer.getExactDwellDuration());
     targets.removeLast();
     _currentTargetIndex++;
@@ -163,7 +169,7 @@ class  MDCTaskBuilder extends PointingTaskBuilder {
   }
 
   void drawTargets(Canvas canvas) {
-    if (targets.length > 0) {
+    if (targets.length > 0 && !_testBlock.isCompleted()) {
       if (targets[0].pressed)
         _switchToNextTarget();
       else

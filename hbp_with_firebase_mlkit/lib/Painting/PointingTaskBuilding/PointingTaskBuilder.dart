@@ -2,6 +2,11 @@ import 'package:hbp_with_firebase_mlkit/pointer.dart';
 import 'package:flutter/material.dart';
 import 'Target.dart';
 
+enum PointingTaskType {
+  Jeff,
+  MDC,
+}
+
 class PointingTaskBuilder {
   final Size canvasSize;
   final Pointer pointer;
