@@ -1,55 +1,29 @@
-import 'package:hbp_with_firebase_mlkit/Painting/PointingTaskBuilding/JeffTaskBuilder.dart';
-import 'package:hbp_with_firebase_mlkit/Painting/PointingTaskBuilding/MDCTaskBuilder.dart';
 import 'package:hbp_with_firebase_mlkit/Painting/face_painter.dart';
-import 'package:hbp_with_firebase_mlkit/MDCTaskRecorder.dart';
+import 'package:hbp_with_firebase_mlkit/MDCTaskHandler/MDCTaskRecorder.dart';
 import 'package:hbp_with_firebase_mlkit/CameraHandler.dart';
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
+import 'package:hbp_with_firebase_mlkit/pointer.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/material.dart';
-import 'pointer.dart';
-
-enum PointingTaskType {
-  Jeff,
-  MDC,
-}
 
 class TaskScreen {
-  PointingTaskType _pointingTaskType = PointingTaskType.MDC;
   Size _canvasSize = Size(420, 720); // manually detected size
   bool _drawingFacialLandmarks = false;
-  String _outputToDisplay = '';
   CameraHandler _cameraHandler;
   MDCTaskRecorder _recorder;
-  var _targetBuilder;
   List<Face> _faces;
   Pointer _pointer;
 
   TaskScreen(this._cameraHandler) {
     _pointer = Pointer(_canvasSize, null);
     _recorder = MDCTaskRecorder(_pointer);
-    if (_pointingTaskType == PointingTaskType.Jeff)
-      _targetBuilder = JeffTaskBuilder(_canvasSize, _pointer);
-    else if (_pointingTaskType == PointingTaskType.MDC)
-      _targetBuilder = MDCTaskBuilder(_canvasSize, _pointer, _recorder);
-    _recorder.updateTaskBuilder(_targetBuilder);
   }
 
   void updateInput(dynamic result) {
-    _recorder.logTime();
-    if (_recorder.isTestRunning()) {
+    if (_recorder.getCurrentTest().isTestRunning()) {
       _pointer.update(result, size: _canvasSize);
-      _recorder.logPointerNow();
     }
-  }
-
-  void _onPressedAppBarButton() {
-    if (_recorder.isBlockStarted())
-      if (_recorder.isTestRunning())
-        _recorder.pause();
-      else
-        _recorder.resume();
-    else
-      _recorder.startBlock();
+    _recorder.update();
   }
 
   RaisedButton getAppBarButton() {
@@ -57,15 +31,14 @@ class TaskScreen {
       elevation: 4.0,
       color: Colors.purple,
       textColor: Colors.white,
-      child: Text(_recorder.getActionString()),
+      child: Text(_recorder.getNextActionString()),
       splashColor: Colors.blueGrey,
-      onPressed: _onPressedAppBarButton,
+      onPressed: _recorder.getNextAction(),
     );
   }
 
   Text getAppBarText() {
-    _outputToDisplay = _recorder.getTitleToDisplay();
-    return Text(_outputToDisplay, textAlign: TextAlign.center);
+    return Text(_recorder.getTitleToDisplay(), textAlign: TextAlign.center);
   }
 
   Center _displaySummaryScreen() {
@@ -98,17 +71,17 @@ class TaskScreen {
   }
 
   CustomPaint _drawTargets() {
-    return CustomPaint(painter: _targetBuilder.getPainter());
+    return CustomPaint(painter: _recorder.getTaskBuilder().getPainter());
   }
 
   Widget _drawPointer() {
-    _pointer.updateDrawer(targets: _targetBuilder.getTargets());
+    _pointer.updateDrawer(targets: _recorder.getTaskBuilder().getTargets());
     return CustomPaint(painter: _pointer.getPainter());
   }
 
   Stack getTaskScreenView() {
     List<Widget> screen = List<Widget>();
-    if (_recorder.isBlockCompleted()) {
+    if (_recorder.getCurrentTest().isBlockCompleted()) {
       screen.add(_displaySummaryScreen());
     } else {
       if (_drawingFacialLandmarks)

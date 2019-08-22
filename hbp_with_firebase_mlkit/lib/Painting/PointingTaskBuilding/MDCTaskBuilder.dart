@@ -1,6 +1,6 @@
 import 'package:hbp_with_firebase_mlkit/Painting/PointingTaskBuilding/PointingTaskBuilder.dart';
 import 'package:hbp_with_firebase_mlkit/Painting/PointingTaskBuilding/Target.dart';
-import 'package:hbp_with_firebase_mlkit/MDCTaskRecorder.dart';
+import 'package:hbp_with_firebase_mlkit/MDCTaskHandler/MDCTestBlock.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 
@@ -18,7 +18,7 @@ class  MDCTaskBuilder extends PointingTaskBuilder {
   Offset _offsetToEdges = Offset(50, 50);
   int _currentTargetIndex = 0;
   int _outerTargetCount = 2;
-  MDCTaskRecorder _recorder;
+  MDCTestBlock _recorder;
   int _subspaceID = 0;
   int _targetWidth;
   int _amplitude;
