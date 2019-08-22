@@ -53,22 +53,22 @@ class MDCTestBlock {
 
   Map<String, dynamic> trailLog(id, double duration,
       List<Map> trail, Offset target) => {
-    '"ID"': id,
+    '"TrailID"': id,
     '"Duration"': duration,
     '"Start"':  trail.first,
     '"End"': trail.last,
-    '"Logs"': trail,
     '"TargetID"': _targetID,
     '"TargetLocation"': offsetToList(target),
+    '"Logs"': trail,
   };
 
   Map<String, dynamic> selectionLog(id, int moment, Offset pos, mode, Offset target) => {
-    '"ID"': id,
+    '"SelectionID"': id,
     '"Moment"': moment,
-    '"Coordinates"': offsetToList(pos),
     '"Mode"': enumToString(mode),
     '"TargetID"': _targetID,
     '"TargetLocation"': offsetToList(target),
+    '"Coordinates"': offsetToList(pos),
   };
 
   Map<String, dynamic> logInformation() => {
@@ -79,7 +79,7 @@ class MDCTestBlock {
   };
 
   Map<String, dynamic> blockInformation() => {
-    '"ID"': _blockID,
+    '"BlockID"': _blockID,
     '"Amplitude"': _taskBuilder.getAmplitude(),
     '"TargetWidth"': _taskBuilder.getTargetWidth(),
     '"BlockTrailCount"': _taskBuilder.getBlockTrailCount(),
