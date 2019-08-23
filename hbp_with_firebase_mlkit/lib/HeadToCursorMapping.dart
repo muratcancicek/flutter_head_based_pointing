@@ -202,6 +202,7 @@ class HeadToCursorMapping {
   }
 
   void update(Face face, {Size size}) {
+    _canvasSize = size;
     if (_frames++ == _downSamplingRate) {
       _face = face;
       _frames = 0;

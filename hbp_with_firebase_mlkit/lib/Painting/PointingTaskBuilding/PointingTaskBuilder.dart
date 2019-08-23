@@ -8,7 +8,7 @@ enum PointingTaskType {
 }
 
 class PointingTaskBuilder {
-  final Size canvasSize;
+  Size canvasSize;
   final Pointer pointer;
   List<Target> targets = List<Target>();
 

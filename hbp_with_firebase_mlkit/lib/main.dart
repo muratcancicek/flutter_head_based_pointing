@@ -69,15 +69,12 @@ class MyMainViewState extends State<MyMainView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: _taskScreen.getAppBarText(),
-        actions: <Widget>[_taskScreen.getAppBarButton()],
-      ),
-      body: Center(
-        child:  _buildMainView(),
-      ),
+  return Scaffold(
+    appBar: _taskScreen.getAppBar(),
+    body: Center(
+      child:  _buildMainView(),
+    ),
 //      floatingActionButton: _addFloatingActionButton(),
-    );
+  );
   }
 }

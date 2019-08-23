@@ -13,20 +13,28 @@ class TaskScreen {
   MDCTaskRecorder _recorder;
   List<Face> _faces;
   Pointer _pointer;
+  GlobalKey _key = GlobalKey();
 
   TaskScreen(this._cameraHandler) {
     _pointer = Pointer(_canvasSize, null);
-    _recorder = MDCTaskRecorder(_pointer);
+    _recorder = MDCTaskRecorder(_canvasSize, _pointer);
+  }
+
+  void _updateCanvasSize() {
+    if (_key.currentContext != null) {
+    final RenderBox render = _key.currentContext.findRenderObject();
+      _canvasSize = render.size;
+    }
   }
 
   void updateInput(dynamic result) {
-    if (_recorder.getCurrentTest().isTestRunning()) {
-      _pointer.update(result, size: _canvasSize);
-    }
+    _updateCanvasSize();
+    _recorder.getTaskBuilder().canvasSize = _canvasSize;
+    _pointer.update(result, size: _canvasSize);
     _recorder.update();
   }
 
-  RaisedButton getAppBarButton() {
+  RaisedButton _getAppBarButton() {
     return RaisedButton(
       elevation: 4.0,
       color: Colors.purple,
@@ -37,8 +45,15 @@ class TaskScreen {
     );
   }
 
-  Text getAppBarText() {
+  Text _getAppBarText() {
     return Text(_recorder.getTitleToDisplay(), textAlign: TextAlign.center);
+  }
+
+  AppBar getAppBar() {
+    return AppBar(
+      title: _getAppBarText(),
+      actions: <Widget>[_getAppBarButton()],
+    );
   }
 
   Center _displaySummaryScreen() {
@@ -75,7 +90,7 @@ class TaskScreen {
   }
 
   Widget _drawPointer() {
-    _pointer.updateDrawer(targets: _recorder.getTaskBuilder().getTargets());
+    _pointer.updateDrawer(targets: _recorder.getTaskBuilder().getTargets(), );
     return CustomPaint(painter: _pointer.getPainter());
   }
 
@@ -87,8 +102,12 @@ class TaskScreen {
       if (_drawingFacialLandmarks)
         screen.add(_drawFacialLandmarks());
       screen.add(_drawTargets());
-      screen.add(_drawPointer());
     }
-    return Stack(fit: StackFit.expand, children: screen);
+    screen.add(_drawPointer());
+    return Stack(fit: StackFit.expand, key: _key, children: screen);
+  }
+
+  void updateCanvasSize(Size size) {
+    _canvasSize = size;
   }
 }

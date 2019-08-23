@@ -20,7 +20,6 @@ List<String> enumListToStringList(List list) =>
 
 class MDCTestBlock {
 //  PointingTaskType _pointingTaskType = PointingTaskType.MDC;
-  Size _canvasSize = Size(420, 720); // manually detected size
   List<Offset> _targetPoints = List<Offset>();
   List<Map> _missedSelections = List<Map>();
   List<Map> _selections = List<Map>();
@@ -43,6 +42,7 @@ class MDCTestBlock {
   int _now = 1;
   bool _paused = false;
   bool _completed = false;
+  Size _canvasSize;
   Pointer _pointer;
   dynamic _taskBuilder;
 
@@ -92,7 +92,7 @@ class MDCTestBlock {
     '"LogInformation"': logInformation(), // lists of important timestamps and pointer logs
   };
 
-  MDCTestBlock(this._blockID, this._pointer, this._now, {Map config}) {
+  MDCTestBlock(this._canvasSize, this._blockID, this._pointer, this._now, {Map config}) {
     _startMoment = _now;
     _lastSelectionMoment = _startMoment;
     if (config == null)

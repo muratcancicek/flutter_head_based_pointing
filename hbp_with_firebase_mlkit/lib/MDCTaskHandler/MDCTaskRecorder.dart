@@ -10,7 +10,7 @@ final configs = [
     'PointingTaskType': PointingTaskType.MDC,
     'Amplitude': 150,
     'TargetWidth': 80,
-    'OuterTargetCount': 3,
+    'OuterTargetCount': 0,
     'Angle': 30.0
   },
   <String, dynamic>{
@@ -44,6 +44,7 @@ class MDCTaskRecorder {
   int _testCount = 2;
   int _testID = 1;
   int _subjectID = 1;
+  var _canvasSize;
   MDCTest _test;
   Pointer _pointer;
 
@@ -66,10 +67,10 @@ class MDCTaskRecorder {
 
   void _createTest({config}) {
     final now = new DateTime.now().millisecondsSinceEpoch;
-    _test = MDCTest(_testID, _pointer, now, config: config);
+    _test = MDCTest(_canvasSize, _testID, _pointer, now, config: config);
   }
 
-  MDCTaskRecorder(this._pointer) {
+  MDCTaskRecorder(this._canvasSize, this._pointer) {
     _createTest(config: configs[_testID-1]);
     _nextAction = _test.start;
   }

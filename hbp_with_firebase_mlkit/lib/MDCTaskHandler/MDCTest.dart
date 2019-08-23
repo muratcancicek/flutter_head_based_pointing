@@ -16,6 +16,7 @@ class MDCTest {
   List<Map> _blocks = List<Map>();
   int _blockCount = 3;
   int _blockID = 1;
+  var _canvasSize;
   int _testID = 1;
   int _now = 1;
   Map _config;
@@ -54,10 +55,10 @@ class MDCTest {
   };
 
   void _createBlock({Map config}) {
-    _block = MDCTestBlock(_blockID, _pointer, _now, config: config);
+    _block = MDCTestBlock(_canvasSize, _blockID, _pointer, _now, config: config);
   }
 
-  MDCTest(this._testID, this._pointer, this._now, {Map config, blockCount: 3}){
+  MDCTest(this._canvasSize, this._testID, this._pointer, this._now, {Map config, blockCount: 3}){
     _blockCount = blockCount;
     _config = config;
     _createBlock(config: config);
@@ -104,7 +105,7 @@ class MDCTest {
       return;
     } else {
       _pointer.reset();
-      _block = MDCTestBlock(_blockID, _pointer, _now, config: _config);
+      _block = MDCTestBlock(_canvasSize, _blockID, _pointer, _now, config: _config);
       _state = TestState.BlockNotStarted;
     }
   }

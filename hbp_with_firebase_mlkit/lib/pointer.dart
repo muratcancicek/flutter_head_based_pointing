@@ -109,6 +109,7 @@ class Pointer {
   }
 
   void update(List<Face> faces, {Size size}) {
+    _canvasSize = size;
     _updated = true;
     if (faces != null)
       if (faces.length > 0) {
