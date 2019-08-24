@@ -35,6 +35,19 @@ class TestConfiguration {
      'PointerYSpeed': pointerYSpeed,
    };
 
+  Map<String, dynamic> toJSON() => <String, dynamic>{
+    'ID': id,
+    'SelectionMode': selectionMode.toString().split('.').last,
+    'PointingTaskType': pointingTaskType.toString().split('.').last,
+    'Amplitude': amplitude,
+    'TargetWidth': targetWidth,
+    'OuterTargetCount': outerTargetCount,
+    'TrailCount': trailCount,
+    'Angle': angle,
+    'PointerXSpeed': pointerXSpeed,
+    'PointerYSpeed': pointerYSpeed,
+  };
+
   void update(String key, dynamic value) {
     switch(key) {
       case 'SelectionMode':
@@ -78,8 +91,6 @@ class ConfigScreen {
   List<TestConfiguration> configs;
 
   ConfigScreen() {
-//    final m = {'test': 'timeer'};
-//    Firestore.instance.collection('Experiments').document('how').setData(m);
     configs = List<TestConfiguration>();
     configs.add(dummyConfig);
   }
@@ -162,7 +173,7 @@ class ConfigScreen {
     );
   }
 
-  Row getNumber(int id, String key, dynamic value, {bool decimal: false}) {
+  Row getNumberField(int id, String key, dynamic value, {bool decimal: false}) {
     return new Row(children: <Widget>[
           Container(width: 80, child: Text(value.toString())),
           Container(
@@ -187,11 +198,11 @@ class ConfigScreen {
       case 'Amplitude':
       case 'TargetWidth':
       case 'OuterTargetCount':
-        return getNumber(id, key, value);
+        return getNumberField(id, key, value);
       case 'Angle':
       case 'PointerXSpeed':
       case 'PointerYSpeed':
-        return getNumber(id, key, value, decimal: true);
+        return getNumberField(id, key, value, decimal: true);
       default:
         return Text(value.toString(), textAlign: TextAlign.center);
     }
@@ -225,8 +236,7 @@ class ConfigScreen {
     return list;
   }
 
-  void setConfig(bool changed) {}
-  ExpansionTile testTile(TestConfiguration config) {
+  ExpansionTile getTestTile(TestConfiguration config) {
     final id = config.id;
     return ExpansionTile(
       title: Text('Test $id'),
@@ -236,16 +246,50 @@ class ConfigScreen {
     );
   }
 
-  ListView mk() {
-    return ListView(children: configs.map(testTile).toList());
+  ListView getTestListView() {
+    return ListView(children: configs.map(getTestTile).toList());
   }
 
-  Center f() {
+  Center getConfigsScreenView() {
     return Center(
         child: Container(
           padding: const EdgeInsets.all(10.0),
-          child: mk(),
+          child: getTestListView(),
         )
     );
+  }
+
+  void save() {
+    final m = {'test': 'timeer'};
+    String date = new DateTime.now().toIso8601String().replaceAll(':', '-');
+    date = date.split('.').first;
+    Firestore.instance.document('Test_$date');
+    Firestore.instance.collection('Test_$date').document('how').setData(m);
+  }
+
+  RaisedButton _getAppBarButton() {
+    return RaisedButton(
+      elevation: 4.0,
+      color: Colors.purple,
+      textColor: Colors.white,
+      child: Text('Save'),
+      splashColor: Colors.blueGrey,
+      onPressed: save,
+    );
+  }
+
+  Text _getAppBarText() {
+    return Text('Edit Test Variables', textAlign: TextAlign.center);
+  }
+
+  AppBar getAppBar(RaisedButton backButton) {
+    return AppBar(
+      title: _getAppBarText(),
+      actions: <Widget>[_getAppBarButton(), backButton],
+    );
+  }
+
+  List<Map<String, dynamic>> getFinalConfiguration() {
+    return configs.map((TestConfiguration c) => c.toJSON()).toList();
   }
 }

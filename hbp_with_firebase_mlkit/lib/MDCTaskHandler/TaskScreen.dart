@@ -9,11 +9,12 @@ import 'package:flutter/material.dart';
 class TaskScreen {
   Size _canvasSize = Size(420, 670); // manually detected size
   bool _drawingFacialLandmarks = false;
+  GlobalKey _key = GlobalKey();
   CameraHandler _cameraHandler;
   MDCTaskRecorder _recorder;
+  String _experimentID;
   List<Face> _faces;
   Pointer _pointer;
-  GlobalKey _key = GlobalKey();
 
   TaskScreen(this._cameraHandler) {
     _pointer = Pointer(_canvasSize, null);
@@ -109,5 +110,9 @@ class TaskScreen {
 
   void updateCanvasSize(Size size) {
     _canvasSize = size;
+  }
+
+  void setUpdate(String experimentID, Map<String, dynamic> configs) {
+    _experimentID = experimentID;
   }
 }
