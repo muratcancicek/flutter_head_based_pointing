@@ -1,5 +1,6 @@
-import 'package:hbp_with_firebase_mlkit/CameraHandler.dart';
 import 'package:hbp_with_firebase_mlkit/MDCTaskHandler/TaskScreen.dart';
+import 'package:hbp_with_firebase_mlkit/CameraHandler.dart';
+import 'package:hbp_with_firebase_mlkit/ConfigScreen.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/material.dart';
@@ -36,6 +37,7 @@ class MyMainView extends StatefulWidget {
 class MyMainViewState extends State<MyMainView> {
   CameraHandler _cameraHandler;
   TaskScreen _taskScreen;
+  ConfigScreen _configScreen;
 
   void setStateForImageStreaming(dynamic result)  {
     setState(() {_taskScreen.updateInput(result); });
@@ -44,6 +46,7 @@ class MyMainViewState extends State<MyMainView> {
   @override
   void initState() {
     super.initState();
+    _configScreen = ConfigScreen();
     _cameraHandler = CameraHandler(this);
     _taskScreen = TaskScreen(_cameraHandler);
   }
@@ -53,11 +56,11 @@ class MyMainViewState extends State<MyMainView> {
       constraints: const BoxConstraints.expand(),
       child: _cameraHandler.isCameraNull()
           ? _cameraHandler.getCameraInitializationView()
-          : _taskScreen.getTaskScreenView(),
+          : _configScreen.f()//_taskScreen.getTaskScreenView(), //
     );
   }
 
-  FloatingActionButton _addFloatingActionButton() {
+  FloatingActionButton addFloatingActionButton() {
     Icon icon = const Icon(Icons.camera_front);
     if (_cameraHandler.isBackCamera())
       icon = const Icon(Icons.camera_rear);

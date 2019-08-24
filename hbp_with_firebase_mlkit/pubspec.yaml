@@ -24,6 +24,7 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^0.1.2
   firebase_ml_vision: ^0.6.0+2
+  cloud_firestore:
   path_provider:
   camera: ^0.4.2
 
