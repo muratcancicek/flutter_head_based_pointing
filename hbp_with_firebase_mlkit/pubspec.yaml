@@ -26,6 +26,7 @@ dependencies:
   firebase_ml_vision: ^0.6.0+2
   cloud_firestore:
   path_provider:
+  numberpicker:
   camera: ^0.4.2
 
 dev_dependencies:

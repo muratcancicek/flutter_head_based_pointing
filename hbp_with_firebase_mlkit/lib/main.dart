@@ -56,7 +56,7 @@ class MyMainViewState extends State<MyMainView> {
       constraints: const BoxConstraints.expand(),
       child: _cameraHandler.isCameraNull()
           ? _cameraHandler.getCameraInitializationView()
-          : _configScreen.f()//_taskScreen.getTaskScreenView(), //
+          : _taskScreen.getTaskScreenView(), //_configScreen.f()//
     );
   }
 
