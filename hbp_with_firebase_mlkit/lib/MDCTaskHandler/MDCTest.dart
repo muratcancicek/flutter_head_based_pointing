@@ -70,7 +70,7 @@ class MDCTest {
     if (_state == TestState.TestCompleted) return;
     print('Completed block!');
     _state = TestState.BlockCompleted;
-    //      _recorder.saveJsonFile();
+//    }
   }
 
   void update(now) {
@@ -97,15 +97,14 @@ class MDCTest {
   }
 
   void switchNextBlock() {
-    if (_state == TestState.TestCompleted) return;
-    _blocks.add(_block.blockInformation());
-    print('New block!');
-    _blockID++;
-    if (_blockID > _blockCount) {
+    print('Switching to the block $_blockID!');
+    if (_blockID+1 > _blockCount) {
       _state = TestState.TestCompleted;
-      _blockID--;
       return;
     } else {
+      _blocks.add(_block.blockInformation());
+      print('New block!');
+      _blockID++;
       _pointer.reset();
       _block = MDCTestBlock(_canvasSize, _blockID, _pointer, _now, config: _config);
       _state = TestState.BlockNotStarted;

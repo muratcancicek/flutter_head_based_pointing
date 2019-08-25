@@ -1,4 +1,3 @@
-import 'package:hbp_with_firebase_mlkit/Painting/PointingTaskBuilding/PointingTaskBuilder.dart';
 import 'package:hbp_with_firebase_mlkit/Painting/PointingTaskBuilding/MDCTaskBuilder.dart';
 import 'package:hbp_with_firebase_mlkit/MDCTaskHandler/MDCTest.dart';
 import 'package:hbp_with_firebase_mlkit/pointer.dart';
@@ -54,12 +53,12 @@ class MDCTaskRecorder {
   }
 
   void switchNextTest() {
-    _tests.add(_test.testInformation());
-    print('New test!');
-    _testID++;
     if (_testID > _testCount) {
       return;
     }
+    _tests.add(_test.testInformation());
+    print('New test!');
+    _testID++;
     _pointer.reset();
     _createTest(config: configs[_testID-1]);
     _applyCurrentConfiguration();
@@ -122,4 +121,6 @@ class MDCTaskRecorder {
   Function getNextAction() => _nextAction;
 
   String getNextActionString() => _nextActionText;
+
+  bool isStudyCompleted() => _testID > _testCount;
 }

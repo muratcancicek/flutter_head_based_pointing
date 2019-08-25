@@ -97,7 +97,9 @@ class TaskScreen {
 
   Stack getTaskScreenView() {
     List<Widget> screen = List<Widget>();
-    if (_recorder.getCurrentTest().isBlockCompleted()) {
+    if (_recorder.isStudyCompleted()) {
+      screen.add(_displaySummaryScreen());
+    } else if (_recorder.getCurrentTest().isBlockCompleted()) {
       screen.add(_displaySummaryScreen());
     } else if (_recorder.getCurrentTest().isBlockStarted()) { //
       if (_drawingFacialLandmarks)
