@@ -86,7 +86,7 @@ class MyMainViewState extends State<MyMainView> {
     super.initState();
     _configScreen = ConfigScreen();
     _cameraHandler = CameraHandler(this);
-    _taskScreen = TaskScreen(_cameraHandler);
+    _taskScreen = TaskScreen(_cameraHandler, exitAction: _setAppStateWelcome);
   }
 
   void _setAppStateWelcome() {
@@ -164,6 +164,8 @@ class MyMainViewState extends State<MyMainView> {
   }
 
   Widget _buildMainView() {
+    if (_taskScreen.isStudyCompleted())
+      _setAppStateWelcome();
     Widget child;
     if (_cameraHandler.isCameraNull())
       child = _cameraHandler.getCameraInitializationView();

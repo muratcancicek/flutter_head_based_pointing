@@ -16,9 +16,9 @@ class TaskScreen {
   List<Face> _faces;
   Pointer _pointer;
 
-  TaskScreen(this._cameraHandler) {
+  TaskScreen(this._cameraHandler, {Function exitAction}) {
     _pointer = Pointer(_canvasSize, null);
-    _recorder = MDCTaskRecorder(_canvasSize, _pointer);
+    _recorder = MDCTaskRecorder(_canvasSize, _pointer, exitAction: exitAction);
   }
 
   void _updateCanvasSize() {
@@ -121,4 +121,6 @@ class TaskScreen {
   void setConfiguration(List<Map<String, dynamic>> finalConfiguration) {
     _recorder.setConfiguration(finalConfiguration);
   }
+
+  bool isStudyCompleted() => _recorder.isStudyCompleted();
 }

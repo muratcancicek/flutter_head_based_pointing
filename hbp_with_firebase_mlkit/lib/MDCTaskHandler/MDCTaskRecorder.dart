@@ -10,12 +10,14 @@ class MDCTaskRecorder {
   String _nextActionText = 'Start';
   String _titleToDisplay = '';
   Function _nextAction;
+  Function _backAction;
+  Function _exitAction;
   int _testCount = 2;
-  int _testID = 1;
   int _subjectID = 1;
+  Pointer _pointer;
+  int _testID = 1;
   var _canvasSize;
   MDCTest _test;
-  Pointer _pointer;
 
   Map<String, dynamic> subjectInformation() => {
     '"SubjectID"': _subjectID,
@@ -39,7 +41,8 @@ class MDCTaskRecorder {
     _test = MDCTest(_canvasSize, _testID, _pointer, now);
   }
 
-  MDCTaskRecorder(this._canvasSize, this._pointer) {
+  MDCTaskRecorder(this._canvasSize, this._pointer, {Function exitAction}) {
+    _exitAction = exitAction;
     _createTest(); //config: configs[_testID-1]
     _nextAction = _test.start;
   }
@@ -89,7 +92,7 @@ class MDCTaskRecorder {
         break;
       case TestState.TestCompleted:
         if (_testID >=_testCount) {
-          _nextAction = null;
+          _nextAction = _exitAction;
           _nextActionText = 'NEXT Subject!';
           _titleToDisplay = _test.getDynamicTitleToDisplay(prefix: '');
           return;
