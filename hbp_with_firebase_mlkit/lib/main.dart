@@ -92,6 +92,7 @@ class MyMainViewState extends State<MyMainView> {
   void _setAppStateWelcome() {
     _state = AppState.welcome;
     _configScreen.reset();
+    _taskScreen = TaskScreen(_cameraHandler, exitAction: _setAppStateWelcome);
   }
 
   void _setAppStateConfigure() {

@@ -31,7 +31,8 @@ class TaskScreen {
   void updateInput(dynamic result) {
     _updateCanvasSize();
     _recorder.getTaskBuilder().canvasSize = _canvasSize;
-    _pointer.update(result, size: _canvasSize);
+    if (!_recorder.isPaused())
+      _pointer.update(result, size: _canvasSize);
     _recorder.update();
   }
 

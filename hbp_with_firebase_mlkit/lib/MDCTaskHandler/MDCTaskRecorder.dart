@@ -126,4 +126,6 @@ class MDCTaskRecorder {
   String getNextActionString() => _nextActionText;
 
   bool isStudyCompleted() => _testID > _testCount;
+
+  bool isPaused() => _test.isBlockPaused();
 }
