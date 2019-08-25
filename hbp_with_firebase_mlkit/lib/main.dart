@@ -59,7 +59,7 @@ class MyMainViewState extends State<MyMainView> {
   String _experimentID;
 
   void setStateForImageStreaming(dynamic result)  {
-    setState(() {_taskScreen.updateInput(result); });
+    setState(() {_taskScreen.updateInput(result, context: context); });
   }
 
   dynamic doesUserWantToSaveLogs() async {
@@ -86,13 +86,16 @@ class MyMainViewState extends State<MyMainView> {
     super.initState();
     _configScreen = ConfigScreen();
     _cameraHandler = CameraHandler(this);
-    _taskScreen = TaskScreen(_cameraHandler, exitAction: _setAppStateWelcome);
+    _taskScreen = TaskScreen(_cameraHandler, exitAction: _setAppStateWelcome, context: context);
   }
 
-  void _setAppStateWelcome() {
-    _state = AppState.welcome;
-    _configScreen.reset();
-    _taskScreen = TaskScreen(_cameraHandler, exitAction: _setAppStateWelcome);
+  void _setAppStateWelcome()  async {
+    if (await _taskScreen.getCurrentTest().isUserSure()) {
+      _state = AppState.welcome;
+      _configScreen.reset();
+      _taskScreen = TaskScreen(
+          _cameraHandler, exitAction: _setAppStateWelcome, context: context);
+    }
   }
 
   void _setAppStateConfigure() {
@@ -197,12 +200,12 @@ class MyMainViewState extends State<MyMainView> {
 
   @override
   Widget build(BuildContext context) {
-  return Scaffold(
-    appBar: getAppBar(),
-    body: Center(
-      child:  _buildMainView(),
-    ),
-//      floatingActionButton: _addFloatingActionButton(),
-  );
+    return Scaffold(
+      appBar: getAppBar(),
+      body: Center(
+        child:  _buildMainView(),
+      ),
+  //      floatingActionButton: _addFloatingActionButton(),
+    );
   }
 }

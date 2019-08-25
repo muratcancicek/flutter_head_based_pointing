@@ -20,6 +20,7 @@ class MDCTaskRecorder {
   Pointer _pointer;
   int _testID = 1;
   var _canvasSize;
+  var _context;
   MDCTest _test;
 
 
@@ -46,7 +47,8 @@ class MDCTaskRecorder {
     _backAction = _test.restartBlock;
   }
 
-  MDCTaskRecorder(this._canvasSize, this._pointer, {Function exitAction}) {
+  MDCTaskRecorder(this._canvasSize, this._pointer, {Function exitAction, context}) {
+    _context = context;
     _closeAction = exitAction;
     _createTest(); //config: configs[_testID-1]
     _nextAction = _test.start;
@@ -60,11 +62,13 @@ class MDCTaskRecorder {
     _test.setConfiguration(currentConfig);
   }
 
-  void _restartTest() {
-    print('Restart test!');
-    _pointer.reset();
-    _createTest(config: configs[_testID-1]);
-    _applyCurrentConfiguration();
+  void _restartTest() async {
+    if (await _test.isUserSure()) {
+      print('Restart test!');
+      _pointer.reset();
+      _createTest(config: configs[_testID - 1]);
+      _applyCurrentConfiguration();
+    }
   }
 
   void switchNextTest() {
@@ -79,20 +83,23 @@ class MDCTaskRecorder {
     _applyCurrentConfiguration();
   }
 
-  void _repeatTest() {
-    print('Repeat last !');
-    _testID--;
-    _pointer.reset();
-    _createTest(config: configs[_testID-1]);
-    _applyCurrentConfiguration();
+  void _repeatTest() async {
+    if (await _test.isUserSure()) {
+      print('Repeat last !');
+      _testID--;
+      _pointer.reset();
+      _createTest(config: configs[_testID - 1]);
+      _applyCurrentConfiguration();
+    }
   }
 
-  void update() {
-    _test.update(new DateTime.now().millisecondsSinceEpoch);
+  void update({context}) {
+    _context = context;
+    _test.update(new DateTime.now().millisecondsSinceEpoch, context: _context);
     switch(_test.getState()) {
       case TestState.BlockNotStarted:
         _exitAction = _closeAction;
-        _exitActionTest = 'Exit\nTest';
+        _exitActionTest = 'End\nExp.';
         if (_test.isFirstBlock()) {
           if (_testID > 1) {
             _backAction = _repeatTest;
@@ -116,7 +123,7 @@ class MDCTaskRecorder {
         break;
       case TestState.BlockPaused:
         _exitAction = _closeAction;
-        _exitActionTest = 'Exit\nTest';
+        _exitActionTest = 'End\nExp.';
         _backAction = _test.restartBlock;
         _backActionText = 'Restart\nBlock';
         _nextAction = _test.resume;
@@ -125,7 +132,7 @@ class MDCTaskRecorder {
         break;
       case TestState.BlockCompleted:
         _exitAction = _closeAction;
-        _exitActionTest = 'Exit\nTest';
+        _exitActionTest = 'End\nExp.';
         _backAction = _test.restartBlock;
         _backActionText = 'Restart\nBlock';
         _nextAction = _test.switchNextBlock;
@@ -134,7 +141,7 @@ class MDCTaskRecorder {
         break;
       case TestState.TestCompleted:
         _exitAction = _closeAction;
-        _exitActionTest = 'Exit\nTest';
+        _exitActionTest = 'End\nExp.';
         _backAction = _restartTest;
         _backActionText = 'Restart\nTest';
         if (_testID < _testCount) {

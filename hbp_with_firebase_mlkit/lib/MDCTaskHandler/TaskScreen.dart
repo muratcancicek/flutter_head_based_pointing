@@ -15,10 +15,12 @@ class TaskScreen {
   String _experimentID;
   List<Face> _faces;
   Pointer _pointer;
+  var _context;
 
-  TaskScreen(this._cameraHandler, {Function exitAction}) {
+  TaskScreen(this._cameraHandler, {Function exitAction, context}) {
+    _context = context;
     _pointer = Pointer(_canvasSize, null);
-    _recorder = MDCTaskRecorder(_canvasSize, _pointer, exitAction: exitAction);
+    _recorder = MDCTaskRecorder(_canvasSize, _pointer, exitAction: exitAction, context: _context);
   }
 
   void _updateCanvasSize() {
@@ -28,12 +30,13 @@ class TaskScreen {
     }
   }
 
-  void updateInput(dynamic result) {
+  void updateInput(dynamic result, {context}) {
+    _context = context;
     _updateCanvasSize();
     _recorder.getTaskBuilder().canvasSize = _canvasSize;
     if (!_recorder.isPaused())
       _pointer.update(result, size: _canvasSize);
-    _recorder.update();
+    _recorder.update(context: _context);
   }
 
   Text _getAppBarText() {
@@ -151,4 +154,6 @@ class TaskScreen {
   }
 
   bool isStudyCompleted() => _recorder.isStudyCompleted();
+
+  dynamic getCurrentTest() => _recorder.getCurrentTest();
 }

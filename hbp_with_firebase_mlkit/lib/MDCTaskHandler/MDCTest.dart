@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:hbp_with_firebase_mlkit/Painting/PointingTaskBuilding/MDCTaskBuilder.dart';
 import 'package:hbp_with_firebase_mlkit/MDCTaskHandler/MDCTestBlock.dart';
 import 'package:hbp_with_firebase_mlkit/pointer.dart';
@@ -19,10 +20,12 @@ class MDCTest {
   var _canvasSize;
   int _testID = 1;
   int _now = 1;
+  var _context;
   Map _config;
 
   MDCTestBlock _block;
   Pointer _pointer;
+
 
   Map<String, dynamic> pointerMappingInformation() {
     final mappingInfo = _pointer.mappingInformation();
@@ -58,8 +61,8 @@ class MDCTest {
     _block = MDCTestBlock(_canvasSize, _blockID, _pointer, _now, config: config);
   }
 
-  MDCTest(this._canvasSize, this._testID, this._pointer, this._now, {Map config, blockCount: 3}){
-    _blockCount = blockCount;
+  MDCTest(this._canvasSize, this._testID, this._pointer, this._now, {Map config, context}) {
+    _context = context;
     if (config != null)
       _blockCount = config['BlockCount'];
     _config = config;
@@ -73,7 +76,8 @@ class MDCTest {
 //    }
   }
 
-  void update(now) {
+  void update(now, {context}) {
+    _context = context;
     _now = now;
     if (_state == TestState.BlockPaused)
     _block.keepPaused(now);
@@ -111,17 +115,41 @@ class MDCTest {
     }
   }
 
-  void restartBlock() {
-    print('Restart block!');
-    _state = TestState.BlockNotStarted;
-    _block = MDCTestBlock(_canvasSize, _blockID, _pointer, _now, config: _config);
+  Future<bool> isUserSure() async {
+    return await showDialog(
+        context: _context,
+        child: new SimpleDialog(
+          title: new Text('Are you sure?'),
+          children: <Widget>[
+            new SimpleDialogOption(
+              child: new Text('YES'),
+              onPressed: (){Navigator.pop(_context, true);},
+            ),
+            new SimpleDialogOption(
+              child: new Text('NO'),
+              onPressed: (){Navigator.pop(_context, false);},
+            ),
+          ],
+        )
+    );
+  }
+  void restartBlock() async {
+    if (await isUserSure()) {
+      print('Restart block!');
+      _state = TestState.BlockNotStarted;
+      _block =
+          MDCTestBlock(_canvasSize, _blockID, _pointer, _now, config: _config);
+    }
   }
 
-  void repeatBlock() {
-    print('Repeat last block!');
-    _blockID--;
-    _state = TestState.BlockNotStarted;
-    _block = MDCTestBlock(_canvasSize, _blockID, _pointer, _now, config: _config);
+  void repeatBlock() async {
+    if (await isUserSure()) {
+      print('Repeat last block!');
+      _blockID--;
+      _state = TestState.BlockNotStarted;
+      _block =
+          MDCTestBlock(_canvasSize, _blockID, _pointer, _now, config: _config);
+    }
   }
 
   String getDynamicTitleToDisplay({String prefix}) {
