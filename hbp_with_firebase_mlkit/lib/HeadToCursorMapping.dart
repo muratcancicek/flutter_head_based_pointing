@@ -209,6 +209,14 @@ class HeadToCursorMapping {
     }
   }
 
+  void updateXSpeed(double dx) {
+    _speed = Offset(dx, _speed.dy);
+  }
+
+  void updateYSpeed(double dy) {
+    _speed = Offset(_speed.dx, dy);
+  }
+
   Offset getSpeed() => _speed;
 
   Offset getMotionThreshold() => _motionThreshold;

@@ -233,8 +233,9 @@ class ConfigScreen {
 
   List<Widget> testDetails(TestConfiguration config) {
     List<Widget> list = List<Widget>();
-    final m=config.toMap().map((k, v) => testFeatureText(config.id, k, v)).values;
-    m.forEach((e) => list.add(e));
+    var m=config.toMap().map((k, v) => testFeatureText(config.id, k, v));
+    m.remove('PointingTaskType');
+    m.values.forEach((e) => list.add(e));
     final lambda = () {
       configs.removeAt(config.id - 1);
       for (int i = 0; i < configs.length; i++)

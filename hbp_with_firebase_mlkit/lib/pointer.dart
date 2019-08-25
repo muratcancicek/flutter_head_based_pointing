@@ -203,6 +203,24 @@ class Pointer {
     return answer;
   }
 
+  void updateXSpeed(double dx) {
+    _mapping.updateXSpeed(dx);
+  }
+
+  void updateYSpeed(double dy) {
+    _mapping.updateYSpeed(dy);
+  }
+
+  void updateSelectionMode(dynamic mode) {
+    _enabledSelectionModes = List<SelectionMode>();
+    for (SelectionMode m in SelectionMode.values) {
+      if (m.toString().contains(mode.toString().split('.').last)) {
+        _enabledSelectionModes.add(m);
+        break;
+      }
+    }
+  }
+
   PointerType getType() => _type;
 
   Offset getPosition() => _position;

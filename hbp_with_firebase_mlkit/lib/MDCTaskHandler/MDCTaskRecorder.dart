@@ -45,6 +45,14 @@ class MDCTaskRecorder {
     _nextAction = _test.start;
   }
 
+  void _applyCurrentConfiguration() {
+    final currentConfig = configs[_testID-1];
+    _pointer.updateSelectionMode(currentConfig['SelectionMode']);
+    _pointer.updateYSpeed(currentConfig['PointerXSpeed']);
+    _pointer.updateYSpeed(currentConfig['PointerYSpeed']);
+    _test.setConfiguration(currentConfig);
+  }
+
   void switchNextTest() {
     _tests.add(_test.testInformation());
     print('New test!');
@@ -54,6 +62,7 @@ class MDCTaskRecorder {
     }
     _pointer.reset();
     _createTest(config: configs[_testID-1]);
+    _applyCurrentConfiguration();
   }
 
   void update() {
@@ -101,7 +110,7 @@ class MDCTaskRecorder {
 
   void setConfiguration(List<Map<String, dynamic>> finalConfiguration) {
     configs = finalConfiguration;
-    _test.setConfiguration(configs[_testID-1]);
+    _applyCurrentConfiguration();
   }
 
   MDCTest getCurrentTest() => _test;
