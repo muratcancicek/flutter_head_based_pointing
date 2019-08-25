@@ -111,8 +111,24 @@ class MDCTest {
     }
   }
 
-  String getDynamicTitleToDisplay({String prefix: 'Start'}) {
-    return '$prefix Block $_blockID of Test $_testID:';
+  void restartBlock() {
+    print('Restart block!');
+    _state = TestState.BlockNotStarted;
+    _block = MDCTestBlock(_canvasSize, _blockID, _pointer, _now, config: _config);
+  }
+
+  void repeatBlock() {
+    print('Repeat last block!');
+    _blockID--;
+    _state = TestState.BlockNotStarted;
+    _block = MDCTestBlock(_canvasSize, _blockID, _pointer, _now, config: _config);
+  }
+
+  String getDynamicTitleToDisplay({String prefix}) {
+    if (prefix == null)
+      return 'B$_blockID of T$_testID:';
+    else
+      return '$prefix B$_blockID of T$_testID:';
   }
 
   String getCurrentStatusToDisplay() {
@@ -128,6 +144,8 @@ class MDCTest {
   MDCTaskBuilder getTaskBuilder() => _block.getTaskBuilder();
 
   TestState getState() => _state;
+
+  bool isFirstBlock() => _blockID == 1;
 
   bool isBlockStarted() => _state != TestState.BlockNotStarted;
 

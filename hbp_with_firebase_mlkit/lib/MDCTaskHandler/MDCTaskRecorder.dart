@@ -7,8 +7,11 @@ import 'dart:io';
 class MDCTaskRecorder {
   List<Map<String, dynamic>> configs;
   List<Map> _tests = List<Map>();
+  String _exitActionTest = 'Exit\nStudy';
+  String _backActionText = 'Discard';
   String _nextActionText = 'Start';
   String _titleToDisplay = '';
+  Function _closeAction;
   Function _nextAction;
   Function _backAction;
   Function _exitAction;
@@ -18,6 +21,7 @@ class MDCTaskRecorder {
   int _testID = 1;
   var _canvasSize;
   MDCTest _test;
+
 
   Map<String, dynamic> subjectInformation() => {
     '"SubjectID"': _subjectID,
@@ -39,10 +43,11 @@ class MDCTaskRecorder {
   void _createTest({config}) {
     final now = new DateTime.now().millisecondsSinceEpoch;
     _test = MDCTest(_canvasSize, _testID, _pointer, now);
+    _backAction = _test.restartBlock;
   }
 
   MDCTaskRecorder(this._canvasSize, this._pointer, {Function exitAction}) {
-    _exitAction = exitAction;
+    _closeAction = exitAction;
     _createTest(); //config: configs[_testID-1]
     _nextAction = _test.start;
   }
@@ -53,6 +58,13 @@ class MDCTaskRecorder {
     _pointer.updateYSpeed(currentConfig['PointerXSpeed']);
     _pointer.updateYSpeed(currentConfig['PointerYSpeed']);
     _test.setConfiguration(currentConfig);
+  }
+
+  void _restartTest() {
+    print('Restart test!');
+    _pointer.reset();
+    _createTest(config: configs[_testID-1]);
+    _applyCurrentConfiguration();
   }
 
   void switchNextTest() {
@@ -67,43 +79,78 @@ class MDCTaskRecorder {
     _applyCurrentConfiguration();
   }
 
+  void _repeatTest() {
+    print('Repeat last !');
+    _testID--;
+    _pointer.reset();
+    _createTest(config: configs[_testID-1]);
+    _applyCurrentConfiguration();
+  }
+
   void update() {
     _test.update(new DateTime.now().millisecondsSinceEpoch);
     switch(_test.getState()) {
       case TestState.BlockNotStarted:
+        _exitAction = _closeAction;
+        _exitActionTest = 'Exit\nTest';
+        if (_test.isFirstBlock()) {
+          if (_testID > 1) {
+            _backAction = _repeatTest;
+            _backActionText = 'Repeat\nLast\nTest';
+          } else
+            _backAction = null;
+        } else {
+          _backAction = _test.repeatBlock;
+          _backActionText = 'Repeat\nLast\nBlock';
+        }
         _nextAction = _test.start;
         _nextActionText = 'START!';
-        _titleToDisplay = _test.getDynamicTitleToDisplay(prefix: 'Start');
+        _titleToDisplay = _test.getDynamicTitleToDisplay();
         break;
       case TestState.BlockRunning:
+        _exitAction = null;
+        _backAction = null;
         _nextAction = _test.pause;
         _nextActionText = 'PAUSE!';
         _titleToDisplay = _test.getCurrentStatusToDisplay();
         break;
       case TestState.BlockPaused:
+        _exitAction = _closeAction;
+        _exitActionTest = 'Exit\nTest';
+        _backAction = _test.restartBlock;
+        _backActionText = 'Restart\nBlock';
         _nextAction = _test.resume;
         _nextActionText = 'RESUME!';
-        _titleToDisplay = _test.getDynamicTitleToDisplay(prefix: 'Resume');
+        _titleToDisplay = _test.getDynamicTitleToDisplay();
         break;
       case TestState.BlockCompleted:
+        _exitAction = _closeAction;
+        _exitActionTest = 'Exit\nTest';
+        _backAction = _test.restartBlock;
+        _backActionText = 'Restart\nBlock';
         _nextAction = _test.switchNextBlock;
         _nextActionText = 'NEXT!';
-        _titleToDisplay = _test.getDynamicTitleToDisplay(prefix: 'Results of');
+        _titleToDisplay = _test.getDynamicTitleToDisplay();
         break;
       case TestState.TestCompleted:
-        if (_testID >=_testCount) {
-          _nextAction = _exitAction;
-          _nextActionText = 'NEXT Subject!';
-          _titleToDisplay = _test.getDynamicTitleToDisplay(prefix: '');
-          return;
+        _exitAction = _closeAction;
+        _exitActionTest = 'Exit\nTest';
+        _backAction = _restartTest;
+        _backActionText = 'Restart\nTest';
+        if (_testID < _testCount) {
+          _nextAction = switchNextTest;
+          _nextActionText = 'NEXT\nTEST!';
+          _titleToDisplay = 'End of T$_testID:';
         }
         else {
-          _nextAction = switchNextTest;
-          _nextActionText = 'NEXT TEST!';
-          _titleToDisplay = _test.getDynamicTitleToDisplay(prefix: '');
+          _nextAction = _exitAction;
+          _nextActionText = 'NEXT\nSubject!';
+          _titleToDisplay = 'ALL DONE!';
         }
         break;
       default:
+        _backAction = _exitAction;
+        _backActionText = 'Back';
         _nextAction = _test.start;
         _nextActionText = 'RUN!';
         _titleToDisplay = 'Head-based Pointing with Flutter';
@@ -124,6 +171,14 @@ class MDCTaskRecorder {
   Function getNextAction() => _nextAction;
 
   String getNextActionString() => _nextActionText;
+
+  Function getExitAction() => _exitAction;
+
+  String getExitActionString() => _exitActionTest;
+
+  Function getBackAction() => _backAction;
+
+  String getBackActionString() => _backActionText;
 
   bool isStudyCompleted() => _testID > _testCount;
 

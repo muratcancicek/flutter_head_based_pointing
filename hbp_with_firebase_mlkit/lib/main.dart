@@ -142,7 +142,7 @@ class MyMainViewState extends State<MyMainView> {
 
   List<Widget> _getAppBarButtonList() {
     return <Widget>[
-      _getAppBarButton('Edit Tests', _setAppStateConfigure, Colors.purpleAccent),
+      _getAppBarButton('Edit\nTests', _setAppStateConfigure, Colors.purpleAccent),
       _getAppBarButton('Start', _setAppStateTesting, Colors.purple),
     ];
   }

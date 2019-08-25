@@ -36,7 +36,32 @@ class TaskScreen {
     _recorder.update();
   }
 
-  RaisedButton _getAppBarButton() {
+  Text _getAppBarText() {
+    return Text(_recorder.getTitleToDisplay(), textAlign: TextAlign.center);
+  }
+
+  RaisedButton _getExitButton() {
+    return RaisedButton(
+      elevation: 4.0,
+      color: Colors.pink,
+      textColor: Colors.white,
+      child: Text(_recorder.getExitActionString()),
+      splashColor: Colors.blueGrey,
+      onPressed: _recorder.getExitAction(),
+    );
+  }
+
+  RaisedButton _getBackButton() {
+    return RaisedButton(
+      elevation: 4.0,
+      color: Colors.purpleAccent,
+      textColor: Colors.white,
+      child: Text(_recorder.getBackActionString()),
+      splashColor: Colors.blueGrey,
+      onPressed: _recorder.getBackAction(),
+    );
+  }
+  RaisedButton _getPrimaryButton() {
     return RaisedButton(
       elevation: 4.0,
       color: Colors.purple,
@@ -47,14 +72,16 @@ class TaskScreen {
     );
   }
 
-  Text _getAppBarText() {
-    return Text(_recorder.getTitleToDisplay(), textAlign: TextAlign.center);
-  }
-
   AppBar getAppBar() {
+    List<Widget> actions = <Widget>[];
+    if (_recorder.getExitAction() != null)
+      actions.add(_getExitButton());
+    if (_recorder.getBackAction() != null)
+      actions.add(_getBackButton());
+    actions.add(_getPrimaryButton());
     return AppBar(
       title: _getAppBarText(),
-      actions: <Widget>[_getAppBarButton()],
+      actions: actions,
     );
   }
 
