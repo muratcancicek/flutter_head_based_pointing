@@ -172,6 +172,11 @@ class MDCTestBlock {
     _trailLogs.add(log);
     _recordIfMissedSelection(_now, pos);
   }
+  void start(int now) {
+    _now = now;
+    _startMoment = _now;
+    _lastSelectionMoment = _startMoment;
+  }
 
   void keepPaused(int now) {
     if (!_paused) {

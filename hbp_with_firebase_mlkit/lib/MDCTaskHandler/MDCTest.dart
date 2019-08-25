@@ -89,6 +89,7 @@ class MDCTest {
 
   void start() {
     _state = TestState.BlockRunning;
+    _block.start(_now);
   }
 
   void pause() {
