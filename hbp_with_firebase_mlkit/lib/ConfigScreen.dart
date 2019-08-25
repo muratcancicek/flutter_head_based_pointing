@@ -21,13 +21,13 @@ class TestConfiguration {
   TestConfiguration.fromJSON(Map<String, dynamic> m) {
      id = m['ID'];
     for (SelectionMode mode in SelectionMode.values) {
-      if (mode.toString().contains(m['SelectionMode'])) {
+      if (mode.toString().contains(m['SelectionMode'].toString().split('.').last)) {
         selectionMode = mode;
         break;
       }
     }
     for (PointingTaskType type in PointingTaskType.values) {
-       if (type.toString().contains(m['PointingTaskType'])) {
+       if (type.toString().contains(m['PointingTaskType'].toString().split('.').last)) {
          pointingTaskType = type;
          break;
        }
@@ -37,13 +37,13 @@ class TestConfiguration {
     outerTargetCount = m['OuterTargetCount'];
     trailCount = m['TrailCount'];
     blockCount = m['BlockCount'];
-    angle = m['Angle'];
-    pointerXSpeed = m['PointerXSpeed'];
-    pointerYSpeed = m['PointerYSpeed'];
+    angle = m['Angle'] + .0;
+    pointerXSpeed = m['PointerXSpeed'] + .0;
+    pointerYSpeed = m['PointerYSpeed'] + .0;
   }
   
   TestConfiguration(this.id, this.pointingTaskType, this.selectionMode,
-      this.amplitude,this.targetWidth, this.outerTargetCount,
+      this.amplitude,this.targetWidth, this.outerTargetCount, this.blockCount,
       this.angle, this.pointerXSpeed, this.pointerYSpeed) {
      trailCount = 4 * outerTargetCount;
    }
@@ -104,18 +104,18 @@ class TestConfiguration {
 }
 
 class ConfigScreen {
-  bool _loaded = false;
   List documents;
   int testID;
   String key;
   dynamic value;
   TestConfiguration dummyConfig = TestConfiguration(
-    0, // id
+    1, // id
     PointingTaskType.MDC, //pointingTaskType,
     SelectionMode.Blinking,//selectionMode,
     150, // amplitude,
     80, // targetWidth,
     0, // outerTargetCount,
+    3, // blockCount
     30, // angle,
     6, // pointerYSpeed
     8, // pointerXSpeed,
@@ -128,14 +128,13 @@ class ConfigScreen {
     configs = List<TestConfiguration>();
     final col = Firestore.instance.collection('LastestConfiguration');
     final data = (await col.getDocuments()).documents.first.data;
-    print(data);
     if (data.containsKey('Tests')) {
       final tests = data['Tests'].map((c) =>
           TestConfiguration.fromJSON(new Map<String, dynamic>.from(c))).toList();
       print(tests.runtimeType);
       for (var c in tests)
         configs.add(c);
-      print(configs);
+      print('Loaded the following test variables from cloud: $configs');
     }
     if (configs.length == 0) {
       configs.add(dummyConfig);
@@ -143,71 +142,16 @@ class ConfigScreen {
     _finalConfigs = List<TestConfiguration>();
     configs.forEach((c) =>
         _finalConfigs.add(TestConfiguration.fromJSON(c.toJSON())));
-//    print(configs[0]);
   }
 
   ConfigScreen() {
     loadLastConfigurations();
   }
 
-  Center displayConfigScreen() {
-    return Center(
-      child: Container(
-          child: ListView(
-        padding: const EdgeInsets.all(8.0),
-        children: <Widget>[
-          Text('Summary',
-              style: TextStyle(
-                color: Colors.green,
-                fontSize: 30.0,
-              )),
-        ],
-      )),
-    );
-  }
-
-  Map parse(DocumentSnapshot document) {
-    return document.data;
-  }
-
-  List l(List documents) {
-    return documents.map((d) => new Text(d['test'])).toList();
-  }
-
-  Widget m(AsyncSnapshot<QuerySnapshot> snapshot) {
-    documents = snapshot.data.documents.map(parse).toList();
-    _loaded = true;
-    return new ListView(children: l(documents));
-  }
-
-  Widget builder(BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-    if (snapshot.hasError)
-      return new Text('Error: ${snapshot.error}');
-    switch (snapshot.connectionState) {
-      case ConnectionState.waiting:
-        return new Text('Loading...');
-      default:
-        return m(snapshot);
-    }
-  }
-
-  StreamBuilder<QuerySnapshot> streamBuilder() {
-   Stream<QuerySnapshot> stream = Firestore.instance.collection('Experiments').snapshots();
-    return StreamBuilder<QuerySnapshot>(stream: stream, builder: builder);
-  }
-
-  Center w() {
-    return Center(
-      child: Container(
-          padding: const EdgeInsets.all(10.0),
-          child: _loaded ?  new ListView(children: l(documents)) : streamBuilder(),
-        )
-      );
-  }
 
   void editField(int id, String k, dynamic value) {
     print('$id $k $value');
-    configs[id].update(k, value);
+    configs[id-1].update(k, value);
   }
 
   DropdownMenuItem<dynamic> toDropdownMenuItem(dynamic value) {
@@ -230,7 +174,7 @@ class ConfigScreen {
 
   Row getNumberField(int id, String key, dynamic value, {bool decimal: false}) {
     return new Row(children: <Widget>[
-          Container(width: 80, child: Text(value.toString())),
+          Container(width: 80, child: Text(value.toString()), alignment: Alignment(0.0, 0.0),),
           Container(
               width: 80,
               child: TextField(
@@ -260,7 +204,11 @@ class ConfigScreen {
       case 'PointerYSpeed':
         return getNumberField(id, key, value, decimal: true);
       default:
-        return Text(value.toString(), textAlign: TextAlign.center);
+        return Container(
+          width: 70,
+          child: Text(value.toString(), textAlign: TextAlign.center),
+          alignment: Alignment(0.0, 0.0),
+        );
     }
   }
 
@@ -287,8 +235,12 @@ class ConfigScreen {
     List<Widget> list = List<Widget>();
     final m=config.toMap().map((k, v) => testFeatureText(config.id, k, v)).values;
     m.forEach((e) => list.add(e));
-//    forEach((Stlistring k, var v) => list.add(t));
-//    list.add(testEditButton());
+    final lambda = () {
+      configs.removeAt(config.id - 1);
+      for (int i = 0; i < configs.length; i++)
+        configs[i].id = i + 1;
+    };
+    list.add(_getAddButton('Delete Test', lambda, Colors.red));
     return list;
   }
 
@@ -298,12 +250,32 @@ class ConfigScreen {
       title: Text('Test $id'),
       trailing: Icon(Icons.keyboard_arrow_down),
       children: testDetails(config),
-//      onExpansionChanged: (bool c) => {if (c){testID = config.id}},
+    );
+  }
+
+  ExpansionTile _getAddButton(String text, Function onPressed, Color color) {
+    return ExpansionTile(
+        title: RaisedButton(
+          elevation: 4.0,
+          color: color,
+          textColor: Colors.white,
+          child: Text(text),
+          splashColor: Colors.blueGrey,
+          onPressed: onPressed,
+        ),
+        trailing: null,
     );
   }
 
   ListView getTestListView() {
-    return ListView(children: configs.map(getTestTile).toList());
+    List<Widget> children = configs.map(getTestTile).toList();
+    final lambda = (){
+      TestConfiguration c = TestConfiguration.fromJSON(dummyConfig.toMap());
+      c.id = configs.length + 1;
+      configs.add(c);
+    };
+    children.add(_getAddButton('Add Test', lambda, Colors.lightGreen));
+    return ListView(children: children);
   }
 
   Center getConfigsScreenView() {
