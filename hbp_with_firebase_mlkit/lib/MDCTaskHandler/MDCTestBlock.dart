@@ -193,6 +193,17 @@ class MDCTestBlock {
     return 'Test: $_testID B: $_blockID T: $target/$count D: $duration';
   }
 
+  void setConfiguration(Map<String, dynamic> config) {
+    if (config == null)
+      _taskBuilder = MDCTaskBuilder(_canvasSize, _pointer, this);
+    else if (config.containsKey('PointingTaskType')) {
+      if (config['PointingTaskType'] == PointingTaskType.Jeff)
+        _taskBuilder = JeffTaskBuilder(_canvasSize, _pointer);
+      else // if (pointingTaskType == PointingTaskType.MDC)
+        _taskBuilder = MDCTaskBuilder(_canvasSize, _pointer, this, layout: config);
+    }
+  }
+
   void completeBlock() {
     _completed = true;
   }

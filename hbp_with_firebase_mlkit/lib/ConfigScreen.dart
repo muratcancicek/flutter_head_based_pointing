@@ -12,6 +12,7 @@ class TestConfiguration {
   int targetWidth;
   int outerTargetCount;
   int trailCount;
+  int blockCount;
   double angle;
   double pointerXSpeed;
   double pointerYSpeed;
@@ -35,6 +36,7 @@ class TestConfiguration {
     targetWidth = m['TargetWidth'];
     outerTargetCount = m['OuterTargetCount'];
     trailCount = m['TrailCount'];
+    blockCount = m['BlockCount'];
     angle = m['Angle'];
     pointerXSpeed = m['PointerXSpeed'];
     pointerYSpeed = m['PointerYSpeed'];
@@ -54,6 +56,7 @@ class TestConfiguration {
      'TargetWidth': targetWidth,
      'OuterTargetCount': outerTargetCount,
      'TrailCount': trailCount,
+     'BlockCount': blockCount,
      'Angle': angle,
      'PointerXSpeed': pointerXSpeed,
      'PointerYSpeed': pointerYSpeed,
@@ -69,6 +72,7 @@ class TestConfiguration {
     'TargetWidth': targetWidth,
     'OuterTargetCount': outerTargetCount,
     'TrailCount': trailCount,
+    'BlockCount': blockCount,
     'Angle': angle,
     'PointerXSpeed': pointerXSpeed,
     'PointerYSpeed': pointerYSpeed,
@@ -86,7 +90,9 @@ class TestConfiguration {
         targetWidth = int.parse(value); break;
       case 'OuterTargetCount':
         outerTargetCount = int.parse(value);
-        trailCount = 4 * outerTargetCount; break;
+        trailCount = 4 + 4 * 2 * outerTargetCount; break;
+      case 'BlockCount':
+        blockCount = int.parse(value); break;
       case 'Angle':
         angle = double.parse(value); break;
       case 'PointerXSpeed':
@@ -247,6 +253,7 @@ class ConfigScreen {
       case 'Amplitude':
       case 'TargetWidth':
       case 'OuterTargetCount':
+      case 'BlockCount':
         return getNumberField(id, key, value);
       case 'Angle':
       case 'PointerXSpeed':

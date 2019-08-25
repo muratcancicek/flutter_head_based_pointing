@@ -60,6 +60,8 @@ class MDCTest {
 
   MDCTest(this._canvasSize, this._testID, this._pointer, this._now, {Map config, blockCount: 3}){
     _blockCount = blockCount;
+    if (config != null)
+      _blockCount = config['BlockCount'];
     _config = config;
     _createBlock(config: config);
   }
@@ -101,7 +103,7 @@ class MDCTest {
     _blockID++;
     if (_blockID > _blockCount) {
       _state = TestState.TestCompleted;
-      print('time');
+      _blockID--;
       return;
     } else {
       _pointer.reset();
@@ -116,6 +118,12 @@ class MDCTest {
 
   String getCurrentStatusToDisplay() {
     return _block.getCurrentStatusToDisplay(_testID);
+  }
+
+  void setConfiguration(Map<String, dynamic> config) {
+    _config = config;
+    _blockCount = config['BlockCount'];
+    _block = MDCTestBlock(_canvasSize, _blockID, _pointer, _now, config: config);
   }
 
   MDCTaskBuilder getTaskBuilder() => _block.getTaskBuilder();

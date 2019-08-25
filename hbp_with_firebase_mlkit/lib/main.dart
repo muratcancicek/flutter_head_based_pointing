@@ -125,6 +125,7 @@ class MyMainViewState extends State<MyMainView> {
   void _setAppStateTesting() {
     _startSavingLogsIfWanted();
     _state = AppState.test;
+    _taskScreen.setConfiguration(_configScreen.getFinalConfiguration());
   }
 
   RaisedButton _getAppBarButton(String text, Function onPressed, Color color) {
