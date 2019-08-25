@@ -16,10 +16,34 @@ class TestConfiguration {
   double pointerXSpeed;
   double pointerYSpeed;
 
+  
+  TestConfiguration.fromJSON(Map<String, dynamic> m) {
+     id = m['ID'];
+    for (SelectionMode mode in SelectionMode.values) {
+      if (mode.toString().contains(m['SelectionMode'])) {
+        selectionMode = mode;
+        break;
+      }
+    }
+    for (PointingTaskType type in PointingTaskType.values) {
+       if (type.toString().contains(m['PointingTaskType'])) {
+         pointingTaskType = type;
+         break;
+       }
+     }
+    amplitude = m['Amplitude'];
+    targetWidth = m['TargetWidth'];
+    outerTargetCount = m['OuterTargetCount'];
+    trailCount = m['TrailCount'];
+    angle = m['Angle'];
+    pointerXSpeed = m['PointerXSpeed'];
+    pointerYSpeed = m['PointerYSpeed'];
+  }
+  
   TestConfiguration(this.id, this.pointingTaskType, this.selectionMode,
       this.amplitude,this.targetWidth, this.outerTargetCount,
       this.angle, this.pointerXSpeed, this.pointerYSpeed) {
-     trailCount = outerTargetCount;
+     trailCount = 4 * outerTargetCount;
    }
 
    Map<String, dynamic> toMap() => <String, dynamic>{
@@ -34,6 +58,8 @@ class TestConfiguration {
      'PointerXSpeed': pointerXSpeed,
      'PointerYSpeed': pointerYSpeed,
    };
+
+  String toString() => toMap().toString();
 
   Map<String, dynamic> toJSON() => <String, dynamic>{
     'ID': id,
@@ -59,7 +85,8 @@ class TestConfiguration {
       case 'TargetWidth':
         targetWidth = int.parse(value); break;
       case 'OuterTargetCount':
-        outerTargetCount = int.parse(value); break;
+        outerTargetCount = int.parse(value);
+        trailCount = 4 * outerTargetCount; break;
       case 'Angle':
         angle = double.parse(value); break;
       case 'PointerXSpeed':
@@ -89,10 +116,32 @@ class ConfigScreen {
   );
 
   List<TestConfiguration> configs;
+  List<TestConfiguration> _finalConfigs;
+
+  void loadLastConfigurations() async {
+    configs = List<TestConfiguration>();
+    final col = Firestore.instance.collection('LastestConfiguration');
+    final data = (await col.getDocuments()).documents.first.data;
+    print(data);
+    if (data.containsKey('Tests')) {
+      final tests = data['Tests'].map((c) =>
+          TestConfiguration.fromJSON(new Map<String, dynamic>.from(c))).toList();
+      print(tests.runtimeType);
+      for (var c in tests)
+        configs.add(c);
+      print(configs);
+    }
+    if (configs.length == 0) {
+      configs.add(dummyConfig);
+    }
+    _finalConfigs = List<TestConfiguration>();
+    configs.forEach((c) =>
+        _finalConfigs.add(TestConfiguration.fromJSON(c.toJSON())));
+//    print(configs[0]);
+  }
 
   ConfigScreen() {
-    configs = List<TestConfiguration>();
-    configs.add(dummyConfig);
+    loadLastConfigurations();
   }
 
   Center displayConfigScreen() {
@@ -259,12 +308,17 @@ class ConfigScreen {
     );
   }
 
+  List<Map<String, dynamic>> getFinalConfiguration() {
+    return _finalConfigs
+        .map((TestConfiguration c) => c.toJSON()).toList();
+  }
+
   void save() {
-    final m = {'test': 'timeer'};
-    String date = new DateTime.now().toIso8601String().replaceAll(':', '-');
-    date = date.split('.').first;
-    Firestore.instance.document('Test_$date');
-    Firestore.instance.collection('Test_$date').document('how').setData(m);
+    _finalConfigs = configs;
+    final config = getFinalConfiguration();
+    final col = Firestore.instance.collection('LastestConfiguration');
+    col.document('Configuration').setData({'Tests': config});
+    print('Updated config with $config');
   }
 
   RaisedButton _getAppBarButton() {
@@ -289,7 +343,10 @@ class ConfigScreen {
     );
   }
 
-  List<Map<String, dynamic>> getFinalConfiguration() {
-    return configs.map((TestConfiguration c) => c.toJSON()).toList();
+  void reset() {
+    print(_finalConfigs);
+    configs = List<TestConfiguration>();
+    _finalConfigs.forEach((c) =>
+        configs.add(TestConfiguration.fromJSON(c.toJSON())));
   }
 }

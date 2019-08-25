@@ -91,6 +91,7 @@ class MyMainViewState extends State<MyMainView> {
 
   void _setAppStateWelcome() {
     _state = AppState.welcome;
+    _configScreen.reset();
   }
 
   void _setAppStateConfigure() {
