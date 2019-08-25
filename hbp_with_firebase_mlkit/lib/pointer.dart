@@ -9,7 +9,7 @@ enum SelectionMode {
   Blinking,
   LeftWinking,
   RightWinking,
-  Smalling,
+  Smiling,
 }
 
 class Pointer {
@@ -171,10 +171,10 @@ class Pointer {
         pressedDown = true;
         _lastFiredSelectionMode = SelectionMode.Blinking;
       }
-    if (_enabledSelectionModes.contains(SelectionMode.Smalling))
+    if (_enabledSelectionModes.contains(SelectionMode.Smiling))
       if (isSmiling()) {
         pressedDown = true;
-        _lastFiredSelectionMode = SelectionMode.Smalling;
+        _lastFiredSelectionMode = SelectionMode.Smiling;
       }
     if (_enabledSelectionModes.contains(SelectionMode.Dwelling))
       if (isDwelling()) {
