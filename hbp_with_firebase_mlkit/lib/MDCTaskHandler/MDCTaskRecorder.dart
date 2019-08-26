@@ -1,6 +1,7 @@
 import 'package:hbp_with_firebase_mlkit/Painting/PointingTaskBuilding/MDCTaskBuilder.dart';
 import 'package:hbp_with_firebase_mlkit/MDCTaskHandler/MDCTest.dart';
 import 'package:hbp_with_firebase_mlkit/pointer.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 
@@ -16,16 +17,19 @@ class MDCTaskRecorder {
   Function _backAction;
   Function _exitAction;
   int _testCount = 2;
-  int _subjectID = 1;
+  String _experimentID;
+  String _subjectID;
   Pointer _pointer;
   int _testID = 1;
   var _canvasSize;
   var _context;
   MDCTest _test;
+  bool _completed = false;
 
-
-  Map<String, dynamic> subjectInformation() => {
+  Map<String, dynamic> subjectInformation({bool completedSuccessfully: true}) => {
+    '"ExperimentID"': _experimentID,
     '"SubjectID"': _subjectID,
+    '"Status"': completedSuccessfully ? '"Complete"' : '"Incomplete"',
     '"TestCount"': _testCount,
     '"Tests"': _tests,
   };
@@ -47,7 +51,7 @@ class MDCTaskRecorder {
     _backAction = _test.restartBlock;
   }
 
-  MDCTaskRecorder(this._canvasSize, this._pointer, {Function exitAction, context}) {
+  MDCTaskRecorder(this._canvasSize, this._pointer, this._experimentID, this._subjectID, {Function exitAction, context}) {
     _context = context;
     _closeAction = exitAction;
     _createTest(); //config: configs[_testID-1]
@@ -62,6 +66,11 @@ class MDCTaskRecorder {
     _test.setConfiguration(currentConfig);
   }
 
+  void updateTestInfoOnCloud(completedSuccessfully) {
+    final expInfo = subjectInformation(completedSuccessfully: completedSuccessfully);
+    Firestore.instance.collection(_experimentID).document('Test Logs').setData(expInfo);
+  }
+
   void _restartTest() async {
     if (await _test.isUserSure()) {
       print('Restart test!');
@@ -71,11 +80,23 @@ class MDCTaskRecorder {
     }
   }
 
-  void switchNextTest() {
-    if (_testID > _testCount) {
+  Future<bool> saveTestIfWanted(completedSuccessfully) async {
+    if (await _test.isUserSure(text: 'Save Test $_testID?')) {
+      _tests.add(_test.testInformation(completedSuccessfully: completedSuccessfully));
+      updateTestInfoOnCloud(false);
+      return true;
+    }
+    else
+      return false;
+  }
+
+  void switchNextTest() async {
+    if (_testID+1 > _testCount) {
+      print('inf');
+      await saveTestIfWanted(true);
       return;
     }
-    _tests.add(_test.testInformation());
+    await saveTestIfWanted(true);
     print('New test!');
     _testID++;
     _pointer.reset();
@@ -84,17 +105,35 @@ class MDCTaskRecorder {
   }
 
   void _repeatTest() async {
-    if (await _test.isUserSure()) {
-      print('Repeat last !');
+    final testID = _testID - 1;
+    if (await _test.isUserSure(text: 'Delete Test $testID records and replay?')) {
+      print('Repeat last test!');
       _testID--;
       _pointer.reset();
       _createTest(config: configs[_testID - 1]);
+      _tests.removeLast();
       _applyCurrentConfiguration();
+    }
+  }
+
+  void switchNextBlock() async {
+    final saved = await _test.switchNextBlock();
+    if (saved) {
+      if (_tests.length > 0)
+        _tests.removeLast();
+      _tests.add(_test.testInformation(completedSuccessfully: false));
+      updateTestInfoOnCloud(false);
     }
   }
 
   void update({context}) {
     _context = context;
+    if (_completed) {
+      _nextAction = _exitAction;
+      _nextActionText = 'NEXT\nSubject!';
+      _titleToDisplay = 'ALL DONE!';
+      return;
+    }
     _test.update(new DateTime.now().millisecondsSinceEpoch, context: _context);
     switch(_test.getState()) {
       case TestState.BlockNotStarted:
@@ -135,7 +174,7 @@ class MDCTaskRecorder {
         _exitActionTest = 'End\nExp.';
         _backAction = _test.restartBlock;
         _backActionText = 'Restart\nBlock';
-        _nextAction = _test.switchNextBlock;
+        _nextAction = switchNextBlock;
         _nextActionText = 'NEXT!';
         _titleToDisplay = _test.getDynamicTitleToDisplay();
         break;
@@ -144,15 +183,17 @@ class MDCTaskRecorder {
         _exitActionTest = 'End\nExp.';
         _backAction = _restartTest;
         _backActionText = 'Restart\nTest';
-        if (_testID < _testCount) {
+        if (_testID+1 < _testCount) {
           _nextAction = switchNextTest;
           _nextActionText = 'NEXT\nTEST!';
           _titleToDisplay = 'End of T$_testID:';
         }
         else {
+          _completed = true;
           _nextAction = _exitAction;
           _nextActionText = 'NEXT\nSubject!';
           _titleToDisplay = 'ALL DONE!';
+          saveTestIfWanted(true);
         }
         break;
       default:

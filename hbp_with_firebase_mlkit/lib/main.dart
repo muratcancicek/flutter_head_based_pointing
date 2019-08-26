@@ -57,28 +57,10 @@ class MyMainViewState extends State<MyMainView> {
   ConfigScreen _configScreen;
   TaskScreen _taskScreen;
   String _experimentID;
+  String _subjectID;
 
   void setStateForImageStreaming(dynamic result)  {
     setState(() {_taskScreen.updateInput(result, context: context); });
-  }
-
-  dynamic doesUserWantToSaveLogs() async {
-    return await showDialog(
-        context: context,
-        child: new SimpleDialog(
-          title: new Text('Do you like to save the experiment logs on cloud?'),
-          children: <Widget>[
-            new SimpleDialogOption(
-              child: new Text('YES'),
-              onPressed: (){Navigator.pop(context, Answers.YES);},
-            ),
-            new SimpleDialogOption(
-              child: new Text('NO'),
-              onPressed: (){Navigator.pop(context, Answers.NO);},
-            ),
-          ],
-        )
-    );
   }
 
   @override
@@ -86,15 +68,17 @@ class MyMainViewState extends State<MyMainView> {
     super.initState();
     _configScreen = ConfigScreen();
     _cameraHandler = CameraHandler(this);
-    _taskScreen = TaskScreen(_cameraHandler, exitAction: _setAppStateWelcome, context: context);
+    _taskScreen = TaskScreen(_cameraHandler, _experimentID, _subjectID, exitAction: _setAppStateWelcome, context: context);
   }
 
   void _setAppStateWelcome()  async {
     if (await _taskScreen.getCurrentTest().isUserSure()) {
       _state = AppState.welcome;
       _configScreen.reset();
+      _experimentID = null;
+      _subjectID = null;
       _taskScreen = TaskScreen(
-          _cameraHandler, exitAction: _setAppStateWelcome, context: context);
+          _cameraHandler, _experimentID, _subjectID, exitAction: _setAppStateWelcome, context: context);
     }
   }
 
@@ -115,20 +99,73 @@ class MyMainViewState extends State<MyMainView> {
     exp.document(path).setData(data);
   }
 
+  dynamic doesUserWantToSaveLogs() async {
+    return await showDialog(
+        context: context,
+        builder: (_) => new SimpleDialog(
+          title: new Text('Do you like to save the experiment logs on cloud?'),
+          children: <Widget>[
+            new SimpleDialogOption(
+              child: new Text('YES'),
+              onPressed: (){Navigator.pop(context, Answers.YES);},
+            ),
+            new SimpleDialogOption(
+              child: new Text('NO'),
+              onPressed: (){Navigator.pop(context, Answers.NO);},
+            ),
+          ],
+        )
+    );
+  }
+
+  Future<String> getSubjectID() async {
+    String id;
+    return await showDialog(
+      context: context,
+        builder: (_) => new SimpleDialog(
+        title: Row(
+          children: <Widget>[
+            Container(width: 80, child: Text('Enter Subject ID:')),
+            Container(
+                width: 80,
+                child: TextField(
+                  onChanged: (e){id = e;},
+                  onSubmitted: (e){id = e;},
+                )
+            )
+          ],
+        ),
+        children: <Widget>[
+          new SimpleDialogOption(
+            child: new Text('OK'),
+            onPressed: (){Navigator.pop(context, id);},
+          ),
+        ],
+      )
+    );
+  }
+
   Future _startSavingLogsIfWanted() async {
     if (await doesUserWantToSaveLogs() == Answers.YES) {
       _experimentID = getUniqueExperimentID();
+      final subjectID = await getSubjectID();
+      if (subjectID != null)
+        if (subjectID.length > 0) {
+          _subjectID = subjectID;
+          _experimentID = '$_experimentID-$_subjectID';
+        }
       Firestore.instance.document(_experimentID);
-      addExperimentDocumentData('ID', {'ID': _experimentID});
+      addExperimentDocumentData('IDs', {'ID': _experimentID, 'SubjectID': _subjectID});
       final configs = _configScreen.getFinalConfiguration();
-      addExperimentDocumentData('TestConfigurations', {'Tests': configs});
+      addExperimentDocumentData('TestConfigurations', {'List': configs});
       print('Starting $_experimentID');
     }
   }
 
-  void _setAppStateTesting() {
-    _startSavingLogsIfWanted();
+  Future _setAppStateTesting() async {
+    await _startSavingLogsIfWanted();
     _state = AppState.test;
+    _taskScreen = TaskScreen(_cameraHandler, _experimentID, _subjectID, exitAction: _setAppStateWelcome, context: context);
     _taskScreen.setConfiguration(_configScreen.getFinalConfiguration());
   }
 

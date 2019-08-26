@@ -13,14 +13,15 @@ class TaskScreen {
   CameraHandler _cameraHandler;
   MDCTaskRecorder _recorder;
   String _experimentID;
+  String _subjectID;
   List<Face> _faces;
   Pointer _pointer;
   var _context;
 
-  TaskScreen(this._cameraHandler, {Function exitAction, context}) {
+  TaskScreen(this._cameraHandler, this._experimentID, this._subjectID, {Function exitAction, context}) {
     _context = context;
     _pointer = Pointer(_canvasSize, null);
-    _recorder = MDCTaskRecorder(_canvasSize, _pointer, exitAction: exitAction, context: _context);
+    _recorder = MDCTaskRecorder(_canvasSize, _pointer, _experimentID, _subjectID, exitAction: exitAction, context: _context);
   }
 
   void _updateCanvasSize() {

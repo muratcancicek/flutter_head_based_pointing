@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:hbp_with_firebase_mlkit/Painting/PointingTaskBuilding/MDCTaskBuilder.dart';
 import 'package:hbp_with_firebase_mlkit/MDCTaskHandler/MDCTestBlock.dart';
 import 'package:hbp_with_firebase_mlkit/pointer.dart';
+import 'package:flutter/material.dart';
 
 enum TestState {
   BlockNotStarted,
@@ -50,8 +50,9 @@ class MDCTest {
     '"PointerMappingInformation"': pointerMappingInformation(),
   };
 
-  Map<String, dynamic> testInformation() => {
+  Map<String, dynamic> testInformation({bool completedSuccessfully}) => {
     '"TestID"': _testID,
+    '"Status"': completedSuccessfully ? '"Complete"' : '"Incomplete"',
     '"Blocks"': _blocks,
     '"BlockCount"': _blockCount,
     '"PointerInformation"': pointerInformation(),
@@ -101,26 +102,38 @@ class MDCTest {
     _state = TestState.BlockRunning;
   }
 
-  void switchNextBlock() {
+  Future<bool> saveBlockIfWanted() async {
+    if (await isUserSure(text: 'Save this block?')) {
+      _blocks.add(_block.blockInformation(completedSuccessfully: true));
+      return true;
+    }
+    else
+      return false;
+  }
+
+  Future<bool> switchNextBlock() async {
     print('Switching to the block $_blockID!');
     if (_blockID+1 > _blockCount) {
       _state = TestState.TestCompleted;
-      return;
+      return await saveBlockIfWanted();
     } else {
-      _blocks.add(_block.blockInformation());
       print('New block!');
+      final saved = await saveBlockIfWanted();
       _blockID++;
       _pointer.reset();
       _block = MDCTestBlock(_canvasSize, _blockID, _pointer, _now, config: _config);
       _state = TestState.BlockNotStarted;
+      return saved;
     }
   }
 
-  Future<bool> isUserSure() async {
+  Future<bool> isUserSure({String text}) async {
+    if (text == null)
+      text = 'Are you sure?';
     return await showDialog(
         context: _context,
-        child: new SimpleDialog(
-          title: new Text('Are you sure?'),
+        builder: (_) => new SimpleDialog(
+          title: new Text(text),
           children: <Widget>[
             new SimpleDialogOption(
               child: new Text('YES'),
@@ -144,10 +157,12 @@ class MDCTest {
   }
 
   void repeatBlock() async {
-    if (await isUserSure()) {
+    final blockID = _blockID - 1;
+    if (await isUserSure(text: 'Delete Block $blockID records and replay?')) {
       print('Repeat last block!');
       _blockID--;
       _state = TestState.BlockNotStarted;
+      _blocks.removeLast();
       _block =
           MDCTestBlock(_canvasSize, _blockID, _pointer, _now, config: _config);
     }

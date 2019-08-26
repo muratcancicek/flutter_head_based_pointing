@@ -41,6 +41,7 @@ class MDCTestBlock {
   int _blockID = 1;
   int _now = 1;
   bool _paused = false;
+  bool _everPaused = false;
   bool _completed = false;
   Size _canvasSize;
   Pointer _pointer;
@@ -78,8 +79,10 @@ class MDCTestBlock {
     '"transitions"': _transitions, // pointer logs with timestamps between subspaces
   };
 
-  Map<String, dynamic> blockInformation() => {
+  Map<String, dynamic> blockInformation({bool completedSuccessfully: true}) => {
     '"BlockID"': _blockID,
+    '"Status"': completedSuccessfully ? '"Complete"' : '"Incomplete"',
+    '"Paused"': _everPaused ? '"Yes"' : '"Never"',
     '"Amplitude"': _taskBuilder.getAmplitude(),
     '"TargetWidth"': _taskBuilder.getTargetWidth(),
     '"BlockTrailCount"': _taskBuilder.getBlockTrailCount(),
@@ -87,7 +90,7 @@ class MDCTestBlock {
     '"SubspaceTargetCount"': _taskBuilder.getSubspaceTargetCount(), // in a subspace
     '"BlockTargetCount"': _taskBuilder.getBlockTargetCount(), // in the block (4 subspaces)
     '"OffsetToEdges"':  offsetToList(_taskBuilder.getOffsetToEdges()), // location of top-left center
-    '"TargetLocations"': _targetPoints.map((o) => offsetToIntList(o)).toList(), // coordinates
+//    '"TargetLocations"': _targetPoints.map((o) => offsetToIntList(o)).toList(), // coordinates
     '"TaskBuilderCanvasSize"': sizeToList(_taskBuilder.getCanvasSize()),
     '"LogInformation"': logInformation(), // lists of important timestamps and pointer logs
   };
@@ -179,6 +182,7 @@ class MDCTestBlock {
   }
 
   void keepPaused(int now) {
+    _everPaused = true;
     if (!_paused) {
       _paused = true;
       _blockPauseMoment = now;
