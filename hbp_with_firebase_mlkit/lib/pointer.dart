@@ -250,11 +250,11 @@ class Pointer {
   List<double> _offsetToList(Offset o) => [o.dx, o.dy];
 
   Map<String, dynamic> mappingInformation() => {
-    '"PointerSpeed"': _offsetToList(_mapping.getSpeed()),
-    '"MotionThreshold"': _offsetToList(_mapping.getMotionThreshold()),
-    '"DownSamplingRate"': _mapping.getDownSamplingRate(),
-    '"SmoothingFrameCount"': _mapping.getSmoothingFrameCount(),
-    '"XAxisMode"': '"'+_mapping.getXAxisMode().toString()+'"',
-    '"YAxisMode"': '"'+_mapping.getYAxisMode().toString()+'"',
+    'PointerSpeed': _offsetToList(_mapping.getSpeed()),
+    'MotionThreshold': _offsetToList(_mapping.getMotionThreshold()),
+    'DownSamplingRate': _mapping.getDownSamplingRate(),
+    'SmoothingFrameCount': _mapping.getSmoothingFrameCount(),
+    'XAxisMode': ''+_mapping.getXAxisMode().toString()+'',
+    '"YAxisMode': ''+_mapping.getYAxisMode().toString()+'',
   };
 }

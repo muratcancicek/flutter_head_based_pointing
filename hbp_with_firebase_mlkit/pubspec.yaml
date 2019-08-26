@@ -27,6 +27,7 @@ dependencies:
   cloud_firestore:
   path_provider:
   numberpicker:
+  screen: ^0.0.5
   camera: ^0.4.2
 
 dev_dependencies:

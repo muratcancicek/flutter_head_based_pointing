@@ -7,7 +7,7 @@ import 'dart:io';
 
 class MDCTaskRecorder {
   List<Map<String, dynamic>> configs;
-  List<Map> _tests = List<Map>();
+  Map<String, dynamic> _tests = Map<String, dynamic>();
   String _exitActionTest = 'Exit\nStudy';
   String _backActionText = 'Discard';
   String _nextActionText = 'Start';
@@ -25,13 +25,14 @@ class MDCTaskRecorder {
   var _context;
   MDCTest _test;
   bool _completed = false;
+  bool _currentTestUploaded = false;
 
   Map<String, dynamic> subjectInformation({bool completedSuccessfully: true}) => {
-    '"ExperimentID"': _experimentID,
+    'ExperimentID': _experimentID,
     'SubjectID': _subjectID,
-    '"Status"': completedSuccessfully ? '"Complete"' : '"Incomplete"',
-    '"TestCount"': _testCount,
-    '"Tests"': _tests,
+    'Status': completedSuccessfully ? 'Complete' : 'Incomplete',
+    'TestCount': _testCount,
+    'Tests': _tests,
   };
 
   void saveJsonFile({Directory dir, String fileName: 'BlockOne'}) async {
@@ -49,6 +50,7 @@ class MDCTaskRecorder {
     final now = new DateTime.now().millisecondsSinceEpoch;
     _test = MDCTest(_canvasSize, _testID, _pointer, now);
     _backAction = _test.restartBlock;
+    _currentTestUploaded = false;
   }
 
   MDCTaskRecorder(this._canvasSize, this._pointer, this._experimentID, this._subjectID, {Function exitAction, context}) {
@@ -81,13 +83,13 @@ class MDCTaskRecorder {
     }
   }
 
-  Future<bool> saveTestIfWanted(completedSuccessfully) async {
+  Future<bool> saveTestIfWanted(completedSuccessfully, {exp: false}) async {
     if (await _test.isUserSure(text: 'Save Test $_testID?')) {
-      final info = _test.testInformation(completedSuccessfully: true);
-      if (_tests.length > 0)
-        if (_tests.last['"TestID"'] == info['"TestID"'])
-          _tests.removeLast();
-       _tests.add(info);
+      final info = _test.testInformation(completedSuccessfully: exp);
+//      if (_tests.length > 0)
+//        if (_currentTestUploaded)
+//          _tests.removeLast();
+      _tests[_testID.toString()] = info;
       updateTestInfoOnCloud(completedSuccessfully);
       return true;
     }
@@ -98,7 +100,7 @@ class MDCTaskRecorder {
   void switchNextTest() async {
     if (_testID+1 > _testCount) {
       _test.completeStudy();
-      await saveTestIfWanted(true);
+      await saveTestIfWanted(true, exp: true);
       return;
     }
     await saveTestIfWanted(true);
@@ -113,8 +115,8 @@ class MDCTaskRecorder {
     final testID = _testID - 1;
     if (await _test.isUserSure(text: 'Delete Test $testID records and replay?')) {
       print('Repeat last test!');
-      if (_tests.length > 0)
-        _tests.removeLast();
+//      if (_tests.length > 0)
+//        _tests.removeLast();
       if (_testID > 1 && _testID < _testCount)
         _testID--;
       _pointer.reset();
@@ -130,10 +132,11 @@ class MDCTaskRecorder {
     final saved = await _test.switchNextBlock();
     print(_test.getState());
     if (saved) {
-      if (_tests.length > 0)
-        _tests.removeLast();
-      _tests.add(_test.testInformation(completedSuccessfully: false));
+//      if (_tests.length > 0)
+//        _tests.removeLast();
+      _tests[_testID.toString()] = _test.testInformation(completedSuccessfully: false);
       updateTestInfoOnCloud(false);
+      _currentTestUploaded = true;
     }
   }
 
@@ -194,11 +197,9 @@ class MDCTaskRecorder {
         _exitActionTest = 'End\nExp.';
         _backAction = _restartTest;
         _backActionText = 'Restart\nTest';
-        if (_testID >= _testCount) {
-          _nextAction = switchNextTest;
-          _nextActionText = 'NEXT\nTEST!';
-          _titleToDisplay = 'End of T$_testID:';
-        }
+        _nextAction = switchNextTest;
+        _nextActionText = 'NEXT\nTEST!';
+        _titleToDisplay = 'End of T$_testID:';
         break;
       case TestState.StudyCompleted:
         _completed = true;

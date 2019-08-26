@@ -30,32 +30,32 @@ class MDCTest {
   Map<String, dynamic> pointerMappingInformation() {
     final mappingInfo = _pointer.mappingInformation();
     return {
-      '"PointerSpeed"': mappingInfo['"PointerSpeed"'],
-      '"MotionThreshold"': mappingInfo['"MotionThreshold"'],
-      '"DownSamplingRate"': mappingInfo['"DownSamplingRate"'],
-      '"SmoothingFrameCount"': mappingInfo['"SmoothingFrameCount"'],
-      '"XAxisMode"': mappingInfo['"XAxisMode"'],
-      '"YAxisMode"': mappingInfo['"YAxisMode"'],
+      'PointerSpeed': mappingInfo['PointerSpeed'],
+      'MotionThreshold': mappingInfo['MotionThreshold'],
+      'DownSamplingRate': mappingInfo['DownSamplingRate'],
+      'SmoothingFrameCount': mappingInfo['SmoothingFrameCount'],
+      'XAxisMode': mappingInfo['XAxisMode'],
+      'YAxisMode': mappingInfo['YAxisMode'],
     };
   }
 
   Map<String, dynamic> pointerInformation() => {
-    '"PointerType"': enumToString(_pointer.getType()),
-    '"EnabledSelectionModes"':
+    'PointerType': enumToString(_pointer.getType()),
+    'EnabledSelectionModes':
     enumListToStringList(_pointer.getEnabledSelectionModes()),
-    '"PointerRadius"': _pointer.getRadius(),
-    '"DwellRadius"': _pointer.getDwellRadius(), // size of area dwelling keeps counting
-    '"DwellTime"': _pointer.getDwellTime(),
-    '"PointerCanvasSize"': sizeToList(_pointer.getCanvasSize()),
-    '"PointerMappingInformation"': pointerMappingInformation(),
+    'PointerRadius': _pointer.getRadius(),
+    'DwellRadius': _pointer.getDwellRadius(), // size of area dwelling keeps counting
+    'DwellTime': _pointer.getDwellTime(),
+    'PointerCanvasSize': sizeToList(_pointer.getCanvasSize()),
+    'PointerMappingInformation': pointerMappingInformation(),
   };
 
   Map<String, dynamic> testInformation({bool completedSuccessfully}) => {
-    '"TestID"': _testID,
-    '"Status"': completedSuccessfully ? '"Complete"' : '"Incomplete"',
-    '"Blocks"': _blocks,
-    '"BlockCount"': _blockCount,
-    '"PointerInformation"': pointerInformation(),
+    'TestID': _testID,
+    'Status': completedSuccessfully ? 'Complete' : 'Incomplete',
+    'Blocks': _blocks,
+    'BlockCount': _blockCount,
+    'PointerInformation': pointerInformation(),
   };
 
   void _createBlock({Map config}) {

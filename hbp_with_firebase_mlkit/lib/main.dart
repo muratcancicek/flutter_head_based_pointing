@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:screen/screen.dart';
 
 void main() => runApp(MyApp());
 
@@ -237,6 +238,7 @@ class MyMainViewState extends State<MyMainView> {
 
   @override
   Widget build(BuildContext context) {
+    Screen.keepOn(true);
     return Scaffold(
       appBar: getAppBar(),
       body: Center(

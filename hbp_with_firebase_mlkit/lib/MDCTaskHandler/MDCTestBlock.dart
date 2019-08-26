@@ -13,7 +13,7 @@ List<double> sizeToList(Size s) => [s.width, s.height];
 List<List<List<double>>> listOfOffsetsToListOfList(List<List<Offset>> list) =>
     list.map((l) => (l.map((e) => offsetToList(e)).toList())).toList();
 
-String enumToString(e) => '"' + e.toString() + '"';
+String enumToString(e) => '' + e.toString() + '';
 
 List<String> enumListToStringList(List list) =>
     list.map((e) => enumToString(e)).toList();
@@ -48,51 +48,51 @@ class MDCTestBlock {
   dynamic _taskBuilder;
 
   Map<String, dynamic> pointerLog(Offset pos, int moment) => {
-    '"Moment"': moment,
-    '"Position"': offsetToList(pos),
+    'Moment': moment,
+    'Position': offsetToList(pos),
   };
 
   Map<String, dynamic> trailLog(id, double duration,
       List<Map> trail, Offset target) => {
-    '"TrailID"': id,
-    '"Duration"': duration,
-    '"Start"':  trail.first,
-    '"End"': trail.last,
-    '"TargetID"': _targetID,
-    '"TargetLocation"': offsetToList(target),
-    '"Logs"': trail,
+    'TrailID': id,
+    'Duration': duration,
+    'Start':  trail.first,
+    'End': trail.last,
+    'TargetID': _targetID,
+    'TargetLocation': offsetToList(target),
+    'Logs': trail,
   };
 
   Map<String, dynamic> selectionLog(id, int moment, Offset pos, mode, Offset target) => {
-    '"SelectionID"': id,
-    '"Moment"': moment,
-    '"Mode"': enumToString(mode),
-    '"TargetID"': _targetID,
-    '"TargetLocation"': offsetToList(target),
-    '"Coordinates"': offsetToList(pos),
+    'SelectionID': id,
+    'Moment': moment,
+    'Mode': enumToString(mode),
+    'TargetID': _targetID,
+    'TargetLocation': offsetToList(target),
+    'Coordinates': offsetToList(pos),
   };
 
   Map<String, dynamic> logInformation() => {
-    '"CorrectSelections"':  _selections,
-    '"MissedSelections"':  _missedSelections,
-    '"trails"': _trails, // frame by frame pointer logs with timestamps
-    '"transitions"': _transitions, // pointer logs with timestamps between subspaces
+    'CorrectSelections':  _selections,
+    'MissedSelections':  _missedSelections,
+    'trails': _trails, // frame by frame pointer logs with timestamps
+    'transitions': _transitions, // pointer logs with timestamps between subspaces
   };
 
   Map<String, dynamic> blockInformation({bool completedSuccessfully: true}) => {
-    '"BlockID"': _blockID,
-    '"Status"': completedSuccessfully ? '"Complete"' : '"Incomplete"',
-    '"Paused"': _everPaused ? '"Yes"' : '"Never"',
-    '"Amplitude"': _taskBuilder.getAmplitude(),
-    '"TargetWidth"': _taskBuilder.getTargetWidth(),
-    '"BlockTrailCount"': _taskBuilder.getBlockTrailCount(),
-    '"OuterTargetCount"': _taskBuilder.getOuterTargetCount(), // ones on circumference
-    '"SubspaceTargetCount"': _taskBuilder.getSubspaceTargetCount(), // in a subspace
-    '"BlockTargetCount"': _taskBuilder.getBlockTargetCount(), // in the block (4 subspaces)
-    '"OffsetToEdges"':  offsetToList(_taskBuilder.getOffsetToEdges()), // location of top-left center
-//    '"TargetLocations"': _targetPoints.map((o) => offsetToIntList(o)).toList(), // coordinates
-    '"TaskBuilderCanvasSize"': sizeToList(_taskBuilder.getCanvasSize()),
-    '"LogInformation"': logInformation(), // lists of important timestamps and pointer logs
+    'BlockID': _blockID,
+    'Status': completedSuccessfully ? 'Complete' : 'Incomplete',
+    'Paused': _everPaused ? 'Yes' : 'Never',
+    'Amplitude': _taskBuilder.getAmplitude(),
+    'TargetWidth': _taskBuilder.getTargetWidth(),
+    'BlockTrailCount': _taskBuilder.getBlockTrailCount(),
+    'OuterTargetCount': _taskBuilder.getOuterTargetCount(), // ones on circumference
+    'SubspaceTargetCount': _taskBuilder.getSubspaceTargetCount(), // in a subspace
+    'BlockTargetCount': _taskBuilder.getBlockTargetCount(), // in the block (4 subspaces)
+    'OffsetToEdges':  offsetToList(_taskBuilder.getOffsetToEdges()), // location of top-left center
+//    'TargetLocations': _targetPoints.map((o) => offsetToIntList(o)).toList(), // coordinates
+    'TaskBuilderCanvasSize': sizeToList(_taskBuilder.getCanvasSize()),
+    'LogInformation': logInformation(), // lists of important timestamps and pointer logs
   };
 
   MDCTestBlock(this._canvasSize, this._blockID, this._pointer, this._now, {Map config}) {

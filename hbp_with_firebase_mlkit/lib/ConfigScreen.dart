@@ -113,10 +113,10 @@ class ConfigScreen {
     PointingTaskType.MDC, //pointingTaskType,
     SelectionMode.Blinking,//selectionMode,
     150, // amplitude,
-    80, // targetWidth,
-    0, // outerTargetCount,
+    40, // targetWidth,
+    3, // outerTargetCount,
     3, // blockCount
-    30, // angle,
+    10, // angle,
     6, // pointerYSpeed
     8, // pointerXSpeed,
   );
@@ -271,7 +271,8 @@ class ConfigScreen {
   ListView getTestListView() {
     List<Widget> children = configs.map(getTestTile).toList();
     final lambda = (){
-      TestConfiguration c = TestConfiguration.fromJSON(dummyConfig.toMap());
+      final last = configs.length > 0 ? configs.last : dummyConfig;
+      TestConfiguration c = TestConfiguration.fromJSON(last.toMap());
       c.id = configs.length + 1;
       configs.add(c);
     };
