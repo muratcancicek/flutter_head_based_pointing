@@ -28,7 +28,7 @@ class MDCTaskRecorder {
 
   Map<String, dynamic> subjectInformation({bool completedSuccessfully: true}) => {
     '"ExperimentID"': _experimentID,
-    '"SubjectID"': _subjectID,
+    'SubjectID': _subjectID,
     '"Status"': completedSuccessfully ? '"Complete"' : '"Incomplete"',
     '"TestCount"': _testCount,
     '"Tests"': _tests,
@@ -60,6 +60,7 @@ class MDCTaskRecorder {
 
   void _applyCurrentConfiguration() {
     final currentConfig = configs[_testID-1];
+    _testCount = configs.length;
     _pointer.updateSelectionMode(currentConfig['SelectionMode']);
     _pointer.updateYSpeed(currentConfig['PointerXSpeed']);
     _pointer.updateYSpeed(currentConfig['PointerYSpeed']);
@@ -82,8 +83,12 @@ class MDCTaskRecorder {
 
   Future<bool> saveTestIfWanted(completedSuccessfully) async {
     if (await _test.isUserSure(text: 'Save Test $_testID?')) {
-      _tests.add(_test.testInformation(completedSuccessfully: completedSuccessfully));
-      updateTestInfoOnCloud(false);
+      final info = _test.testInformation(completedSuccessfully: true);
+      if (_tests.length > 0)
+        if (_tests.last['"TestID"'] == info['"TestID"'])
+          _tests.removeLast();
+       _tests.add(info);
+      updateTestInfoOnCloud(completedSuccessfully);
       return true;
     }
     else
@@ -92,7 +97,7 @@ class MDCTaskRecorder {
 
   void switchNextTest() async {
     if (_testID+1 > _testCount) {
-      print('inf');
+      _test.completeStudy();
       await saveTestIfWanted(true);
       return;
     }
@@ -108,16 +113,22 @@ class MDCTaskRecorder {
     final testID = _testID - 1;
     if (await _test.isUserSure(text: 'Delete Test $testID records and replay?')) {
       print('Repeat last test!');
-      _testID--;
+      if (_tests.length > 0)
+        _tests.removeLast();
+      if (_testID > 1 && _testID < _testCount)
+        _testID--;
       _pointer.reset();
       _createTest(config: configs[_testID - 1]);
-      _tests.removeLast();
       _applyCurrentConfiguration();
     }
   }
 
   void switchNextBlock() async {
+    if (_completed) {
+      return;
+    }
     final saved = await _test.switchNextBlock();
+    print(_test.getState());
     if (saved) {
       if (_tests.length > 0)
         _tests.removeLast();
@@ -183,18 +194,18 @@ class MDCTaskRecorder {
         _exitActionTest = 'End\nExp.';
         _backAction = _restartTest;
         _backActionText = 'Restart\nTest';
-        if (_testID+1 < _testCount) {
+        if (_testID >= _testCount) {
           _nextAction = switchNextTest;
           _nextActionText = 'NEXT\nTEST!';
           _titleToDisplay = 'End of T$_testID:';
         }
-        else {
-          _completed = true;
-          _nextAction = _exitAction;
-          _nextActionText = 'NEXT\nSubject!';
-          _titleToDisplay = 'ALL DONE!';
-          saveTestIfWanted(true);
-        }
+        break;
+      case TestState.StudyCompleted:
+        _completed = true;
+        _nextAction = _exitAction;
+        _nextActionText = 'NEXT\nSubject!';
+        _titleToDisplay = 'ALL DONE!';
+        saveTestIfWanted(true);
         break;
       default:
         _backAction = _exitAction;

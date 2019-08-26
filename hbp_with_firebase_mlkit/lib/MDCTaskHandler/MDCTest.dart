@@ -71,10 +71,10 @@ class MDCTest {
   }
 
   void completeBlock() {
-    if (_state == TestState.TestCompleted) return;
+    if (_state == TestState.TestCompleted || _state == TestState.StudyCompleted)
+      return;
     print('Completed block!');
     _state = TestState.BlockCompleted;
-//    }
   }
 
   void update(now, {context}) {
@@ -102,6 +102,10 @@ class MDCTest {
     _state = TestState.BlockRunning;
   }
 
+  void completeStudy() {
+    _state = TestState.StudyCompleted;
+  }
+
   Future<bool> saveBlockIfWanted() async {
     if (await isUserSure(text: 'Save this block?')) {
       _blocks.add(_block.blockInformation(completedSuccessfully: true));
@@ -112,14 +116,16 @@ class MDCTest {
   }
 
   Future<bool> switchNextBlock() async {
-    print('Switching to the block $_blockID!');
     if (_blockID+1 > _blockCount) {
       _state = TestState.TestCompleted;
+      print(_state);
       return await saveBlockIfWanted();
-    } else {
+    }
+    else {
       print('New block!');
       final saved = await saveBlockIfWanted();
       _blockID++;
+      print('Switching to the block-$_blockID!');
       _pointer.reset();
       _block = MDCTestBlock(_canvasSize, _blockID, _pointer, _now, config: _config);
       _state = TestState.BlockNotStarted;
@@ -196,6 +202,8 @@ class MDCTest {
   bool isBlockPaused() => _state == TestState.BlockPaused;
 
   bool isBlockCompleted() => _state == TestState.BlockCompleted;
+
+  bool isTestCompleted() => _state == TestState.TestCompleted;
 
   bool isTestRunning() => _state == TestState.BlockRunning;
 
