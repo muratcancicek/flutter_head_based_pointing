@@ -1,6 +1,6 @@
-import 'package:hbp_with_firebase_mlkit/Painting/PointingTaskBuilding/PointingTaskBuilder.dart';
-import 'package:hbp_with_firebase_mlkit/Painting/PointingTaskBuilding/Target.dart';
-import 'package:hbp_with_firebase_mlkit/MDCTaskHandler/MDCTestBlock.dart';
+import 'package:HeadPointing/Painting/PointingTaskBuilding/PointingTaskBuilder.dart';
+import 'package:HeadPointing/Painting/PointingTaskBuilding/Target.dart';
+import 'package:HeadPointing/MDCTaskHandler/MDCTestBlock.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 

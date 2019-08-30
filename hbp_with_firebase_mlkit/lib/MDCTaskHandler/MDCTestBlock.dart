@@ -1,7 +1,7 @@
-import 'package:hbp_with_firebase_mlkit/Painting/PointingTaskBuilding/PointingTaskBuilder.dart';
-import 'package:hbp_with_firebase_mlkit/Painting/PointingTaskBuilding/JeffTaskBuilder.dart';
-import 'package:hbp_with_firebase_mlkit/Painting/PointingTaskBuilding/MDCTaskBuilder.dart';
-import 'package:hbp_with_firebase_mlkit/pointer.dart';
+import 'package:HeadPointing/Painting/PointingTaskBuilding/PointingTaskBuilder.dart';
+import 'package:HeadPointing/Painting/PointingTaskBuilding/JeffTaskBuilder.dart';
+import 'package:HeadPointing/Painting/PointingTaskBuilding/MDCTaskBuilder.dart';
+import 'package:HeadPointing/pointer.dart';
 import 'package:flutter/material.dart';
 
 List<double> offsetToList(Offset o) => [o.dx, o.dy];

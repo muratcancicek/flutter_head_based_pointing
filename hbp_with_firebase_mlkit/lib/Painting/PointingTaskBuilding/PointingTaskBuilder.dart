@@ -1,4 +1,4 @@
-import 'package:hbp_with_firebase_mlkit/pointer.dart';
+import 'package:HeadPointing/pointer.dart';
 import 'package:flutter/material.dart';
 import 'Target.dart';
 

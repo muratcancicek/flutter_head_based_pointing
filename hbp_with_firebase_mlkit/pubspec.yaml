@@ -1,4 +1,4 @@
-name: hbp_with_firebase_mlkit
+name: HeadPointing
 description: An experimental Flutter App that provides head-based pointing on mobile devices8.
 
 # The following defines the version and build number for your application.
@@ -33,7 +33,6 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
 
 # For information on the generic Dart part of this file, see the
 # following page: https://www.dartlang.org/tools/pub/pubspec

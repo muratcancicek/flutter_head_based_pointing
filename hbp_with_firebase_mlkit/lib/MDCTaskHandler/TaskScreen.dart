@@ -1,8 +1,8 @@
-import 'package:hbp_with_firebase_mlkit/Painting/face_painter.dart';
-import 'package:hbp_with_firebase_mlkit/MDCTaskHandler/MDCTaskRecorder.dart';
-import 'package:hbp_with_firebase_mlkit/CameraHandler.dart';
+import 'package:HeadPointing/Painting/face_painter.dart';
+import 'package:HeadPointing/MDCTaskHandler/MDCTaskRecorder.dart';
+import 'package:HeadPointing/CameraHandler.dart';
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
-import 'package:hbp_with_firebase_mlkit/pointer.dart';
+import 'package:HeadPointing/pointer.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/material.dart';
 

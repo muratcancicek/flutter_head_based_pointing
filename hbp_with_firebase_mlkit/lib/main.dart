@@ -1,6 +1,6 @@
-import 'package:hbp_with_firebase_mlkit/MDCTaskHandler/TaskScreen.dart';
-import 'package:hbp_with_firebase_mlkit/CameraHandler.dart';
-import 'package:hbp_with_firebase_mlkit/ConfigScreen.dart';
+import 'package:HeadPointing/MDCTaskHandler/TaskScreen.dart';
+import 'package:HeadPointing/CameraHandler.dart';
+import 'package:HeadPointing/ConfigScreen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';

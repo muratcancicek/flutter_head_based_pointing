@@ -1,6 +1,6 @@
-import 'package:hbp_with_firebase_mlkit/Painting/PointingTaskBuilding/MDCTaskBuilder.dart';
-import 'package:hbp_with_firebase_mlkit/MDCTaskHandler/MDCTest.dart';
-import 'package:hbp_with_firebase_mlkit/pointer.dart';
+import 'package:HeadPointing/Painting/PointingTaskBuilding/MDCTaskBuilder.dart';
+import 'package:HeadPointing/MDCTaskHandler/MDCTest.dart';
+import 'package:HeadPointing/pointer.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
