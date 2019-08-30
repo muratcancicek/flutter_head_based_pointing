@@ -1,6 +1,7 @@
 import 'package:hbp_with_firebase_mlkit/Painting/PointingTaskBuilding/MDCTaskBuilder.dart';
 import 'package:hbp_with_firebase_mlkit/MDCTaskHandler/MDCTestBlock.dart';
 import 'package:hbp_with_firebase_mlkit/pointer.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 enum TestState {
@@ -15,6 +16,7 @@ enum TestState {
 class MDCTest {
   TestState _state = TestState.BlockNotStarted;
   List<Map> _blocks = List<Map>();
+  String _experimentID;
   int _blockCount = 3;
   int _blockID = 1;
   var _canvasSize;
@@ -25,6 +27,7 @@ class MDCTest {
 
   MDCTestBlock _block;
   Pointer _pointer;
+
 
 
   Map<String, dynamic> pointerMappingInformation() {
@@ -62,7 +65,7 @@ class MDCTest {
     _block = MDCTestBlock(_canvasSize, _blockID, _pointer, _now, config: config);
   }
 
-  MDCTest(this._canvasSize, this._testID, this._pointer, this._now, {Map config, context}) {
+  MDCTest(this._canvasSize, this._testID, this._pointer, this._experimentID, this._now, {Map config, context}) {
     _context = context;
     if (config != null)
       _blockCount = config['BlockCount'];
@@ -106,8 +109,16 @@ class MDCTest {
     _state = TestState.StudyCompleted;
   }
 
+
+  void addBlockInfoOnCloud(Map<String, dynamic> blockInfo) {
+    CollectionReference col = Firestore.instance.collection(_experimentID);
+    final blockName = 'T$_testID-B$_blockID';
+    col.document(blockName).setData(blockInfo);
+  }
   Future<bool> saveBlockIfWanted() async {
     if (await isUserSure(text: 'Save this block?')) {
+      final blockInfo = _block.logInformation();
+      addBlockInfoOnCloud(blockInfo);
       _blocks.add(_block.blockInformation(completedSuccessfully: true));
       return true;
     }

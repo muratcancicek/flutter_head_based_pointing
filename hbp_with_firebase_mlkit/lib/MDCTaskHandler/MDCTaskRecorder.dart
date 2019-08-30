@@ -48,7 +48,7 @@ class MDCTaskRecorder {
 
   void _createTest({config}) {
     final now = new DateTime.now().millisecondsSinceEpoch;
-    _test = MDCTest(_canvasSize, _testID, _pointer, now);
+    _test = MDCTest(_canvasSize, _testID, _pointer, _experimentID, now);
     _backAction = _test.restartBlock;
     _currentTestUploaded = false;
   }

@@ -90,9 +90,9 @@ class MDCTestBlock {
     'SubspaceTargetCount': _taskBuilder.getSubspaceTargetCount(), // in a subspace
     'BlockTargetCount': _taskBuilder.getBlockTargetCount(), // in the block (4 subspaces)
     'OffsetToEdges':  offsetToList(_taskBuilder.getOffsetToEdges()), // location of top-left center
-//    'TargetLocations': _targetPoints.map((o) => offsetToIntList(o)).toList(), // coordinates
+    'TargetLocations': _targetPoints.map((o) => offsetToIntList(o)).toList(), // coordinates
     'TaskBuilderCanvasSize': sizeToList(_taskBuilder.getCanvasSize()),
-    'LogInformation': logInformation(), // lists of important timestamps and pointer logs
+//    'LogInformation': logInformation(), // lists of important timestamps and pointer logs
   };
 
   MDCTestBlock(this._canvasSize, this._blockID, this._pointer, this._now, {Map config}) {
