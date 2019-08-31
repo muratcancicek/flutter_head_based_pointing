@@ -53,7 +53,7 @@ enum AppState {
 
 class MyMainViewState extends State<MyMainView> {
   AppState _state = AppState.welcome;
-  MODE _runningMode = MODE.DEBUG;
+  MODE _runningMode = MODE.RELEASE;
   CameraHandler _cameraHandler;
   ConfigScreen _configScreen;
   TaskScreen _taskScreen;
@@ -92,7 +92,7 @@ class MyMainViewState extends State<MyMainView> {
     date = date.split('.').first;
     if (_runningMode == MODE.DEBUG)
       date = date.split('T').last;
-    return 'Exp_$date';
+    return 'EXp_$date';
   }
 
   void addExperimentDocumentData(String path, Map<String, dynamic> data) {
@@ -238,7 +238,7 @@ class MyMainViewState extends State<MyMainView> {
 
   @override
   Widget build(BuildContext context) {
-    Screen.keepOn(true);
+//    Screen.keepOn(true);
     return Scaffold(
       appBar: getAppBar(),
       body: Center(
