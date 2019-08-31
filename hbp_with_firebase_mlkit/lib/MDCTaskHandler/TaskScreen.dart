@@ -1,7 +1,8 @@
-import 'package:HeadPointing/Painting/face_painter.dart';
+import 'package:HeadPointing/Painting/PointingTaskBuilding/MDCTaskBuilder.dart';
 import 'package:HeadPointing/MDCTaskHandler/MDCTaskRecorder.dart';
-import 'package:HeadPointing/CameraHandler.dart';
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
+import 'package:HeadPointing/Painting/face_painter.dart';
+import 'package:HeadPointing/CameraHandler.dart';
 import 'package:HeadPointing/pointer.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/material.dart';
@@ -17,11 +18,15 @@ class TaskScreen {
   List<Face> _faces;
   Pointer _pointer;
   var _context;
+  dynamic _tutorialBuilder;
 
-  TaskScreen(this._cameraHandler, this._experimentID, this._subjectID, {Function exitAction, context}) {
+  TaskScreen(this._cameraHandler, this._experimentID, this._subjectID,
+      {Function exitAction, context}) {
     _context = context;
     _pointer = Pointer(_canvasSize, null);
-    _recorder = MDCTaskRecorder(_canvasSize, _pointer, _experimentID, _subjectID, exitAction: exitAction, context: _context);
+    _recorder = MDCTaskRecorder(_canvasSize, _pointer, _experimentID, _subjectID,
+        exitAction: exitAction, context: _context);
+    _tutorialBuilder = MDCTaskBuilder(_canvasSize, _pointer);
   }
 
   void _updateCanvasSize() {
@@ -108,6 +113,42 @@ class TaskScreen {
     );
   }
 
+  Center _displayTutorialScreen() {
+    final text1 = 'Please practice Head Pointing here '
+        'before the study starts.'
+        '\n\nMove your head both sides and up and down until you get familiar '
+        'with the behavior of the cursor.'
+        '\n\nThen, try to select the target (green circle) by holding the cursor'
+        ' still on the target.'
+        '\n\nAll of the existing selection methods are enabled  for practice.'
+        '\n\nYou do not need to complete the targets on this screen and '
+        'please start the study whenever you feel ready.';
+
+    final text2 = 'Please practice the next test here '
+        'before the following test starts. '
+        '\n\nYou do not need to complete the targets on this screen and '
+        'please start the test whenever you feel ready.'
+        '\n\nDuring the actual test,\nyou will be seeing the targets with '
+        'the same size and in the same order within this screen.'
+        '\n\nAlso, you are allowed use only one selection method during the test'
+        'which is allowed here.'
+        '\n\nOn the test, please select the targets precisely and as faster as '
+        'you can.';
+    final text = _subjectID == null ? text1 : text2;
+    return Center(
+      child: Container(
+        width: 350,
+        child: Text(text,
+            textAlign: TextAlign.justify,
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 20.0,
+            )
+         ),
+      )
+    );
+  }
+
   Widget _drawFacialLandmarks() {
     const Text noResultsText = const Text('No results!');
     if (_faces == null || _cameraHandler.isCameraEmpty() || _faces is! List<Face>)
@@ -120,6 +161,10 @@ class TaskScreen {
 
   CustomPaint _drawTargets() {
     return CustomPaint(painter: _recorder.getTaskBuilder().getPainter());
+  }
+
+  CustomPaint _drawTutorial() {
+    return CustomPaint(painter: _tutorialBuilder.getPainter());
   }
 
   Widget _drawPointer() {
@@ -137,6 +182,10 @@ class TaskScreen {
       if (_drawingFacialLandmarks)
         screen.add(_drawFacialLandmarks());
       screen.add(_drawTargets());
+    } else {
+      screen.add(_drawTutorial());
+      _pointer.updateDrawer(targets: _tutorialBuilder.targets);
+      screen.add(_displayTutorialScreen());
     }
     screen.add(_drawPointer());
     return Stack(fit: StackFit.expand, key: _key, children: screen);
@@ -151,6 +200,9 @@ class TaskScreen {
   }
 
   void setConfiguration(List<Map<String, dynamic>> finalConfiguration) {
+    final id = (_recorder.getCurrentTest().getID() - 1);
+    _tutorialBuilder = MDCTaskBuilder(_canvasSize, _pointer,
+        layout: finalConfiguration[id]);
     _recorder.setConfiguration(finalConfiguration);
   }
 

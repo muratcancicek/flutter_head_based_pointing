@@ -67,6 +67,7 @@ class MyMainViewState extends State<MyMainView> {
   @override
   void initState() {
     super.initState();
+    Screen.keepOn(true);
     _configScreen = ConfigScreen();
     _cameraHandler = CameraHandler(this);
     _taskScreen = TaskScreen(_cameraHandler, _experimentID, _subjectID, exitAction: _setAppStateWelcome, context: context);
@@ -238,7 +239,6 @@ class MyMainViewState extends State<MyMainView> {
 
   @override
   Widget build(BuildContext context) {
-//    Screen.keepOn(true);
     return Scaffold(
       appBar: getAppBar(),
       body: Center(

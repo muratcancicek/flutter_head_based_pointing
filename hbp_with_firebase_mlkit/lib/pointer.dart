@@ -221,6 +221,8 @@ class Pointer {
     }
   }
 
+  bool isDwellingEnabled() => _enabledSelectionModes.contains(SelectionMode.Dwelling);
+
   PointerType getType() => _type;
 
   Offset getPosition() => _position;

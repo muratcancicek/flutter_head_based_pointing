@@ -116,14 +116,15 @@ class  MDCTaskBuilder extends PointingTaskBuilder {
     _center = _getCenterForSubspace(_subspace);
     _currentTargetIndex = 0;
     final targetPoints = _createArc();
-    _testBlock.recordTargetPoints(targetPoints);
+    if (_testBlock != null)
+      _testBlock.recordTargetPoints(targetPoints);
     for (var i = 0; i < targetPoints.length; i++)
       _subspaceTargets.add(
           Target.fromCircle(targetPoints[i], _targetWidth.toDouble()));
     targets.add(_subspaceTargets[0]);
   }
 
-  MDCTaskBuilder(imageSize, pointer, recorder, {Map layout})
+  MDCTaskBuilder(imageSize, pointer, {recorder, Map layout})
       : super(imageSize, pointer) {
     if (layout != null) {
       _outerTargetCount = layout.containsKey('OuterTargetCount')
@@ -148,7 +149,8 @@ class  MDCTaskBuilder extends PointingTaskBuilder {
   void _switchToNextSubspace() {
     _subspaceID++;
     if (_subspaceID > 3) {
-      _testBlock.completeBlock();
+      if (_testBlock != null)
+        _testBlock.completeBlock();
       return;
     }
     _subspace = Subspace.values[_subspaceID];
@@ -156,7 +158,8 @@ class  MDCTaskBuilder extends PointingTaskBuilder {
   }
 
   void _switchToNextTarget() {
-    _testBlock.recordTrail(_currentTargetIndex,
+    if (_testBlock != null)
+      _testBlock.recordTrail(_currentTargetIndex,
         dwellTime: pointer.getExactDwellDuration());
     targets.removeLast();
     _currentTargetIndex++;
@@ -169,7 +172,8 @@ class  MDCTaskBuilder extends PointingTaskBuilder {
   }
 
   void drawTargets(Canvas canvas) {
-    if (targets.length > 0 && !_testBlock.isCompleted()) {
+    final completed = _testBlock == null ? false : _testBlock.isCompleted();
+    if (targets.length > 0 && !completed) {
       if (targets[0].pressed)
         _switchToNextTarget();
       else

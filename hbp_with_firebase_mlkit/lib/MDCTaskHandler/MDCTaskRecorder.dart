@@ -53,7 +53,8 @@ class MDCTaskRecorder {
     _currentTestUploaded = false;
   }
 
-  MDCTaskRecorder(this._canvasSize, this._pointer, this._experimentID, this._subjectID, {Function exitAction, context}) {
+  MDCTaskRecorder(this._canvasSize, this._pointer, this._experimentID,
+      this._subjectID, {Function exitAction, context}) {
     _context = context;
     _closeAction = exitAction;
     _createTest(); //config: configs[_testID-1]

@@ -115,12 +115,13 @@ class MDCTestBlock {
     _startMoment = _now;
     _lastSelectionMoment = _startMoment;
     if (config == null)
-      _taskBuilder = MDCTaskBuilder(_canvasSize, _pointer, this);
+      _taskBuilder = MDCTaskBuilder(_canvasSize, _pointer, recorder: this);
     else if (config.containsKey('PointingTaskType')) {
       if (config['PointingTaskType'] == PointingTaskType.Jeff)
         _taskBuilder = JeffTaskBuilder(_canvasSize, _pointer);
       else // if (pointingTaskType == PointingTaskType.MDC)
-       _taskBuilder = MDCTaskBuilder(_canvasSize, _pointer, this, layout: config);
+       _taskBuilder = MDCTaskBuilder(_canvasSize, _pointer,
+           recorder: this, layout: config);
     }
   }
 
@@ -225,12 +226,13 @@ class MDCTestBlock {
 
   void setConfiguration(Map<String, dynamic> config) {
     if (config == null)
-      _taskBuilder = MDCTaskBuilder(_canvasSize, _pointer, this);
+      _taskBuilder = MDCTaskBuilder(_canvasSize, _pointer, recorder: this);
     else if (config.containsKey('PointingTaskType')) {
       if (config['PointingTaskType'] == PointingTaskType.Jeff)
         _taskBuilder = JeffTaskBuilder(_canvasSize, _pointer);
       else // if (pointingTaskType == PointingTaskType.MDC)
-        _taskBuilder = MDCTaskBuilder(_canvasSize, _pointer, this, layout: config);
+        _taskBuilder = MDCTaskBuilder(_canvasSize, _pointer,
+            recorder: this, layout: config);
     }
   }
 

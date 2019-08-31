@@ -206,6 +206,8 @@ class MDCTest {
 
   TestState getState() => _state;
 
+  int getID() => _testID;
+
   bool isFirstBlock() => _blockID == 1;
 
   bool isBlockStarted() => _state != TestState.BlockNotStarted;
