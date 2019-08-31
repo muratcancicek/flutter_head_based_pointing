@@ -25,7 +25,9 @@ class MDCTestBlock {
   List<Map> _selections = List<Map>();
   List<Map> _trailLogs = List<Map>();
   List<Map> _transitions = List<Map>();
+  List<Map> _transitionsWithPath = List<Map>();
   List<Map> _trails = List<Map>();
+  List<Map> _trailsWithPath = List<Map>();
   double _lastMovementDuration = 0;
   double _totalPauseDuration = 0;
   double _pauseDuration = 0;
@@ -52,16 +54,21 @@ class MDCTestBlock {
     'Position': offsetToList(pos),
   };
 
-  Map<String, dynamic> trailLog(id, double duration,
-      List<Map> trail, Offset target) => {
-    'TrailID': id,
-    'Duration': duration,
-    'Start':  trail.first,
-    'End': trail.last,
-    'TargetID': _targetID,
-    'TargetLocation': offsetToList(target),
-//    'Logs': trail,
-  };
+  Map<String, dynamic> trailLog(id, double duration, Offset target,
+    List<Map> trail, {bool addPath: false}) {
+    Map<String, dynamic> t = {
+      'TrailID': id,
+      'Duration': duration,
+      'Start': trail.first,
+      'End': trail.last,
+      'TargetID': _targetID,
+      'TargetLocation': offsetToList(target),
+    };
+
+    if (addPath)
+      t['Logs'] = trail;
+    return t;
+  }
 
   Map<String, dynamic> selectionLog(id, int moment, Offset pos, mode, Offset target) => {
     'SelectionID': id,
@@ -73,10 +80,19 @@ class MDCTestBlock {
   };
 
   Map<String, dynamic> logInformation() => {
-    'CorrectSelections':  _selections,
-    'MissedSelections':  _missedSelections,
+    'CorrectSelections': _selections,
     'trails': _trails, // frame by frame pointer logs with timestamps
     'transitions': _transitions, // pointer logs with timestamps between subspaces
+  };
+
+  Map<String, dynamic> logInformationWithPath(int docID, int testID) => {
+    'DocID': docID,
+    'TestID': testID,
+    'BlockID': _blockID,
+    'CorrectSelections': _selections,
+    'MissedSelections': _missedSelections,
+    'trails': _trailsWithPath, // frame by frame pointer logs with timestamps
+    'transitions': _transitionsWithPath, // pointer logs with timestamps between subspaces
   };
 
   Map<String, dynamic> blockInformation({bool completedSuccessfully: true}) => {
@@ -119,13 +135,18 @@ class MDCTestBlock {
   void _recordTrailLog(currentTargetIndex, selectionMoment, target) {
     _lastMovementDuration = (selectionMoment - _lastSelectionMoment) / 1000;
     if (currentTargetIndex > 0) {
-      final log = trailLog(_trailID, _lastMovementDuration, _trailLogs, target);
+      final log = trailLog(_trailID, _lastMovementDuration, target, _trailLogs);
       _trails.add(log);
+      final log2 = trailLog(_trailID, _lastMovementDuration, target, _trailLogs,
+          addPath: true);
+      _trailsWithPath.add(log2);
       _trailID++;
     } else {
-      final log = trailLog(_transitionID, _lastMovementDuration,
-          _trailLogs, target);
+      final log = trailLog(_transitionID, _lastMovementDuration, target, _trailLogs);
       _transitions.add(log);
+      final log2 = trailLog(_trailID, _lastMovementDuration, target, _trailLogs,
+          addPath: true);
+      _transitionsWithPath.add(log2);
       _transitionID++;
     }
     _trailLogs = List<Map>();

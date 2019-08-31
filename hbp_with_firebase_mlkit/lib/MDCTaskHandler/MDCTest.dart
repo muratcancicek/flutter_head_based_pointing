@@ -110,15 +110,15 @@ class MDCTest {
   }
 
 
-  void addBlockInfoOnCloud(Map<String, dynamic> blockInfo) {
-    CollectionReference col = Firestore.instance.collection(_experimentID);
+  void addBlockInfoOnCloud() {
     final blockName = 'T$_testID-B$_blockID';
+    final blockInfo = _block.logInformationWithPath(_blockID, _testID);
+    CollectionReference col = Firestore.instance.collection(_experimentID);
     col.document(blockName).setData(blockInfo);
   }
   Future<bool> saveBlockIfWanted() async {
     if (await isUserSure(text: 'Save this block?')) {
-      final blockInfo = _block.logInformation();
-      addBlockInfoOnCloud(blockInfo);
+      addBlockInfoOnCloud();
       _blocks.add(_block.blockInformation(completedSuccessfully: true));
       return true;
     }
