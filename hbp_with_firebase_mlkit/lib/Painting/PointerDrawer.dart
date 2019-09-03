@@ -58,7 +58,8 @@ class PointerDrawer {
     if (_targets != null)
       if (_targets.length > 0)
         pointer.setHighlighting(_targets[0].highlighted);
-    if (pointer.highlights())
+    if (pointer.highlights() &&
+        pointer.isDwellingEnabled())
       _drawDwellingArc(canvas, width);
   }
 

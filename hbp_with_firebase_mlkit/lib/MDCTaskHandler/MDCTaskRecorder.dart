@@ -25,7 +25,8 @@ class MDCTaskRecorder {
   var _context;
   MDCTest _test;
   bool _completed = false;
-  bool _currentTestUploaded = false;
+//  bool _currentTestUploaded = false;
+  dynamic _tutorialBuilder;
 
   Map<String, dynamic> subjectInformation({bool completedSuccessfully: true}) => {
     'ExperimentID': _experimentID,
@@ -50,7 +51,7 @@ class MDCTaskRecorder {
     final now = new DateTime.now().millisecondsSinceEpoch;
     _test = MDCTest(_canvasSize, _testID, _pointer, _experimentID, now);
     _backAction = _test.restartBlock;
-    _currentTestUploaded = false;
+//    _currentTestUploaded = false;
   }
 
   MDCTaskRecorder(this._canvasSize, this._pointer, this._experimentID,
@@ -59,10 +60,13 @@ class MDCTaskRecorder {
     _closeAction = exitAction;
     _createTest(); //config: configs[_testID-1]
     _nextAction = _test.start;
+    _tutorialBuilder = MDCTaskBuilder(_canvasSize, _pointer);
   }
 
   void _applyCurrentConfiguration() {
     final currentConfig = configs[_testID-1];
+    _tutorialBuilder = MDCTaskBuilder(_canvasSize, _pointer,
+        layout: configs[_testID-1]);
     _testCount = configs.length;
     _pointer.updateSelectionMode(currentConfig['SelectionMode']);
     _pointer.updateYSpeed(currentConfig['PointerXSpeed']);
@@ -71,6 +75,8 @@ class MDCTaskRecorder {
   }
 
   void updateTestInfoOnCloud(completedSuccessfully) {
+    if (_experimentID == null)
+      return;
     final expInfo = subjectInformation(completedSuccessfully: completedSuccessfully);
     Firestore.instance.collection(_experimentID).document('Test Logs').setData(expInfo);
   }
@@ -85,6 +91,8 @@ class MDCTaskRecorder {
   }
 
   Future<bool> saveTestIfWanted(completedSuccessfully, {exp: false}) async {
+    if (_experimentID == null)
+      return false;
     if (await _test.isUserSure(text: 'Save Test $_testID?')) {
       final info = _test.testInformation(completedSuccessfully: exp);
 //      if (_tests.length > 0)
@@ -127,6 +135,8 @@ class MDCTaskRecorder {
   }
 
   void switchNextBlock() async {
+    _tutorialBuilder = MDCTaskBuilder(_canvasSize, _pointer,
+        layout: configs[_testID-1]);
     if (_completed) {
       return;
     }
@@ -137,7 +147,7 @@ class MDCTaskRecorder {
 //        _tests.removeLast();
       _tests[_testID.toString()] = _test.testInformation(completedSuccessfully: false);
       updateTestInfoOnCloud(false);
-      _currentTestUploaded = true;
+//      _currentTestUploaded = true;
     }
   }
 
@@ -226,6 +236,8 @@ class MDCTaskRecorder {
   MDCTest getCurrentTest() => _test;
 
   MDCTaskBuilder getTaskBuilder() => _test.getTaskBuilder();
+
+  MDCTaskBuilder getTutorialBuilder() => _tutorialBuilder;
 
   String getTitleToDisplay() => _titleToDisplay;
 

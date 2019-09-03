@@ -16,7 +16,6 @@ class TestConfiguration {
   double angle;
   double pointerXSpeed;
   double pointerYSpeed;
-
   
   TestConfiguration.fromJSON(Map<String, dynamic> m) {
      id = m['ID'];
@@ -108,6 +107,7 @@ class ConfigScreen {
   int testID;
   String key;
   dynamic value;
+
   TestConfiguration dummyConfig = TestConfiguration(
     1, // id
     PointingTaskType.MDC, //pointingTaskType,
@@ -124,14 +124,13 @@ class ConfigScreen {
   List<TestConfiguration> configs;
   List<TestConfiguration> _finalConfigs;
 
-  void loadLastConfigurations() async {
+  Future<List<TestConfiguration>> loadLastConfigurations() async {
     configs = List<TestConfiguration>();
     final col = Firestore.instance.collection('LastestConfiguration');
     final data = (await col.getDocuments()).documents.first.data;
     if (data.containsKey('Tests')) {
       final tests = data['Tests'].map((c) =>
           TestConfiguration.fromJSON(new Map<String, dynamic>.from(c))).toList();
-      print(tests.runtimeType);
       for (var c in tests)
         configs.add(c);
       print('Loaded the following test variables from cloud: $configs');
@@ -142,10 +141,11 @@ class ConfigScreen {
     _finalConfigs = List<TestConfiguration>();
     configs.forEach((c) =>
         _finalConfigs.add(TestConfiguration.fromJSON(c.toJSON())));
+    return _finalConfigs;
   }
 
-  ConfigScreen() {
-    loadLastConfigurations();
+  ConfigScreen()  {
+     loadLastConfigurations();
   }
 
 
@@ -290,11 +290,13 @@ class ConfigScreen {
   }
 
   List<Map<String, dynamic>> getFinalConfiguration() {
+//    if (_finalConfigs == null)Future><
+//      await loadLastConfigurations(); async
     return _finalConfigs
         .map((TestConfiguration c) => c.toJSON()).toList();
   }
 
-  void save() {
+  Future save() async {
     _finalConfigs = configs;
     final config = getFinalConfiguration();
     final col = Firestore.instance.collection('LastestConfiguration');

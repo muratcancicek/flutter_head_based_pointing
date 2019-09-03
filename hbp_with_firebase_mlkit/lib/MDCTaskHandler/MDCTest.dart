@@ -65,7 +65,8 @@ class MDCTest {
     _block = MDCTestBlock(_canvasSize, _blockID, _pointer, _now, config: config);
   }
 
-  MDCTest(this._canvasSize, this._testID, this._pointer, this._experimentID, this._now, {Map config, context}) {
+  MDCTest(this._canvasSize, this._testID, this._pointer, this._experimentID,
+      this._now, {Map config, context}) {
     _context = context;
     if (config != null)
       _blockCount = config['BlockCount'];
@@ -109,14 +110,18 @@ class MDCTest {
     _state = TestState.StudyCompleted;
   }
 
-
   void addBlockInfoOnCloud() {
+    if (_experimentID == null)
+      return;
     final blockName = 'T$_testID-B$_blockID';
     final blockInfo = _block.logInformationWithPath(_blockID, _testID);
     CollectionReference col = Firestore.instance.collection(_experimentID);
     col.document(blockName).setData(blockInfo);
   }
+
   Future<bool> saveBlockIfWanted() async {
+    if (_experimentID == null)
+      return false;
     if (await isUserSure(text: 'Save this block?')) {
       addBlockInfoOnCloud();
       _blocks.add(_block.blockInformation(completedSuccessfully: true));

@@ -64,13 +64,21 @@ class MyMainViewState extends State<MyMainView> {
     setState(() {_taskScreen.updateInput(result, context: context); });
   }
 
+  Future setTaskScreenConfiguration() async {
+    final config = _configScreen.getFinalConfiguration();
+    if (config != null)
+      _taskScreen.setConfiguration(config);
+  }
+
   @override
   void initState() {
     super.initState();
     Screen.keepOn(true);
     _configScreen = ConfigScreen();
     _cameraHandler = CameraHandler(this);
-    _taskScreen = TaskScreen(_cameraHandler, _experimentID, _subjectID, exitAction: _setAppStateWelcome, context: context);
+    _taskScreen = TaskScreen(_cameraHandler, _experimentID, _subjectID,
+        exitAction: _setAppStateWelcome, context: context);
+//    setTaskScreenConfiguration();
   }
 
   void _setAppStateWelcome()  async {
@@ -80,11 +88,13 @@ class MyMainViewState extends State<MyMainView> {
       _experimentID = null;
       _subjectID = null;
       _taskScreen = TaskScreen(
-          _cameraHandler, _experimentID, _subjectID, exitAction: _setAppStateWelcome, context: context);
+          _cameraHandler, _experimentID, _subjectID, exitAction:
+      _setAppStateWelcome, context: context);
     }
   }
 
-  void _setAppStateConfigure() {
+  Future _setAppStateConfigure() async {
+    await _configScreen.loadLastConfigurations();
     _state = AppState.configure;
   }
 
@@ -157,7 +167,8 @@ class MyMainViewState extends State<MyMainView> {
           _experimentID = '$_experimentID-$_subjectID';
         }
       Firestore.instance.document(_experimentID);
-      addExperimentDocumentData('IDs', {'ID': _experimentID, 'SubjectID': _subjectID});
+      addExperimentDocumentData('IDs', {'ID': _experimentID,
+        'SubjectID': _subjectID});
       final configs = _configScreen.getFinalConfiguration();
       addExperimentDocumentData('TestConfigurations', {'List': configs});
       print('Starting $_experimentID');
@@ -167,8 +178,10 @@ class MyMainViewState extends State<MyMainView> {
   Future _setAppStateTesting() async {
     await _startSavingLogsIfWanted();
     _state = AppState.test;
-    _taskScreen = TaskScreen(_cameraHandler, _experimentID, _subjectID, exitAction: _setAppStateWelcome, context: context);
-    _taskScreen.setConfiguration(_configScreen.getFinalConfiguration());
+    _taskScreen = TaskScreen(_cameraHandler, _experimentID, _subjectID,
+        exitAction: _setAppStateWelcome, context: context);
+    _taskScreen.startStudyScreen();
+    setTaskScreenConfiguration();
   }
 
   RaisedButton _getAppBarButton(String text, Function onPressed, Color color) {

@@ -111,18 +111,25 @@ class MDCTestBlock {
     'LogInformation': logInformation(), // lists of important timestamps and pointer logs
   };
 
-  MDCTestBlock(this._canvasSize, this._blockID, this._pointer, this._now, {Map config}) {
-    _startMoment = _now;
-    _lastSelectionMoment = _startMoment;
+  void setConfiguration(Map<String, dynamic> config) {
     if (config == null)
       _taskBuilder = MDCTaskBuilder(_canvasSize, _pointer, recorder: this);
     else if (config.containsKey('PointingTaskType')) {
       if (config['PointingTaskType'] == PointingTaskType.Jeff)
         _taskBuilder = JeffTaskBuilder(_canvasSize, _pointer);
       else // if (pointingTaskType == PointingTaskType.MDC)
-       _taskBuilder = MDCTaskBuilder(_canvasSize, _pointer,
-           recorder: this, layout: config);
-    }
+        _taskBuilder = MDCTaskBuilder(_canvasSize, _pointer,
+            recorder: this, layout: config);
+    } else
+      _taskBuilder = MDCTaskBuilder(_canvasSize, _pointer,
+          recorder: this, layout: config);
+
+  }
+
+  MDCTestBlock(this._canvasSize, this._blockID, this._pointer, this._now, {Map config}) {
+    _startMoment = _now;
+    _lastSelectionMoment = _startMoment;
+    setConfiguration(config);
   }
 
   void updateTaskBuilder(MDCTaskBuilder taskBuilder) {
@@ -224,18 +231,6 @@ class MDCTestBlock {
     return 'Test: $_testID B: $_blockID T: $target/$count D: $duration';
   }
 
-  void setConfiguration(Map<String, dynamic> config) {
-    if (config == null)
-      _taskBuilder = MDCTaskBuilder(_canvasSize, _pointer, recorder: this);
-    else if (config.containsKey('PointingTaskType')) {
-      if (config['PointingTaskType'] == PointingTaskType.Jeff)
-        _taskBuilder = JeffTaskBuilder(_canvasSize, _pointer);
-      else // if (pointingTaskType == PointingTaskType.MDC)
-        _taskBuilder = MDCTaskBuilder(_canvasSize, _pointer,
-            recorder: this, layout: config);
-    }
-  }
-
   void completeBlock() {
     _completed = true;
   }
@@ -247,4 +242,10 @@ class MDCTestBlock {
   int getStartMoment() => _startMoment;
 
   double getLastMovementDuration() => _lastMovementDuration;
+
+//  String getSummary() {
+//    if (_trails.length == 0 || _transitions.length == 0)
+//      return 'Nothing to show';
+//    double d = 0;
+//  }
 }
