@@ -74,7 +74,7 @@ class MyMainViewState extends State<MyMainView> {
   void initState() {
     super.initState();
     Screen.keepOn(true);
-    _configScreen = ConfigScreen();
+    _configScreen = ConfigScreen(context: context);
     _cameraHandler = CameraHandler(this);
     _taskScreen = TaskScreen(_cameraHandler, _experimentID, _subjectID,
         exitAction: _setAppStateWelcome, context: context);
@@ -94,7 +94,7 @@ class MyMainViewState extends State<MyMainView> {
   }
 
   Future _setAppStateConfigure() async {
-    await _configScreen.loadLastConfigurations();
+//    await _configScreen.loadLastConfigurations();
     _state = AppState.configure;
   }
 
@@ -202,9 +202,9 @@ class MyMainViewState extends State<MyMainView> {
     ];
   }
 
-
   AppBar getAppBar() {
-    RaisedButton backButton = _getAppBarButton('Back', _setAppStateWelcome, Colors.red);
+    RaisedButton backButton = _getAppBarButton('Back', _setAppStateWelcome,
+        Colors.red);
     switch(_state) {
       case AppState.configure:
         return _configScreen.getAppBar(backButton);

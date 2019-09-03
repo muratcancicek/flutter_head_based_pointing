@@ -1,12 +1,10 @@
 import 'package:HeadPointing/Painting/PointingTaskBuilding/MDCTaskBuilder.dart';
 import 'package:HeadPointing/MDCTaskHandler/MDCTest.dart';
-import 'package:HeadPointing/pointer.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:path_provider/path_provider.dart';
-import 'dart:io';
+import 'package:HeadPointing/pointer.dart';
 
 class MDCTaskRecorder {
-  List<Map<String, dynamic>> configs;
+  List<dynamic> configs;
   Map<String, dynamic> _tests = Map<String, dynamic>();
   String _exitActionTest = 'Exit\nStudy';
   String _backActionText = 'Discard';
@@ -35,17 +33,6 @@ class MDCTaskRecorder {
     'TestCount': _testCount,
     'Tests': _tests,
   };
-
-  void saveJsonFile({Directory dir, String fileName: 'BlockOne'}) async {
-    fileName += (new DateTime.now().millisecondsSinceEpoch).toString();
-    Directory appDocDir = await getApplicationDocumentsDirectory();
-    String path = appDocDir.path + "/" + fileName+'.json';
-    print("Creating file to $path!");
-    File file = new File(path);
-    final json = subjectInformation().toString();
-    file.createSync();
-    file.writeAsStringSync(json);
-  }
 
   void _createTest({config}) {
     final now = new DateTime.now().millisecondsSinceEpoch;
@@ -228,7 +215,7 @@ class MDCTaskRecorder {
     }
   }
 
-  void setConfiguration(List<Map<String, dynamic>> finalConfiguration) {
+  void setConfiguration(List<dynamic> finalConfiguration) {
     configs = finalConfiguration;
     _applyCurrentConfiguration();
   }

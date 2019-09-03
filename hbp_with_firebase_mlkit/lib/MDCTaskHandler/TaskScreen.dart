@@ -200,7 +200,7 @@ class TaskScreen {
     _experimentID = experimentID;
   }
 
-  void setConfiguration(List<Map<String, dynamic>> finalConfiguration) {
+  void setConfiguration(List<dynamic> finalConfiguration) {
     _recorder.setConfiguration(finalConfiguration);
   }
 

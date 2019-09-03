@@ -1,15 +1,19 @@
 import 'package:HeadPointing/Painting/PointingTaskBuilding/PointingTaskBuilder.dart';
 import 'package:HeadPointing/MDCTaskHandler/TestConfiguration.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:HeadPointing/pointer.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'dart:io';
 
 class ConfigScreen {
   List documents;
   int testID;
   String key;
   dynamic value;
+  var _context;
 
   TestConfiguration dummyConfig = TestConfiguration(
     1, // id
@@ -24,14 +28,26 @@ class ConfigScreen {
     8, // pointerXSpeed,
   );
 
-  List<TestConfiguration> configs;
-  List<TestConfiguration> _finalConfigs;
+  List<dynamic> configs;
+  List<dynamic> _finalConfigs;
+
+  void _saveConfigFile(config) async {
+    final fileName = 'LocalConfiguration';
+    Directory appDocDir = await getApplicationDocumentsDirectory();
+    String path = appDocDir.path + "/" + fileName+'.json';
+    print("Creating file to $path!");
+    File file = new File(path);
+    final jsonStr = json.encode(config);
+    file.createSync();
+    file.writeAsStringSync(jsonStr);
+  }
 
   Future<List<TestConfiguration>> loadLastConfigurations() async {
     configs = List<TestConfiguration>();
     final col = Firestore.instance.collection('LastestConfiguration');
     final data = (await col.getDocuments()).documents.first.data;
     if (data.containsKey('Tests')) {
+      _saveConfigFile(data['Tests']);
       final tests = data['Tests'].map((c) =>
           TestConfiguration.fromJSON(new Map<String, dynamic>.from(c))).toList();
       for (var c in tests)
@@ -46,11 +62,25 @@ class ConfigScreen {
         _finalConfigs.add(TestConfiguration.fromJSON(c.toJSON())));
     return _finalConfigs;
   }
-
-  ConfigScreen()  {
+  void _loadLocalConfigFile() async {
+    final fileName = 'LocalConfiguration';
+    Directory appDocDir = await getApplicationDocumentsDirectory();
+    String path = appDocDir.path + "/" + fileName+'.json';
+    File file = new File(path);
+    if (await file.exists()) {
+      print("Reading file from $path!");
+      final list = json.decode(await file.readAsString());
+      configs = list.map((c) => TestConfiguration.fromJSON(c)).toList();
+      _finalConfigs = configs;
+    } else {
      loadLastConfigurations();
+    }
   }
 
+  ConfigScreen({context})  {
+    _context = context;
+    _loadLocalConfigFile();
+  }
 
   void editField(int id, String k, dynamic value) {
     print('$id $k $value');
@@ -63,6 +93,7 @@ class ConfigScreen {
         child: Text(value.toString().split('.').last),
       );
   }
+
   List<DropdownMenuItem<dynamic>> listToDropdownMenuItem(List list) {
     return list.map(toDropdownMenuItem).toList();
   }
@@ -148,7 +179,7 @@ class ConfigScreen {
     return list;
   }
 
-  ExpansionTile getTestTile(TestConfiguration config) {
+  ExpansionTile getTestTile(dynamic config) {
     final id = config.id;
     return ExpansionTile(
       title: Text('Test $id'),
@@ -192,40 +223,100 @@ class ConfigScreen {
     );
   }
 
-  List<Map<String, dynamic>> getFinalConfiguration() {
-//    if (_finalConfigs == null)Future><
-//      await loadLastConfigurations(); async
-    return _finalConfigs
-        .map((TestConfiguration c) => c.toJSON()).toList();
+  Text _getAppBarText() {
+    return Text('', textAlign: TextAlign.center);
   }
 
-  Future save() async {
-    _finalConfigs = configs;
-    final config = getFinalConfiguration();
-    final col = Firestore.instance.collection('LastestConfiguration');
-    col.document('Configuration').setData({'Tests': config});
-    print('Updated config with $config');
+  List<dynamic> getFinalConfiguration() {
+    return _finalConfigs.map((c) => c.toJSON()).toList();
   }
 
-  RaisedButton _getAppBarButton() {
+  Future<bool> isUserSure({String text}) async {
+    if (text == null)
+      text = 'Are you sure?';
+    return await showDialog(
+        context: _context,
+        builder: (_) => new SimpleDialog(
+          title: new Text(text),
+          children: <Widget>[
+            new SimpleDialogOption(
+              child: new Text('YES'),
+              onPressed: (){Navigator.pop(_context, true);},
+            ),
+            new SimpleDialogOption(
+              child: new Text('NO'),
+              onPressed: (){Navigator.pop(_context, false);},
+            ),
+          ],
+        )
+    );
+  }
+
+  Future _download() async {
+    if (await isUserSure(text: 'Overwrite the current test configurations'
+        ' with the global configurations?')) {
+      loadLastConfigurations();
+    }
+  }
+
+  RaisedButton _getDownloadButton() {
+    return RaisedButton(
+      elevation: 4.0,
+      color: Colors.purpleAccent,
+      textColor: Colors.white,
+      child: Text('Download\nGlobal\nConfig'),
+      splashColor: Colors.blueGrey,
+      onPressed: _download,
+    );
+  }
+
+  Future _save() async {
+    if (await isUserSure(text: 'Save the test configurations locally?')) {
+      _finalConfigs = configs;
+      final config = getFinalConfiguration();
+      print('Updated local config with $config');
+      _saveConfigFile(config);
+    }
+  }
+
+  RaisedButton _getLocalSaveButton() {
     return RaisedButton(
       elevation: 4.0,
       color: Colors.purple,
       textColor: Colors.white,
-      child: Text('Save'),
+      child: Text('Save\nConfig\nLocally'),
       splashColor: Colors.blueGrey,
-      onPressed: save,
+      onPressed: _save,
     );
   }
 
-  Text _getAppBarText() {
-    return Text('Edit Test Variables', textAlign: TextAlign.center);
+  Future _upload() async {
+    if (await isUserSure(text: 'Overwrite the global test configurations'
+        ' with these?')) {
+      _finalConfigs = configs;
+      final config = getFinalConfiguration();
+      final col = Firestore.instance.collection('LastestConfiguration');
+      col.document('Configuration').setData({'Tests': config});
+      print('Updated global config with $config');
+    }
+  }
+
+  RaisedButton _getUploadButton() {
+    return RaisedButton(
+      elevation: 4.0,
+      color: Colors.deepPurpleAccent,
+      textColor: Colors.white,
+      child: Text('Update\nGlobal\nConfig'),
+      splashColor: Colors.blueGrey,
+      onPressed: _upload,
+    );
   }
 
   AppBar getAppBar(RaisedButton backButton) {
     return AppBar(
       title: _getAppBarText(),
-      actions: <Widget>[_getAppBarButton(), backButton],
+      actions: <Widget>[_getDownloadButton(), _getLocalSaveButton(),
+        _getUploadButton(), backButton],
     );
   }
 
