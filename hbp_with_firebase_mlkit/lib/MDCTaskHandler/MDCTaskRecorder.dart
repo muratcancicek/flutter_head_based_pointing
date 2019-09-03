@@ -9,9 +9,11 @@ class MDCTaskRecorder {
   String _exitActionTest = 'Exit\nStudy';
   String _backActionText = 'Discard';
   String _nextActionText = 'Start';
+  String _skipActionText = 'Skip';
   String _titleToDisplay = '';
   Function _closeAction;
   Function _nextAction;
+  Function _skipAction;
   Function _backAction;
   Function _exitAction;
   int _testCount = 2;
@@ -152,12 +154,16 @@ class MDCTaskRecorder {
         _exitAction = _closeAction;
         _exitActionTest = 'End\nExp.';
         if (_test.isFirstBlock()) {
+          _skipAction = () async {if (await _test.isUserSure()) switchNextTest();};
+          _skipActionText = 'Skip\nThis\nTest';
           if (_testID > 1) {
             _backAction = _repeatTest;
             _backActionText = 'Repeat\nLast\nTest';
           } else
             _backAction = null;
         } else {
+          _skipAction = () async {if (await _test.isUserSure()) switchNextBlock();};
+          _skipActionText = 'Skip\nThis\nBlock';
           _backAction = _test.repeatBlock;
           _backActionText = 'Repeat\nLast\nBlock';
         }
@@ -168,6 +174,7 @@ class MDCTaskRecorder {
       case TestState.BlockRunning:
         _exitAction = null;
         _backAction = null;
+        _skipAction = null;
         _nextAction = _test.pause;
         _nextActionText = 'PAUSE!';
         _titleToDisplay = _test.getCurrentStatusToDisplay();
@@ -177,6 +184,8 @@ class MDCTaskRecorder {
         _exitActionTest = 'End\nExp.';
         _backAction = _test.restartBlock;
         _backActionText = 'Restart\nBlock';
+        _skipAction = () async {if (await _test.isUserSure()) switchNextBlock();};
+        _skipActionText = 'Skip\nThis\nBlock';
         _nextAction = _test.resume;
         _nextActionText = 'RESUME!';
         _titleToDisplay = _test.getDynamicTitleToDisplay();
@@ -231,6 +240,10 @@ class MDCTaskRecorder {
   Function getNextAction() => _nextAction;
 
   String getNextActionString() => _nextActionText;
+
+  Function getSkipAction() => _skipAction;
+
+  String getSkipActionString() => _skipActionText;
 
   Function getExitAction() => _exitAction;
 

@@ -69,6 +69,16 @@ class TaskScreen {
       onPressed: _recorder.getBackAction(),
     );
   }
+  RaisedButton _getSkipButton() {
+    return RaisedButton(
+      elevation: 4.0,
+      color: Colors.deepPurpleAccent,
+      textColor: Colors.white,
+      child: Text(_recorder.getSkipActionString()),
+      splashColor: Colors.blueGrey,
+      onPressed: _recorder.getSkipAction(),
+    );
+  }
   RaisedButton _getPrimaryButton() {
     return RaisedButton(
       elevation: 4.0,
@@ -86,6 +96,8 @@ class TaskScreen {
       actions.add(_getExitButton());
     if (_recorder.getBackAction() != null)
       actions.add(_getBackButton());
+    if (_recorder.getSkipAction() != null)
+      actions.add(_getSkipButton());
     actions.add(_getPrimaryButton());
     return AppBar(
       title: _getAppBarText(),
@@ -135,16 +147,35 @@ class TaskScreen {
 
     final isFirstBlock = _recorder.getCurrentTest().isFirstBlock();
     final text = !_studyStarted ? text1 : (isFirstBlock ? text2 : text3);
-    return Center(
-      child: Container(
-        width: 350,
-        child: Text(text,
+
+    List<Widget> texts = List<Widget>();
+    if (_recorder.getBackAction() != null && _recorder.getSkipAction() != null
+        &&_studyStarted)
+      texts.add(
+          Text(_recorder.getTitleToDisplay(),
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 40.0,
+            )
+        )
+      );
+    texts.add(
+        Text(text,
             textAlign: TextAlign.justify,
             style: TextStyle(
               color: Colors.black,
               fontSize: 20.0,
             )
-         ),
+        )
+    );
+    return Center(
+      child: Container(
+        width: 350,
+        child: ListView(
+          shrinkWrap: true,
+          children: texts,
+        )
       )
     );
   }

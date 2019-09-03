@@ -182,9 +182,12 @@ class MDCTest {
     final blockID = _blockID - 1;
     if (await isUserSure(text: 'Delete Block $blockID records and replay?')) {
       print('Repeat last block!');
-      _blockID--;
+      if(_blockID > 1) {
+        _blockID--;
+        if (_blocks.isNotEmpty)
+          _blocks.removeLast();
+      }
       _state = TestState.BlockNotStarted;
-      _blocks.removeLast();
       _block =
           MDCTestBlock(_canvasSize, _blockID, _pointer, _now, config: _config);
     }
