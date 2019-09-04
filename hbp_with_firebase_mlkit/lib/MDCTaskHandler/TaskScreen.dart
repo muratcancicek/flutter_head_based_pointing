@@ -36,6 +36,7 @@ class TaskScreen {
 
   void updateInput(dynamic result, {context, config}) {
     _context = context;
+    _faces = result;
     _updateCanvasSize();
     _recorder.getTaskBuilder().canvasSize = _canvasSize;
     _recorder.getTutorialBuilder().canvasSize = _canvasSize;
@@ -215,13 +216,14 @@ class TaskScreen {
 
   Stack getTaskScreenView() {
     List<Widget> screen = List<Widget>();
+//    screen.add(_cameraHandler.getCameraPreview());
+    if (_drawingFacialLandmarks)
+      screen.add(_drawFacialLandmarks());
     if (_recorder.isStudyCompleted()) {
       screen.add(_displaySummaryScreen());
     } else if (_recorder.getCurrentTest().isBlockCompleted()) {
       screen.add(_displaySummaryScreen());
     } else if (_recorder.getCurrentTest().isBlockStarted()) { //
-      if (_drawingFacialLandmarks)
-        screen.add(_drawFacialLandmarks());
       screen.add(_drawTargets());
     } else {
       screen.add(_drawTutorial());
