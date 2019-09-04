@@ -15,11 +15,11 @@ enum Subspace {
 class  MDCTaskBuilder extends PointingTaskBuilder {
   List<Target> _subspaceTargets = List<Target>();
   Subspace _subspace = Subspace.TopLeftCorner;
-  Offset _offsetToEdges = Offset(50, 50);
+  Offset _offsetToEdges = Offset(80, 80);
   int _currentTargetIndex = 0;
-  int _outerTargetCount = 2;
-  int _targetWidth = 30;
-  int _amplitude = 160;
+  int _outerTargetCount = 3;
+  int _targetWidth = 60;
+  int _amplitude = 125;
   MDCTestBlock _testBlock;
   int _subspaceID = 0;
   Offset _center;

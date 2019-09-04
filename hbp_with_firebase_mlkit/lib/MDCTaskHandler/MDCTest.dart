@@ -122,13 +122,9 @@ class MDCTest {
   Future<bool> saveBlockIfWanted() async {
     if (_experimentID == null)
       return false;
-    if (await isUserSure(text: 'Save this block?')) {
-      addBlockInfoOnCloud();
-      _blocks.add(_block.blockInformation(completedSuccessfully: true));
-      return true;
-    }
-    else
-      return false;
+    addBlockInfoOnCloud();
+    _blocks.add(_block.blockInformation(completedSuccessfully: true));
+    return true;
   }
 
   Future<bool> switchNextBlock() async {
@@ -211,6 +207,8 @@ class MDCTest {
   }
 
   MDCTaskBuilder getTaskBuilder() => _block.getTaskBuilder();
+
+  MDCTestBlock getCurrentBlock() => _block;
 
   TestState getState() => _state;
 

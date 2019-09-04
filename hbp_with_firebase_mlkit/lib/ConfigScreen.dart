@@ -19,11 +19,11 @@ class ConfigScreen {
     1, // id
     PointingTaskType.MDC, //pointingTaskType,
     SelectionMode.Blinking,//selectionMode,
-    150, // amplitude,
-    40, // targetWidth,
+    125, // amplitude,
+    60, // targetWidth,
     3, // outerTargetCount,
     3, // blockCount
-    10, // angle,
+    30, // angle,
     6, // pointerYSpeed
     8, // pointerXSpeed,
   );
@@ -140,7 +140,8 @@ class ConfigScreen {
       default:
         return Container(
           width: 70,
-          child: Text(value.toString(), textAlign: TextAlign.center),
+          child: Text(value.toStringAsFixed(value.truncateToDouble() == value ?
+          0 : 2), textAlign: TextAlign.center),
           alignment: Alignment(0.0, 0.0),
         );
     }
@@ -321,7 +322,6 @@ class ConfigScreen {
   }
 
   void reset() {
-    print(_finalConfigs);
     configs = List<TestConfiguration>();
     _finalConfigs.forEach((c) =>
         configs.add(TestConfiguration.fromJSON(c.toJSON())));

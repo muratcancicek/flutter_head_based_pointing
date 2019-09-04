@@ -1,4 +1,5 @@
 import 'package:HeadPointing/Painting/PointingTaskBuilding/MDCTaskBuilder.dart';
+import 'package:HeadPointing/MDCTaskHandler/MDCTestBlock.dart';
 import 'package:HeadPointing/MDCTaskHandler/MDCTest.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:HeadPointing/pointer.dart';
@@ -46,7 +47,7 @@ class MDCTaskRecorder {
   MDCTaskRecorder(this._canvasSize, this._pointer, this._experimentID,
       this._subjectID, {Function exitAction, context}) {
     _context = context;
-    _closeAction = exitAction;
+    _closeAction = () {saveTestIfWanted(false); exitAction();};
     _createTest(); //config: configs[_testID-1]
     _nextAction = _test.start;
     _tutorialBuilder = MDCTaskBuilder(_canvasSize, _pointer);
@@ -82,17 +83,10 @@ class MDCTaskRecorder {
   Future<bool> saveTestIfWanted(completedSuccessfully, {exp: false}) async {
     if (_experimentID == null)
       return false;
-    if (await _test.isUserSure(text: 'Save Test $_testID?')) {
-      final info = _test.testInformation(completedSuccessfully: exp);
-//      if (_tests.length > 0)
-//        if (_currentTestUploaded)
-//          _tests.removeLast();
-      _tests[_testID.toString()] = info;
-      updateTestInfoOnCloud(completedSuccessfully);
-      return true;
-    }
-    else
-      return false;
+    final info = _test.testInformation(completedSuccessfully: exp);
+    _tests[_testID.toString()] = info;
+    updateTestInfoOnCloud(completedSuccessfully);
+    return true;
   }
 
   void switchNextTest() async {
@@ -180,7 +174,7 @@ class MDCTaskRecorder {
         _titleToDisplay = _test.getCurrentStatusToDisplay();
         break;
       case TestState.BlockPaused:
-        _exitAction = _closeAction;
+        _exitAction = null;// _closeAction;
         _exitActionTest = 'End\nExp.';
         _backAction = _test.restartBlock;
         _backActionText = 'Restart\nBlock';
@@ -191,7 +185,7 @@ class MDCTaskRecorder {
         _titleToDisplay = _test.getDynamicTitleToDisplay();
         break;
       case TestState.BlockCompleted:
-        _exitAction = _closeAction;
+        _exitAction = null; //_closeAction;
         _exitActionTest = 'End\nExp.';
         _backAction = _test.restartBlock;
         _backActionText = 'Restart\nBlock';
@@ -230,6 +224,8 @@ class MDCTaskRecorder {
   }
 
   MDCTest getCurrentTest() => _test;
+
+  MDCTestBlock getCurrentBlock() => _test.getCurrentBlock();
 
   MDCTaskBuilder getTaskBuilder() => _test.getTaskBuilder();
 

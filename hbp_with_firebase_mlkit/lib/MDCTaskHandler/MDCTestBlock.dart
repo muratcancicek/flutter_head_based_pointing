@@ -3,6 +3,7 @@ import 'package:HeadPointing/Painting/PointingTaskBuilding/JeffTaskBuilder.dart'
 import 'package:HeadPointing/Painting/PointingTaskBuilding/MDCTaskBuilder.dart';
 import 'package:HeadPointing/pointer.dart';
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
 
 List<double> offsetToList(Offset o) => [o.dx, o.dy];
 
@@ -79,8 +80,52 @@ class MDCTestBlock {
     'Coordinates': offsetToList(pos),
   };
 
+  double getIndexOfDifficulty() {
+    final a = _taskBuilder.getAmplitude();
+    final w = _taskBuilder.getTargetWidth();
+    return math.log(a/w+1) / math.log(2);
+  }
+
+  double getTotalTrailDuration() {
+    double mt = 0;
+    final dt = _pointer.isDwellingEnabled() ? _pointer.getDwellTime() : 0;
+    _trails.forEach((l){mt += (l['Duration'] - dt);});
+    return mt;
+  }
+
+  double getTotalTransitionDuration() {
+    double mt = 0;
+    final dt = _pointer.isDwellingEnabled() ? _pointer.getDwellTime() : 0;
+    _transitions.forEach((l){mt += (l['Duration'] - dt);});
+    return mt;
+  }
+
+  double getTotalDuration() {
+    return getTotalTrailDuration() + getTotalTransitionDuration();
+  }
+
+  double getAverageTrailDuration() {
+    return getTotalTrailDuration() / _trails.length;
+  }
+
+  double getAverageTransitionDuration() {
+    return getTotalTransitionDuration() / _transitions.length;
+  }
+
+  double calculateThroughput() {
+    if (_trails.isEmpty)
+      return 0;
+    return getIndexOfDifficulty() / getAverageTrailDuration();
+  }
+
   Map<String, dynamic> logInformation() => {
     'CorrectSelections': _selections,
+    'Throughput': calculateThroughput(),
+    'TotalDuration': getTotalDuration(),
+    'TotalTrailDuration': getTotalTrailDuration(),
+    'AverageTrailDuration': getAverageTrailDuration(),
+    'TotalTransitionDuration': getTotalTransitionDuration(),
+    'AverageTransitionDuration': getAverageTransitionDuration(),
     'trails': _trails, // frame by frame pointer logs with timestamps
     'transitions': _transitions, // pointer logs with timestamps between subspaces
   };
@@ -89,6 +134,12 @@ class MDCTestBlock {
     'DocID': docID,
     'TestID': testID,
     'BlockID': _blockID,
+    'Throughput': calculateThroughput(),
+    'TotalDuration': getTotalDuration(),
+    'TotalTrailDuration': getTotalTrailDuration(),
+    'AverageTrailDuration': getAverageTrailDuration(),
+    'TotalTransitionDuration': getTotalTransitionDuration(),
+    'AverageTransitionDuration': getAverageTransitionDuration(),
     'CorrectSelections': _selections,
     'MissedSelections': _missedSelections,
     'trails': _trailsWithPath, // frame by frame pointer logs with timestamps
@@ -101,6 +152,7 @@ class MDCTestBlock {
     'Paused': _everPaused ? 'Yes' : 'Never',
     'Amplitude': _taskBuilder.getAmplitude(),
     'TargetWidth': _taskBuilder.getTargetWidth(),
+    'IndexOfDifficulty': getIndexOfDifficulty(),
     'BlockTrailCount': _taskBuilder.getBlockTrailCount(),
     'OuterTargetCount': _taskBuilder.getOuterTargetCount(), // ones on circumference
     'SubspaceTargetCount': _taskBuilder.getSubspaceTargetCount(), // in a subspace

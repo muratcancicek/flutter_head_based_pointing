@@ -1,11 +1,14 @@
 import 'package:HeadPointing/Painting/PointingTaskBuilding/PointingTaskBuilder.dart';
 import 'package:HeadPointing/pointer.dart';
+import 'dart:math' as math;
+
 class TestConfiguration {
   int id;
   PointingTaskType pointingTaskType;
   SelectionMode selectionMode;
   int amplitude;
   int targetWidth;
+  double indexOfDifficulty;
   int outerTargetCount;
   int trailCount;
   int blockCount;
@@ -29,6 +32,7 @@ class TestConfiguration {
     }
     amplitude = m['Amplitude'];
     targetWidth = m['TargetWidth'];
+    indexOfDifficulty = math.log(amplitude/targetWidth+1) / math.log(2);
     outerTargetCount = m['OuterTargetCount'];
     trailCount = m['TrailCount'];
     blockCount = m['BlockCount'];
@@ -41,6 +45,7 @@ class TestConfiguration {
       this.amplitude,this.targetWidth, this.outerTargetCount, this.blockCount,
       this.angle, this.pointerXSpeed, this.pointerYSpeed) {
     trailCount = 4 * outerTargetCount;
+    indexOfDifficulty = math.log(amplitude/targetWidth+1) / math.log(2);
   }
 
   Map<String, dynamic> toMap() => <String, dynamic>{
@@ -49,6 +54,7 @@ class TestConfiguration {
     'PointingTaskType': pointingTaskType,
     'Amplitude': amplitude,
     'TargetWidth': targetWidth,
+    'IndexOfDifficulty': indexOfDifficulty,
     'OuterTargetCount': outerTargetCount,
     'TrailCount': trailCount,
     'BlockCount': blockCount,
@@ -65,6 +71,7 @@ class TestConfiguration {
     'PointingTaskType': pointingTaskType.toString().split('.').last,
     'Amplitude': amplitude,
     'TargetWidth': targetWidth,
+    'IndexOfDifficulty': indexOfDifficulty,
     'OuterTargetCount': outerTargetCount,
     'TrailCount': trailCount,
     'BlockCount': blockCount,
@@ -80,9 +87,13 @@ class TestConfiguration {
       case 'PointingTaskType':
         pointingTaskType = value; break;
       case 'Amplitude':
-        amplitude = int.parse(value); break;
+        amplitude = int.parse(value);
+        indexOfDifficulty = math.log(amplitude/targetWidth+1) / math.log(2);
+        break;
       case 'TargetWidth':
-        targetWidth = int.parse(value); break;
+        targetWidth = int.parse(value);
+        indexOfDifficulty = math.log(amplitude/targetWidth+1) / math.log(2);
+        break;
       case 'OuterTargetCount':
         outerTargetCount = int.parse(value);
         trailCount = 4 + 4 * 2 * outerTargetCount; break;

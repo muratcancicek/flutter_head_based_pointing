@@ -106,13 +106,24 @@ class TaskScreen {
   }
 
   Center _displaySummaryScreen() {
+
+    final block = _recorder.getCurrentBlock().logInformation();
+    final d = block['TotalDuration'].toStringAsFixed(2),
+          t = block['Throughput'].toStringAsFixed(2),
+          at = block['AverageTrailDuration'].toStringAsFixed(2),
+          att = block['AverageTransitionDuration'].toStringAsFixed(2);
     return Center(
       child: Container(
+        width: 350,
         child: Text(
-            'Completed the test block!',
+                '\n\nYou completed;'
+                '\n\nThe whole block in $d seconds,'
+                '\n\nA trail in $at seconds on average,'
+                '\n\nA transition in $att seconds on average.'
+                '\n\nTHROUGHPUT: $t bits',
             style: TextStyle(
-              color: Colors.green,
-              fontSize: 30.0,
+              color: Colors.black,
+              fontSize: 20.0,
             )
         ),//
       ),
@@ -131,22 +142,19 @@ class TaskScreen {
 
     final modes = _pointer.getEnabledSelectionModes();
     final m = modes.first.toString().split('.').last;
-    final text2 = 'Here, please practice the next test with $m selection mode '
-        'before the following test starts. '
-        '\n\nYou do not need to complete the targets on this screen and '
-        'please start the test whenever you feel ready.'
-        '\n\nDuring the actual test,\nyou will be seeing the targets with '
-        'the same size and in the same order within this screen.'
-        '\n\nAlso, you are allowed use only one selection method during the test'
-        'which is allowed here.'
-        '\n\nOn the test, please select the targets precisely and as faster as '
-        'you can.';
 
-    final text3 = 'Here, you may take a break or keep practicing the same test '
-        'until you feel you are ready to start the next block of the test.';
+    final block = _recorder.getCurrentBlock().blockInformation();
+    final a = block['Amplitude'],
+          tw = block['TargetWidth'],
+          id = block['IndexOfDifficulty'].toStringAsFixed(2),
+          c = block['BlockTrailCount'];
+    final text2 = '\n\nSlection Mode: $m'
+        '\nAmplitude: $a'
+        '\nTarget Width: $tw'
+        '\nIndex Of Difficulty: $id'
+        '\nNumber of Trail: $c';
 
-    final isFirstBlock = _recorder.getCurrentTest().isFirstBlock();
-    final text = !_studyStarted ? text1 : (isFirstBlock ? text2 : text3);
+    final text = !_studyStarted ? text1 : text2;
 
     List<Widget> texts = List<Widget>();
     if (_recorder.getBackAction() != null && _recorder.getSkipAction() != null
@@ -162,10 +170,10 @@ class TaskScreen {
       );
     texts.add(
         Text(text,
-            textAlign: TextAlign.justify,
+//            textAlign: TextAlign.justify,
             style: TextStyle(
               color: Colors.black,
-              fontSize: 20.0,
+              fontSize: _studyStarted ? 26.0 : 20,
             )
         )
     );

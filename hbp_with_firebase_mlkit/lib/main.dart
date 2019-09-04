@@ -103,7 +103,7 @@ class MyMainViewState extends State<MyMainView> {
     date = date.split('.').first;
     if (_runningMode == MODE.DEBUG)
       date = date.split('T').last;
-    return 'EXp_$date';
+    return 'EXP_$date';
   }
 
   void addExperimentDocumentData(String path, Map<String, dynamic> data) {
