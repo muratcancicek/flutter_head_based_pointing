@@ -111,25 +111,6 @@ class MyMainViewState extends State<MyMainView> {
     exp.document(path).setData(data);
   }
 
-  dynamic doesUserWantToSaveLogs() async {
-    return await showDialog(
-        context: context,
-        builder: (_) => new SimpleDialog(
-          title: new Text('Do you like to save the experiment logs on cloud?'),
-          children: <Widget>[
-            new SimpleDialogOption(
-              child: new Text('YES'),
-              onPressed: (){Navigator.pop(context, Answers.YES);},
-            ),
-            new SimpleDialogOption(
-              child: new Text('NO'),
-              onPressed: (){Navigator.pop(context, Answers.NO);},
-            ),
-          ],
-        )
-    );
-  }
-
   Future<String> getSubjectID() async {
     String id;
     return await showDialog(
@@ -158,21 +139,19 @@ class MyMainViewState extends State<MyMainView> {
   }
 
   Future _startSavingLogsIfWanted() async {
-    if (await doesUserWantToSaveLogs() == Answers.YES) {
-      _experimentID = getUniqueExperimentID();
-      final subjectID = await getSubjectID();
-      if (subjectID != null)
-        if (subjectID.length > 0) {
-          _subjectID = subjectID;
-          _experimentID = '$_experimentID-$_subjectID';
-        }
-      Firestore.instance.document(_experimentID);
-      addExperimentDocumentData('IDs', {'ID': _experimentID,
-        'SubjectID': _subjectID});
-      final configs = _configScreen.getFinalConfiguration();
-      addExperimentDocumentData('TestConfigurations', {'List': configs});
-      print('Starting $_experimentID');
-    }
+    _experimentID = getUniqueExperimentID();
+    final subjectID = await getSubjectID();
+    if (subjectID != null)
+      if (subjectID.length > 0) {
+        _subjectID = subjectID;
+        _experimentID = '$_experimentID-$_subjectID';
+      }
+    Firestore.instance.document(_experimentID);
+    addExperimentDocumentData('IDs', {'ID': _experimentID,
+      'SubjectID': _subjectID});
+    final configs = _configScreen.getFinalConfiguration();
+    addExperimentDocumentData('TestConfigurations', {'List': configs});
+    print('Starting $_experimentID');
   }
 
   Future _setAppStateTesting() async {
