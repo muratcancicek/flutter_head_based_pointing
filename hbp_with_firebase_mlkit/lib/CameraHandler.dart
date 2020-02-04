@@ -7,7 +7,7 @@ import 'utils.dart';
 
 class CameraHandler {
   CameraLensDirection _direction = CameraLensDirection.front;
-  MyMainViewState _viewState;
+  var _viewState;
   bool _isDetecting = false;
   CameraController _camera;
   ImageRotation _rotation;
