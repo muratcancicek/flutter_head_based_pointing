@@ -253,6 +253,14 @@ class TaskScreen {
     _studyStarted = false;
   }
 
+  void onTapDown(BuildContext context, TapDownDetails details) {
+    //  print('${details.globalPosition}');
+    final RenderBox box = context.findRenderObject();
+    final Offset localOffset = box.globalToLocal(details.localPosition);
+    _pointer.setPosition(localOffset);
+    updateInput(null, context: context);
+  }
+
   bool isStudyStarted() => _studyStarted;
 
   bool isStudyCompleted() => _recorder.isStudyCompleted();

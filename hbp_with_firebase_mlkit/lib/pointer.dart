@@ -142,17 +142,36 @@ class Pointer {
 
   bool isDwelling() => _dwelling;
 
-  bool isLeftWinking() =>
-      _face.leftEyeOpenProbability < 0.1 && _face.rightEyeOpenProbability > 0.5;
+  bool isLeftWinking() {
+    if (_face == null)
+      return false;
+    else
+      return _face.leftEyeOpenProbability < 0.1 &&
+          _face.rightEyeOpenProbability > 0.5;
+  }
 
-  bool isRightWinking() =>
-      _face.rightEyeOpenProbability < 0.1 && _face.leftEyeOpenProbability > 0.5;
+  bool isRightWinking() {
+    if (_face == null)
+      return false;
+    else
+      return _face.rightEyeOpenProbability < 0.1 &&
+          _face.leftEyeOpenProbability > 0.5;
+  }
 
-  bool isBlinking() =>
-      _face.leftEyeOpenProbability < 0.1 && _face.rightEyeOpenProbability < 0.1;
+  bool isBlinking() {
+    if (_face == null)
+      return false;
+    else
+      return _face.leftEyeOpenProbability < 0.1 &&
+          _face.rightEyeOpenProbability < 0.1;
+  }
 
-  bool isSmiling() => _face.smilingProbability > 0.9;
-
+  bool isSmiling() {
+    if (_face == null)
+      return false;
+    else
+      return _face.smilingProbability > 0.9;
+  }
 
   bool pressingDown() {
     bool pressedDown = false;
@@ -221,6 +240,11 @@ class Pointer {
     }
   }
 
+  void setPosition(Offset pos) {
+    _position = pos;
+    updateDrawer();
+  }
+
   bool isDwellingEnabled() => _enabledSelectionModes.contains(SelectionMode.Dwelling);
 
   PointerType getType() => _type;
@@ -259,4 +283,5 @@ class Pointer {
     'XAxisMode': ''+_mapping.getXAxisMode().toString()+'',
     '"YAxisMode': ''+_mapping.getYAxisMode().toString()+'',
   };
+
 }

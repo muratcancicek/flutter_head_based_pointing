@@ -75,7 +75,7 @@ class MyMainTestViewState extends State<MyMainTestView> {
     super.initState();
     Screen.keepOn(true);
     _configScreen = ConfigScreen(context: context);
-    _cameraHandler = CameraHandler(this);
+   // _cameraHandler = CameraHandler(this);
     _taskScreen = TaskScreen(_cameraHandler, _experimentID, _subjectID,
         exitAction: _setAppStateWelcome, context: context);
 //    setTaskScreenConfiguration();
@@ -202,23 +202,30 @@ class MyMainTestViewState extends State<MyMainTestView> {
     if (_taskScreen.isStudyCompleted())
       _setAppStateWelcome();
     Widget child;
-    if (_cameraHandler.isCameraNull())
-      child = _cameraHandler.getCameraInitializationView();
-    else {
-      switch(_state) {
-        case AppState.configure:
-          child = _configScreen.getConfigsScreenView();
-          break;
-        case AppState.test:
-        case AppState.welcome:
-        default:
-          child = _taskScreen.getTaskScreenView();
-          break;
-      }
+    switch(_state) {
+      case AppState.configure:
+        child = _configScreen.getConfigsScreenView();
+        break;
+      case AppState.test:
+      case AppState.welcome:
+      default:
+        child = _taskScreen.getTaskScreenView();
+        break;
     }
-    return Container(constraints: const BoxConstraints.expand(), child: child);
+    return new GestureDetector(
+        //  onTap: () => print('tapped!'),
+      onTapDown: (TapDownDetails details) => onTapDown(context, details),
+        // onTapUp: (TapUpDetails details) => onTapUp(details),
+      child:  Container(
+        constraints: const BoxConstraints.expand(),
+          child: child
+      ),
+    );
   }
 
+  void onTapDown(BuildContext context, TapDownDetails details) {
+    setState(() { _taskScreen.onTapDown(context, details); });
+  }
   FloatingActionButton addFloatingActionButton() {
     Icon icon = const Icon(Icons.camera_front);
     if (_cameraHandler.isBackCamera())
