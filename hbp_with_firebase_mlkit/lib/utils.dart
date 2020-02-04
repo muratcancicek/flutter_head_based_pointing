@@ -104,3 +104,30 @@ Rect flipRectBasedOnCam(
     return Rect.fromLTRB(left, rect.top, right, rect.bottom);
   }
 }
+
+Rect scaleRect({
+  @required Rect rect,
+  @required Size imageSize,
+  @required Size widgetSize,
+}) {
+  final double scaleX = widgetSize.width / imageSize.width;
+  final double scaleY = widgetSize.height / imageSize.height;
+
+  return Rect.fromLTRB(
+    rect.left.toDouble() * scaleX,
+    rect.top.toDouble() * scaleY,
+    rect.right.toDouble() * scaleX,
+    rect.bottom.toDouble() * scaleY,
+  );
+}
+
+Offset scaleOffset({
+  @required Offset offset,
+  @required Size imageSize,
+  @required Size widgetSize,
+}) {
+  final double scaleX = widgetSize.width / imageSize.width;
+  final double scaleY = widgetSize.height / imageSize.height;
+
+  return Offset(offset.dx * scaleX, offset.dy * scaleY);
+}

@@ -1,239 +1,242 @@
-import 'package:flutter/material.dart';
-import 'package:camera/camera.dart';
-import 'package:firebase_ml_vision/firebase_ml_vision.dart';
+import 'package:HeadPointing/MDCTaskHandler/TaskScreen.dart';
+import 'package:HeadPointing/CameraHandler.dart';
+import 'package:HeadPointing/ConfigScreen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
-import 'face_painter.dart';
-import 'utils.dart';
-import 'pointer.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:screen/screen.dart';
 
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
+
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    // Remove the back/home/etc. buttons at the bottom of the screen
+    SystemChrome.setEnabledSystemUIOverlays([]);
+
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
         primarySwatch: Colors.deepOrange,
       ),
-      home: MyCamView(title: 'Head-based Pointing with Flutter'),
+      home: MyMainView(title: 'Head-based Pointing with Flutter'),
     );
   }
 }
 
-class MyCamView extends StatefulWidget {
-  MyCamView({Key key, this.title}) : super(key: key);
+class MyMainView extends StatefulWidget {
+  MyMainView({Key key, this.title}) : super(key: key);
   final String title;
 
   @override
-  _MyCamViewState createState() => _MyCamViewState();
+  MyMainViewState createState() => MyMainViewState();
+}
+enum MODE {
+  DEBUG,
+  RELEASE
 }
 
-class _MyCamViewState extends State<MyCamView> {
-  final FaceDetector faceDetector = FirebaseVision.instance.faceDetector(
-      FaceDetectorOptions(
-          enableClassification: false,
-          enableLandmarks: true,
-          enableTracking: true));
-  CameraController _camera;
-  List<Face> faces;
-  Pointer _pointer;
-  FlatButton _flatButton;
+enum Answers{
+  YES,
+  NO
+}
 
-  bool _isDetecting = false;
-  CameraLensDirection _direction = CameraLensDirection.front;
+enum AppState {
+  welcome,
+  configure,
+  test
+}
 
-  GlobalKey _buttonKey = GlobalKey();
-  Container _ui;
+class MyMainViewState extends State<MyMainView> {
+  AppState _state = AppState.welcome;
+  MODE _runningMode = MODE.RELEASE;
+  CameraHandler _cameraHandler;
+  ConfigScreen _configScreen;
+  TaskScreen _taskScreen;
+  String _experimentID;
+  String _subjectID;
 
-  FlatButton _addFlatButton() {
-    return FlatButton.icon(
-      color: Colors.blue,
-      icon: Icon(Icons.face), //`Icon` to display
-      label: Text('Button'), //`Text` to display
-      onPressed: () {
-        //Code to execute when Floating Action Button is clicked
-        //...
-      },
-    );
+  void setStateForImageStreaming(dynamic result)  {
+    setState(() {_taskScreen.updateInput(result, context: context); });
+  }
+
+  Future setTaskScreenConfiguration() async {
+    final config = _configScreen.getFinalConfiguration();
+    if (config != null)
+      _taskScreen.setConfiguration(config);
   }
 
   @override
   void initState() {
     super.initState();
-    _flatButton =  _addFlatButton();
-    _ui = _buildUI();
-    _initializeCamera();
+    Screen.keepOn(true);
+    _configScreen = ConfigScreen(context: context);
+    _cameraHandler = CameraHandler(this);
+    _taskScreen = TaskScreen(_cameraHandler, _experimentID, _subjectID,
+        exitAction: _setAppStateWelcome, context: context);
+//    setTaskScreenConfiguration();
   }
 
-  void _initializeCamera() async {
-    CameraDescription description = await getCamera(_direction);
-    ImageRotation rotation = rotationIntToImageRotation(
-      description.sensorOrientation,
-    );
-
-    _camera = CameraController(
-      description,
-      defaultTargetPlatform == TargetPlatform.iOS
-          ? ResolutionPreset.low
-          : ResolutionPreset.medium,
-    );
-    await _camera.initialize();
-
-    _camera.startImageStream((CameraImage image) {
-      if (_isDetecting) return;
-
-      _isDetecting = true;
-
-      detect(image, faceDetector.processImage,
-          rotation)
-          .then(
-            (dynamic result) {
-          setState(() {
-            faces = result;
-            Size size = Size(image.width.toDouble(), image.height.toDouble());
-            _pointer = Pointer(size, faces[0], _direction);
-          });
-
-          _isDetecting = false;
-        },
-      ).catchError(
-            (_) {
-          _isDetecting = false;
-        },
-      );
-    });
-  }
-
-  Positioned _addPointerCoordinates(BuildContext context) {
-    final RenderBox renderBox =context.findRenderObject();
-//    final RenderBox renderBox = _buttonKey.currentContext.findRenderObject();
-    final Offset offset = _pointer.getPosition();
-    final position = renderBox.localToGlobal(offset);
-    Iterable<HitTestEntry> entries;
-    final hitTestResult = HitTestResult();
-    if (renderBox.hitTest(hitTestResult, position: position)) {
-      // a descendant of `renderObj` got tapped
-      entries = hitTestResult.path;
-//      print(hitTestResult.path);
+  void _setAppStateWelcome()  async {
+    if (await _taskScreen.getCurrentTest().isUserSure()) {
+      _state = AppState.welcome;
+      _configScreen.reset();
+      _experimentID = null;
+      _subjectID = null;
+      _taskScreen = TaskScreen(
+          _cameraHandler, _experimentID, _subjectID, exitAction:
+      _setAppStateWelcome, context: context);
     }
-    return Positioned(
-      bottom: 0.0,
-      left: 0.0,
-      right: 0.0,
-      child: Container(
-        color: Colors.white,
-        height: 200.0,
-        child:
-//        Text(entries.length.toString()),
-        ListView(
-        children: entries.map((e) => Text(e.toString())).toList(),
-//            faces.map((face) => Text(positionRed.toString()))
-//              .map((face) => Text(face.getLandmark(FaceLandmarkType.noseBase).position.toString()))
-//              .toList(),
-      ),
-      ),
-    );
   }
 
-  Widget _buildResults() {
-    const Text noResultsText = const Text('No results!');
-
-    if (faces == null ||
-        _camera == null ||
-        !_camera.value.isInitialized) {
-      return noResultsText;
-    }
-
-    CustomPainter painter;
-
-    final Size imageSize = Size(
-      _camera.value.previewSize.height,
-      _camera.value.previewSize.width,
-    );
-//    final Size imageSize = Size(340, 700);
-    if (faces is! List<Face>) return noResultsText;
-    painter = FacePainter(imageSize, faces, _direction, _pointer);
-
-    return CustomPaint(
-      painter: painter,
-    );
+  Future _setAppStateConfigure() async {
+//    await _configScreen.loadLastConfigurations();
+    _state = AppState.configure;
   }
 
-  Container _buildUI() {
-    return Container(
-//      constraints: const BoxConstraints.expand(),
-      child: Column(
-        children: <Widget>[
-           _flatButton,
-           Text("text"),
-        ],
-      ),
-    );
+  String getUniqueExperimentID() {
+    String date = new DateTime.now().toIso8601String().replaceAll(':', '-');
+    date = date.split('.').first;
+    if (_runningMode == MODE.DEBUG)
+      date = date.split('T').last;
+    return 'EXP_$date';
   }
 
-  Widget _buildCamView(BuildContext context) {
-    return Container(
-      constraints: const BoxConstraints.expand(),
-      child: _camera == null
-          ? const Center(
-        child: Text(
-          'Initializing Camera...',
-          style: TextStyle(
-            color: Colors.green,
-            fontSize: 30.0,
-          ),
+  void addExperimentDocumentData(String path, Map<String, dynamic> data) {
+    CollectionReference exp = Firestore.instance.collection(_experimentID);
+    exp.document(path).setData(data);
+  }
+
+  Future<String> getSubjectID() async {
+    String id;
+    return await showDialog(
+      context: context,
+        builder: (_) => new SimpleDialog(
+        title: Row(
+          children: <Widget>[
+            Container(width: 80, child: Text('Enter Subject ID:')),
+            Container(
+                width: 80,
+                child: TextField(
+                  onChanged: (e){id = e;},
+                  onSubmitted: (e){id = e;},
+                )
+            )
+          ],
         ),
-      )
-          : Stack(
-        fit: StackFit.expand,
         children: <Widget>[
-          CameraPreview(_camera),
-          _addPointerCoordinates(context),
-          _buildResults(),
-          //         _ui,
-          _buildUI(),
+          new SimpleDialogOption(
+            child: new Text('OK'),
+            onPressed: (){Navigator.pop(context, id);},
+          ),
         ],
-      ),
+      )
     );
   }
 
-  void _toggleCameraDirection() async {
-    if (_direction == CameraLensDirection.back) {
-      _direction = CameraLensDirection.front;
-    } else {
-      _direction = CameraLensDirection.back;
-    }
-    await _camera.stopImageStream();
-    await _camera.dispose();
-    setState(() {
-      _camera = null;
-    });
-    _initializeCamera();
+  Future _startSavingLogsIfWanted() async {
+    _experimentID = getUniqueExperimentID();
+    final subjectID = await getSubjectID();
+    if (subjectID != null)
+      if (subjectID.length > 0) {
+        _subjectID = subjectID;
+        _experimentID = '$_experimentID-$_subjectID';
+      }
+    Firestore.instance.document(_experimentID);
+    addExperimentDocumentData('IDs', {'ID': _experimentID,
+      'SubjectID': _subjectID});
+    final configs = _configScreen.getFinalConfiguration();
+    addExperimentDocumentData('TestConfigurations', {'List': configs});
+    print('Starting $_experimentID');
   }
 
-  FloatingActionButton _addFloatingActionButton() {
+  Future _setAppStateTesting() async {
+    await _startSavingLogsIfWanted();
+    _state = AppState.test;
+    _taskScreen = TaskScreen(_cameraHandler, _experimentID, _subjectID,
+        exitAction: _setAppStateWelcome, context: context);
+    _taskScreen.startStudyScreen();
+    setTaskScreenConfiguration();
+  }
+
+  RaisedButton _getAppBarButton(String text, Function onPressed, Color color) {
+    return RaisedButton(
+      elevation: 4.0,
+      color: color,
+      textColor: Colors.white,
+      child: Text(text),
+      splashColor: Colors.blueGrey,
+      onPressed: onPressed,
+    );
+  }
+
+  List<Widget> _getAppBarButtonList() {
+    return <Widget>[
+      _getAppBarButton('Edit\nTests', _setAppStateConfigure, Colors.purpleAccent),
+      _getAppBarButton('Start', _setAppStateTesting, Colors.purple),
+    ];
+  }
+
+  AppBar getAppBar() {
+    RaisedButton backButton = _getAppBarButton('Back', _setAppStateWelcome,
+        Colors.red);
+    switch(_state) {
+      case AppState.configure:
+        return _configScreen.getAppBar(backButton);
+      case AppState.test:
+        return _taskScreen.getAppBar();
+      case AppState.welcome:
+      default:
+        return  AppBar(
+          title: Text('Head Pointing Test'),
+          actions: _getAppBarButtonList(),
+        );
+    }
+  }
+
+  Widget _buildMainView() {
+    if (_taskScreen.isStudyCompleted())
+      _setAppStateWelcome();
+    Widget child;
+    if (_cameraHandler.isCameraNull())
+      child = _cameraHandler.getCameraInitializationView();
+    else {
+      switch(_state) {
+        case AppState.configure:
+          child = _configScreen.getConfigsScreenView();
+          break;
+        case AppState.test:
+        case AppState.welcome:
+        default:
+          child = _taskScreen.getTaskScreenView();
+          break;
+      }
+    }
+    return Container(constraints: const BoxConstraints.expand(), child: child);
+  }
+
+  FloatingActionButton addFloatingActionButton() {
+    Icon icon = const Icon(Icons.camera_front);
+    if (_cameraHandler.isBackCamera())
+      icon = const Icon(Icons.camera_rear);
     return FloatingActionButton(
-      onPressed: _toggleCameraDirection,
-      child: _direction == CameraLensDirection.back
-          ? const Icon(Icons.camera_front)
-          : const Icon(Icons.camera_rear),
+      onPressed: _cameraHandler.toggleCameraDirection,
+      child: icon,
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      key: _buttonKey,
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
+      appBar: getAppBar(),
       body: Center(
-        child:  _buildCamView(context),
+        child:  _buildMainView(),
       ),
-      floatingActionButton: _addFloatingActionButton(),
+  //      floatingActionButton: _addFloatingActionButton(),
     );
   }
 }
