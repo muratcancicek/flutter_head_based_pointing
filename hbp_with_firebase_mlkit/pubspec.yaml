@@ -1,5 +1,5 @@
-name: hbp_with_firebase_mlkit
-description: An experimental Flutter App that provides head-based pointing on mobile devices.
+name: HeadPointing
+description: An experimental Flutter App that provides head-based pointing on mobile devices8.
 
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
@@ -24,13 +24,15 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^0.1.2
   firebase_ml_vision: ^0.6.0+2
-  image_picker:
+  cloud_firestore:
+  path_provider:
+  numberpicker:
+  screen: ^0.0.5
   camera: ^0.4.2
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
 
 # For information on the generic Dart part of this file, see the
 # following page: https://www.dartlang.org/tools/pub/pubspec

@@ -1,9 +1,8 @@
 {
   "ExpandedNodes": [
     "",
-    "\\face_detection_by_cam",
-    "\\face_detection_by_cam\\lib"
+    "\\firebase_face_tracking",
+    "\\firebase_face_tracking\\gen"
   ],
-  "SelectedNode": "\\face_detection_by_cam\\lib\\main.dart",
   "PreviewInSolutionExplorer": false
 }
