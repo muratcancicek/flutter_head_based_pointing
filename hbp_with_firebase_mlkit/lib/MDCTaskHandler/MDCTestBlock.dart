@@ -234,12 +234,14 @@ class MDCTestBlock {
   void _recordIfMissedSelection(selectionMoment, position) {
     if (_pointer.pressingDown()) {
       final targetWidth = _taskBuilder.getTargetWidth().toDouble();
-      final target = _targetPoints[_targetID]; // Target Index
-      if (!_pointer.touches(target, targetWidth)) {
-        final selectionMode = _pointer.getLastFiredSelectionMode();
-        final log = selectionLog(_missedSelectionID, selectionMoment, position, selectionMode, target);
-        _missedSelections.add(log);
-        _missedSelectionID++;
+      if (_targetID < _targetPoints.length) {
+        final target = _targetPoints[_targetID]; // Target Index
+        if (!_pointer.touches(target, targetWidth)) {
+          final selectionMode = _pointer.getLastFiredSelectionMode();
+          final log = selectionLog(_missedSelectionID, selectionMoment, position, selectionMode, target);
+          _missedSelections.add(log);
+          _missedSelectionID++;
+        }
       }
     }
   }

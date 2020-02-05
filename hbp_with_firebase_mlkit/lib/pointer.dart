@@ -5,6 +5,7 @@ import 'HeadToCursorMapping.dart';
 import 'dart:collection';
 
 enum SelectionMode {
+  Tapping,
   Dwelling,
   Blinking,
   LeftWinking,
@@ -18,7 +19,7 @@ class Pointer {
   Queue<int> _dwellingTimestampQueue;
   double _dwellingPercentage = 0;
   Queue<Offset> _dwellingQueue;
-  int _dwellTime = 800;
+  int _dwellTime = 0;
   double _dwellingArea = 20;
   PointerDrawer _pointerDrawer;
   HeadToCursorMapping _mapping;
@@ -175,6 +176,11 @@ class Pointer {
 
   bool pressingDown() {
     bool pressedDown = false;
+    if (_enabledSelectionModes.contains(SelectionMode.Tapping))
+      if (pressedDown) {
+        _lastFiredSelectionMode = SelectionMode.Tapping;
+      }
+      pressedDown = true;
     if (_enabledSelectionModes.contains(SelectionMode.LeftWinking))
       if (isLeftWinking()) {
         pressedDown = true;
@@ -207,6 +213,14 @@ class Pointer {
       return false;
     _pressed = pressingDown();
     return _pressed;
+  }
+
+  void tapDown() {
+    _pressed = true;
+  }
+
+  void tapUp() {
+    _pressed = false;
   }
 
   void release() {

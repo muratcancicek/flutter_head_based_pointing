@@ -254,10 +254,18 @@ class TaskScreen {
   }
 
   void onTapDown(BuildContext context, TapDownDetails details) {
-    //  print('${details.globalPosition}');
     final RenderBox box = context.findRenderObject();
     final Offset localOffset = box.globalToLocal(details.localPosition);
     _pointer.setPosition(localOffset);
+    _pointer.tapDown();
+    //updateInput(null, context: context);
+  }
+
+  void onTapUp(BuildContext context, TapUpDetails details) {
+    final RenderBox box = context.findRenderObject();
+    final Offset localOffset = box.globalToLocal(details.localPosition);
+    _pointer.setPosition(localOffset);
+    _pointer.tapUp();
     updateInput(null, context: context);
   }
 

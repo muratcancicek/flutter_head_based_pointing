@@ -7,6 +7,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:screen/screen.dart';
+import 'dart:async';
 
 void main() => runApp(MyApp());
 
@@ -60,6 +61,7 @@ class MyMainTestViewState extends State<MyMainTestView> {
   String _experimentID;
   String _subjectID;
 
+
   void setStateForImageStreaming(dynamic result)  {
     setState(() {_taskScreen.updateInput(result, context: context); });
   }
@@ -79,6 +81,11 @@ class MyMainTestViewState extends State<MyMainTestView> {
     _taskScreen = TaskScreen(_cameraHandler, _experimentID, _subjectID,
         exitAction: _setAppStateWelcome, context: context);
 //    setTaskScreenConfiguration();
+    Timer.periodic(Duration(milliseconds: 200), (Timer t) {
+      setState(() {
+        _taskScreen.updateInput(null, context: context);
+      });
+    });
   }
 
   void _setAppStateWelcome()  async {
@@ -213,9 +220,8 @@ class MyMainTestViewState extends State<MyMainTestView> {
         break;
     }
     return new GestureDetector(
-        //  onTap: () => print('tapped!'),
       onTapDown: (TapDownDetails details) => onTapDown(context, details),
-        // onTapUp: (TapUpDetails details) => onTapUp(details),
+      onTapUp: (TapUpDetails details) => onTapUp(context, details),
       child:  Container(
         constraints: const BoxConstraints.expand(),
           child: child
@@ -226,6 +232,11 @@ class MyMainTestViewState extends State<MyMainTestView> {
   void onTapDown(BuildContext context, TapDownDetails details) {
     setState(() { _taskScreen.onTapDown(context, details); });
   }
+
+  void onTapUp(BuildContext context, TapUpDetails details) {
+    setState(() { _taskScreen.onTapUp(context, details); });
+  }
+
   FloatingActionButton addFloatingActionButton() {
     Icon icon = const Icon(Icons.camera_front);
     if (_cameraHandler.isBackCamera())
